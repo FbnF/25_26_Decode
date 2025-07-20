@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Sensors;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
 @TeleOp(name = "Sensor: LED Light Strip", group = "Sensor")
 public class LEDLightStrip extends LinearOpMode {
@@ -15,7 +16,17 @@ public class LEDLightStrip extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-        blinkin = hardwareMap.get(Servo.class, "blinkin");
+//        blinkin = hardwareMap.get(Servo.class, "blinkin");
+
+        RevBlinkinLedDriver blinkin;
+        RevBlinkinLedDriver.BlinkinPattern preInit = RevBlinkinLedDriver.BlinkinPattern.CONFETTI;
+        RevBlinkinLedDriver.BlinkinPattern main = RevBlinkinLedDriver.BlinkinPattern.DARK_GREEN;
+        RevBlinkinLedDriver.BlinkinPattern endgame = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_BLUE;
+        RevBlinkinLedDriver.BlinkinPattern climbAlert = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED;
+        RevBlinkinLedDriver.BlinkinPattern AlertTest = RevBlinkinLedDriver.BlinkinPattern.COLOR_WAVES_FOREST_PALETTE;
+        blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+
+        blinkin.setPattern(preInit);
 
         double [] patternValues = {
 
@@ -28,16 +39,16 @@ public class LEDLightStrip extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            step = 0.02;
-            for (blinkinValue = -0.99; blinkinValue <= 0.99; blinkinValue += step) {
-                servoPosition = (blinkinValue + 1.0) / 2.0;
-                blinkin.setPosition(servoPosition);
-                telemetry.addData("Blinkin Value", blinkinValue);
-                telemetry.addData("Servo Position", servoPosition);
-
-                telemetry.update();
-                sleep(3000);
-            }
+            blinkin.setPattern(main);
+            sleep(5000);
+            blinkin.setPattern(climbAlert);
+            sleep(5000);
+            blinkin.setPattern(endgame);
+            sleep(5000);
+            blinkin.setPattern(AlertTest);
+            sleep(5000);
+//
+//      }
 
         }
     }
