@@ -19,7 +19,7 @@ public class LEDLightStrip extends LinearOpMode {
 //        blinkin = hardwareMap.get(Servo.class, "blinkin");
 
         RevBlinkinLedDriver blinkin;
-        RevBlinkinLedDriver.BlinkinPattern preInit = RevBlinkinLedDriver.BlinkinPattern.CONFETTI;
+        RevBlinkinLedDriver.BlinkinPattern preInit = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_WITH_GLITTER;
         RevBlinkinLedDriver.BlinkinPattern main = RevBlinkinLedDriver.BlinkinPattern.DARK_GREEN;
         RevBlinkinLedDriver.BlinkinPattern endgame = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_BLUE;
         RevBlinkinLedDriver.BlinkinPattern climbAlert = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED;
@@ -27,14 +27,7 @@ public class LEDLightStrip extends LinearOpMode {
         blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
 
         blinkin.setPattern(preInit);
-
-        double [] patternValues = {
-
-                0.67, // Red
-                0.69, // Yellow
-                0.71, // Green
-                0.73, // Blue
-        };
+        
 
         waitForStart();
 
