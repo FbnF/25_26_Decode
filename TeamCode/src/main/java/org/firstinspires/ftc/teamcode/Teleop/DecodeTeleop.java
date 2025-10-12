@@ -69,11 +69,9 @@ public class DecodeTeleop extends LinearOpMode {
                 NegPowReq=0;
                 PosPowReq=0;
                 ArmMotor.setPower(gamepad1.right_stick_y);
-            }
-            else{
-                if (PosPowReq==0 && NegPowReq==0) {
+            }   else if (PosPowReq==0 && NegPowReq==0) {
                     ArmMotor.setPower(0);
-                }
+
             }
 
             telemetry.addData("Current  Power level: ", ArmMotor.getPowerFloat());
