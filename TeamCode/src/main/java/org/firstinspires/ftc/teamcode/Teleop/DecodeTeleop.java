@@ -39,16 +39,14 @@ public class DecodeTeleop extends LinearOpMode {
             // button a to set power to 1.0
             if (gamepad1.a) {
                 PosPowReq = 1;
+                NegPowReq=0;
             }
-            if(PosPowReq==1) {
-                ArmMotor.setPower(1.0);
-            }
+
             // button b to set power to -1.0
             if (gamepad1.b) {
+                PosPowReq = 0;
                 NegPowReq = 1;
-            }
-            if (NegPowReq==1){
-                ArmMotor.setPower(-1.0);
+
             }
 
             //button x to set power to zero
@@ -58,12 +56,24 @@ public class DecodeTeleop extends LinearOpMode {
                 ArmMotor.setPower(0);
             }
 
+            if (NegPowReq==1){
+                ArmMotor.setPower(-1.0);
+            }
+            if(PosPowReq==1) {
+                ArmMotor.setPower(1.0);
+            }
+
             // right stick y controls the full range of power when it is absolute
             // value greater than 0.1
             if (Math.abs(gamepad1.right_stick_y)> 0.1 ) {
                 NegPowReq=0;
                 PosPowReq=0;
                 ArmMotor.setPower(gamepad1.right_stick_y);
+            }
+            else{
+                if (PosPowReq==0 && NegPowReq==0) {
+                    ArmMotor.setPower(0);
+                }
             }
 
             telemetry.addData("Current  Power level: ", ArmMotor.getPowerFloat());
