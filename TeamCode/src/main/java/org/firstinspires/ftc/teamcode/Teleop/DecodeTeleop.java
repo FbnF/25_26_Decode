@@ -1,0 +1,54 @@
+package org.firstinspires.ftc.teamcode.Teleop;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.Servo;
+@TeleOp(group = "Teleop")
+public class DecodeTeleop extends LinearOpMode {
+    private DcMotorEx ArmMotor;
+    private int PosPowReq =0;
+    private int NegPowReq =0;
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        ArmMotor = hardwareMap.get(DcMotorEx.class, "ArmMotor");
+        ArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        ArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        ArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // - - - Waiting for start signal from driver station - - - //
+        waitForStart();
+
+        while (!isStopRequested()) {
+
+            // - - - Mecanum drive control - - - //
+            // button a to set power to 1.0
+            if (gamepad1.a) {
+                PosPowReq = 1;
+            }
+            if(PosPowReq==1) {
+                ArmMotor.setPower(1.0);
+            }
+            // button b to set power to -1.0
+            if (gamepad1.b) {
+                NegPowReq = 1;
+            }
+            if (NegPowReq==1){
+                ArmMotor.setPower(-1.0);
+            }
+
+            //button x to set power to zero
+            if (gamepad1.x) {
+                NegPowReq=0;
+                PosPowReq=0;
+                ArmMotor.setPower(0);
+            }
+        }
+
+
+    }
+
+
+}
