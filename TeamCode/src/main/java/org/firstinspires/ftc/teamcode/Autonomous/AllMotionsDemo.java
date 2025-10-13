@@ -18,12 +18,27 @@ public class AllMotionsDemo extends LinearOpMode {
 
         // Build one continuous action so pose/tangent carry correctly between segments.
         Action all = drive.actionBuilder(startPose)
+                //new code for square
+
+
                 // ---- X motion & turning ----
-                .lineToX(24)
-                .lineToX(0)
-                .turn(Math.toRadians(90))     // 0 -> +90
-                .turn(Math.toRadians(-180))   // +90 -> -90
-                .turn(Math.toRadians(90))     // -90 -> 0
+              .lineToX( 20)
+                //.lineToX(0)
+                .turn(Math.toRadians(90))
+                .lineToX( 20)
+
+
+                // 0 -> +90
+                //.turn(Math.toRadians(-180))   // +90 -> -90
+                .turn(Math.toRadians(180))// -90 -> 0
+                .lineToY( 20)
+                .turn(Math.toRadians(270))// -90 -> 0
+                .lineToX( 20)
+                .turn(Math.toRadians(360))// -90 -> 0
+                .lineToY( 20)
+                .splineTo(new Vector2d(24, 24), Math.toRadians(0))  // end at (24,24), heading 0
+/*
+
 
                 // ---- Y motion (needs Y tangent) ----
                 .setTangent(Math.toRadians(90))   // travel along +Y
@@ -64,6 +79,8 @@ public class AllMotionsDemo extends LinearOpMode {
                         new Pose2d(0, 0, Math.toRadians(0)),
                         Math.toRadians(333.435)   // direction from (-24,12) -> (0,0)
                 )
+                */
+
                 .build();
 
         waitForStart();
