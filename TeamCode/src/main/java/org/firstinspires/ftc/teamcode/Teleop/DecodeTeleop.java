@@ -13,8 +13,11 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 @TeleOp(group = "Teleop")
 public class DecodeTeleop extends LinearOpMode {
     private DcMotorEx ArmMotor;
+    private DcMotorEx RampMotor;
     private int PosPowReq =0;
     private int NegPowReq =0;
+    private int RampPosPowReq =0;
+    private int RampNegPowReq =0;
 
 
     FtcDashboard dashboard;
@@ -29,6 +32,12 @@ public class DecodeTeleop extends LinearOpMode {
         ArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         ArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         ArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+
+        RampMotor = hardwareMap.get(DcMotorEx.class, "RampMotor");
+        RampMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RampMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RampMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // - - - Waiting for start signal from driver station - - - //
         waitForStart();
@@ -70,11 +79,54 @@ public class DecodeTeleop extends LinearOpMode {
                 PosPowReq=0;
                 ArmMotor.setPower(gamepad1.right_stick_y);
             }   else if (PosPowReq==0 && NegPowReq==0) {
-                    ArmMotor.setPower(0);
+                ArmMotor.setPower(0);
+
+            }
+            // Rampmotor
+
+            if (gamepad2.a) {
+                RampPosPowReq = 1;
+                RampNegPowReq=0;
+            }
+
+            // button b to set power to -1.0
+            if (gamepad2.b) {
+                RampPosPowReq = 0;
+                RampNegPowReq = 1;
 
             }
 
+            //button x to set power to zero
+            if (gamepad2.x) {
+                RampNegPowReq=0;
+                RampPosPowReq=0;
+                RampMotor.setPower(0);
+            }
+
+            if (RampNegPowReq==1){
+                RampMotor.setPower(-1.0);
+            }
+            if(RampPosPowReq==1) {
+                RampMotor.setPower(1.0);
+            }
+
+            // right stick y controls the full range of power when it is absolute
+            // value greater than 0.1
+            if (Math.abs(gamepad2.right_stick_y)> 0.1 ) {
+                RampNegPowReq=0;
+                RampPosPowReq=0;
+                RampMotor.setPower(gamepad2.right_stick_y);
+            }   else if (RampPosPowReq==0 && RampNegPowReq==0) {
+                RampMotor.setPower(0);
+
+            }
+
+
+
             telemetry.addData("Current  Power level: ", ArmMotor.getPower());
+            telemetry.update();
+
+            telemetry.addData("Current  Power level: ", RampMotor.getPower());
             telemetry.update();
         }
 
