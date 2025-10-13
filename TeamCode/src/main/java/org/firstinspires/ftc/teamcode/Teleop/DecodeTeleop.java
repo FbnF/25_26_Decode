@@ -74,7 +74,7 @@ public class DecodeTeleop extends LinearOpMode {
 
             }
 
-            telemetry.addData("Current  Power level: ", ArmMotor.getPowerFloat());
+            telemetry.addData("Current  Power level: ", ArmMotor.getPower());
             telemetry.update();
         }
 
