@@ -25,17 +25,17 @@ public class AllMotionsDemo extends LinearOpMode {
               .lineToX( 20)
                 //.lineToX(0)
                 .turn(Math.toRadians(90))
-                .lineToX( 20)
+                .lineToY( 20)
 
 
                 // 0 -> +90
                 //.turn(Math.toRadians(-180))   // +90 -> -90
                 .turn(Math.toRadians(180))// -90 -> 0
-                .lineToY( 20)
-                .turn(Math.toRadians(270))// -90 -> 0
                 .lineToX( 20)
-                .turn(Math.toRadians(360))// -90 -> 0
+                .turn(Math.toRadians(270))// -90 -> 0
                 .lineToY( 20)
+                .turn(Math.toRadians(360))// -90 -> 0
+                .lineToX( 20)
                 .splineTo(new Vector2d(24, 24), Math.toRadians(0))  // end at (24,24), heading 0
 /*
 
