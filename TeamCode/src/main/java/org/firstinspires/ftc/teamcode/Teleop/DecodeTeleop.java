@@ -16,8 +16,11 @@ public class DecodeTeleop extends LinearOpMode {
     private DcMotorEx RampMotor;
     private int PosPowReq =0;
     private int NegPowReq =0;
+    private int ZeroPower =0;
     private int RampPosPowReq =0;
     private int RampNegPowReq =0;
+    private int ReducePowerInd =0;
+
 
 
     FtcDashboard dashboard;
@@ -49,12 +52,16 @@ public class DecodeTeleop extends LinearOpMode {
             if (gamepad1.a) {
                 PosPowReq = 1;
                 NegPowReq=0;
+                ZeroPower =0;
+                ReducePowerInd =0;
             }
 
             // button b to set power to -1.0
             if (gamepad1.b) {
                 PosPowReq = 0;
                 NegPowReq = 1;
+                ZeroPower =0;
+                ReducePowerInd =0;
 
             }
 
@@ -62,14 +69,26 @@ public class DecodeTeleop extends LinearOpMode {
             if (gamepad1.x) {
                 NegPowReq=0;
                 PosPowReq=0;
-                ArmMotor.setPower(0);
+                ZeroPower=1;
+                ReducePowerInd =0;
+            }
+
+            //button Y to reduce power by 0.1
+            if(gamepad1.y) {
+                NegPowReq=0;
+                PosPowReq=0;
+                ZeroPower=0;
+                ReducePowerInd = ReducePowerInd +1;
             }
 
             if (NegPowReq==1){
                 ArmMotor.setPower(-1.0);
-            }
-            if(PosPowReq==1) {
+            } else if(PosPowReq==1) {
                 ArmMotor.setPower(1.0);
+            } else if(ZeroPower==1) {
+                ArmMotor.setPower(0);
+            } else if(ReducePowerInd==1) {
+                ArmMotor.setPower(Math.min(Math.max(-1.0,ArmMotor.getPower()-0.1),1.0));
             }
 
             // right stick y controls the full range of power when it is absolute
