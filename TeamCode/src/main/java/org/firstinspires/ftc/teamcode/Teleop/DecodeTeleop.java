@@ -10,10 +10,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
-@TeleOp(group = "Teleop")
+@TeleOp(group = "DecodeTeleop")
 public class DecodeTeleop extends LinearOpMode {
     private DcMotorEx LaunchMotor;
-    private DcMotorEx RampMotor;
+    private DcMotorEx IntakeMotor;
     private int PosPowReq =0;
     private int NegPowReq =0;
     private int ZeroPower =0;
@@ -35,13 +35,15 @@ public class DecodeTeleop extends LinearOpMode {
         LaunchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
         LaunchMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         LaunchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // use braking to slow the motor down faster
         LaunchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
-        RampMotor = hardwareMap.get(DcMotorEx.class, "RampMotor");
-        RampMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RampMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        RampMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        IntakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
+        IntakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        IntakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // use braking to slow the motor down faster
+        IntakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // - - - Waiting for start signal from driver station - - - //
         waitForStart();
@@ -110,7 +112,7 @@ public class DecodeTeleop extends LinearOpMode {
                 LaunchMotor.setPower(0);
 
             }
-            // Rampmotor
+            // IntakeMotor
 
             if (gamepad2.a) {
                 RampPosPowReq = 1;
@@ -128,14 +130,14 @@ public class DecodeTeleop extends LinearOpMode {
             if (gamepad2.x) {
                 RampNegPowReq=0;
                 RampPosPowReq=0;
-                RampMotor.setPower(0);
+                IntakeMotor.setPower(0);
             }
 
             if (RampNegPowReq==1){
-                RampMotor.setPower(-0.5);
+                IntakeMotor.setPower(-0.5);
             }
             if(RampPosPowReq==1) {
-                RampMotor.setPower(0.5);
+                IntakeMotor.setPower(0.5);
             }
 
             // right stick y controls the full range of power when it is absolute
@@ -143,19 +145,23 @@ public class DecodeTeleop extends LinearOpMode {
             if (Math.abs(gamepad2.right_stick_y)> 0.1 ) {
                 RampNegPowReq=0;
                 RampPosPowReq=0;
-                RampMotor.setPower(gamepad2.right_stick_y);
+                IntakeMotor.setPower(gamepad2.right_stick_y);
             }   else if (RampPosPowReq==0 && RampNegPowReq==0) {
-                RampMotor.setPower(0);
+                IntakeMotor.setPower(0);
 
             }
 
 
             // Launch Motor Info
-            telemetry.addData("Current  Launch Motor Power: ", LaunchMotor.getPower());
-            telemetry.addData("Current  Launch Motor Speed: ", LaunchMotor.getVelocity());
+            telemetry.addData("Current  Launch Motor Power: ",
+                    "%.3f", LaunchMotor.getPower());
+            telemetry.addData("Current  Launch Motor Speed: ", 
+                    "%.3f",LaunchMotor.getVelocity());
             //Intake Motor Info
-            telemetry.addData("Current  Intake Motor Power: ", RampMotor.getPower());
-            telemetry.addData("Current  Intake Motor Speed: ", RampMotor.getVelocity());
+            telemetry.addData("Current  Intake Motor Power: ", 
+                    "%.3f", IntakeMotor.getPower());
+            telemetry.addData("Current  Intake Motor Speed: ", 
+                    "%.3f", IntakeMotor.getVelocity());
             telemetry.update();
         }
 
