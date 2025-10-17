@@ -12,7 +12,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
 @TeleOp(group = "Teleop")
 public class DecodeTeleop extends LinearOpMode {
-    private DcMotorEx ArmMotor;
+    private DcMotorEx LaunchMotor;
     private DcMotorEx RampMotor;
     private int PosPowReq =0;
     private int NegPowReq =0;
@@ -20,6 +20,7 @@ public class DecodeTeleop extends LinearOpMode {
     private int RampPosPowReq =0;
     private int RampNegPowReq =0;
     private int ReducePowerInd =0;
+    private double MotorPowerSign =0;
 
 
 
@@ -31,10 +32,10 @@ public class DecodeTeleop extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
-        ArmMotor = hardwareMap.get(DcMotorEx.class, "ArmMotor");
-        ArmMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        ArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        ArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        LaunchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
+        LaunchMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LaunchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LaunchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         RampMotor = hardwareMap.get(DcMotorEx.class, "RampMotor");
@@ -78,17 +79,23 @@ public class DecodeTeleop extends LinearOpMode {
                 NegPowReq=0;
                 PosPowReq=0;
                 ZeroPower=0;
+                // Increase Reduce Power indicator count by 1
                 ReducePowerInd = ReducePowerInd +1;
+            } else {
+                // Reset the Reduce Power indicator count to zero
+                ReducePowerInd =0;
             }
 
             if (NegPowReq==1){
-                ArmMotor.setPower(-1.0);
+                LaunchMotor.setPower(-1.0);
             } else if(PosPowReq==1) {
-                ArmMotor.setPower(1.0);
+                LaunchMotor.setPower(1.0);
             } else if(ZeroPower==1) {
-                ArmMotor.setPower(0);
+                LaunchMotor.setPower(0);
             } else if(ReducePowerInd==1) {
-                ArmMotor.setPower(Math.min(Math.max(-1.0,ArmMotor.getPower()+0.1),1.0));
+                MotorPowerSign = Math.signum(LaunchMotor.getPower());
+                LaunchMotor.setPower(
+                        Math.min(Math.max(-1.0,LaunchMotor.getPower()-MotorPowerSign*0.1),1.0));
             }
 
             // right stick y controls the full range of power when it is absolute
@@ -96,9 +103,11 @@ public class DecodeTeleop extends LinearOpMode {
             if (Math.abs(gamepad1.right_stick_y)> 0.1 ) {
                 NegPowReq=0;
                 PosPowReq=0;
-                ArmMotor.setPower(gamepad1.right_stick_y);
+                ReducePowerInd =0;
+                ZeroPower =0;
+                LaunchMotor.setPower(gamepad1.right_stick_y);
             }   else if (PosPowReq==0 && NegPowReq==0) {
-                ArmMotor.setPower(0);
+                LaunchMotor.setPower(0);
 
             }
             // Rampmotor
@@ -142,8 +151,8 @@ public class DecodeTeleop extends LinearOpMode {
 
 
             // Launch Motor Info
-            telemetry.addData("Current  Launch Motor Power: ", ArmMotor.getPower());
-            telemetry.addData("Current  Launch Motor Speed: ", ArmMotor.getVelocity());
+            telemetry.addData("Current  Launch Motor Power: ", LaunchMotor.getPower());
+            telemetry.addData("Current  Launch Motor Speed: ", LaunchMotor.getVelocity());
             //Intake Motor Info
             telemetry.addData("Current  Intake Motor Power: ", RampMotor.getPower());
             telemetry.addData("Current  Intake Motor Speed: ", RampMotor.getVelocity());
