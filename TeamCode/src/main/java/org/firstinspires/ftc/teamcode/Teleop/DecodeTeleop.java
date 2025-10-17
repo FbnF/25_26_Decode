@@ -88,7 +88,7 @@ public class DecodeTeleop extends LinearOpMode {
             } else if(ZeroPower==1) {
                 ArmMotor.setPower(0);
             } else if(ReducePowerInd==1) {
-                ArmMotor.setPower(Math.min(Math.max(-1.0,ArmMotor.getPower()-0.1),1.0));
+                ArmMotor.setPower(Math.min(Math.max(-1.0,ArmMotor.getPower()+0.1),1.0));
             }
 
             // right stick y controls the full range of power when it is absolute
@@ -123,10 +123,10 @@ public class DecodeTeleop extends LinearOpMode {
             }
 
             if (RampNegPowReq==1){
-                RampMotor.setPower(-1.0);
+                RampMotor.setPower(-0.5);
             }
             if(RampPosPowReq==1) {
-                RampMotor.setPower(1.0);
+                RampMotor.setPower(0.5);
             }
 
             // right stick y controls the full range of power when it is absolute
@@ -141,11 +141,12 @@ public class DecodeTeleop extends LinearOpMode {
             }
 
 
-
-            telemetry.addData("Current  Power level: ", ArmMotor.getPower());
-            telemetry.update();
-
-            telemetry.addData("Current  Power level: ", RampMotor.getPower());
+            // Launch Motor Info
+            telemetry.addData("Current  Launch Motor Power: ", ArmMotor.getPower());
+            telemetry.addData("Current  Launch Motor Speed: ", ArmMotor.getVelocity());
+            //Intake Motor Info
+            telemetry.addData("Current  Intake Motor Power: ", RampMotor.getPower());
+            telemetry.addData("Current  Intake Motor Speed: ", RampMotor.getVelocity());
             telemetry.update();
         }
 
