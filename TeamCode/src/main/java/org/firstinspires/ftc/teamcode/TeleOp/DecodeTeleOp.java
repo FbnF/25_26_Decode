@@ -6,11 +6,9 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -36,11 +34,24 @@ public class DecodeTeleOp extends LinearOpMode {
     //shooter velocity constants
     double g = 9.8; //m/s^2
     double x;
-    double Feta = 89.98;
+    double Theta = 89.98;
     double HGoal = 0.984;//in meters
     double HShoot = 0.248;//in meters
 
+    double Vtip;
+
+    double Radius = 0.0048;
+
+    double PulsePerRev = 28;
+
+    double RPM;
+
+    double TargetTicksPerSecond;
+
+    double effiencyFactor = 0.2;
     double VelOfShooter;
+        double numerator;
+        double denominator;
 
     // boolean isIntakeRunning;
     @Override
@@ -75,7 +86,13 @@ public class DecodeTeleOp extends LinearOpMode {
             if (x == -1) {
                 VelOfShooter = 0;
             } else {
-                VelOfShooter = Math.sqrt(g * Math.pow(x, 2) / (2 * Math.pow(Math.cos(Feta), 2)) * (x * Math.tan(Feta) - (HGoal - HShoot)));
+                numerator = g * Math.pow(x,2);
+                denominator = 2 * Math.pow(Math.cos(Theta),2) * (x * Math.tan(Theta)-(HGoal-HShoot));
+                VelOfShooter = Math.sqrt(numerator/denominator);
+                RPM = (60* effiencyFactor)/(2*Math.PI*Radius);
+                Vtip = RPM * (2*Math.PI*Radius)/60;
+                TargetTicksPerSecond = RPM * (PulsePerRev/60);
+
             }
             /*
 
@@ -124,6 +141,10 @@ public class DecodeTeleOp extends LinearOpMode {
             drive.setDrivePowers(drivePower);
 
             drive.updatePoseEstimate();
+            telemetry.addData("RPM", RPM);
+            telemetry.addData("Vtip", Vtip);
+            telemetry.addData("Target Ticks Per Second", TargetTicksPerSecond);
+
             telemetry.addData("Axial (Forward/Back)", axial);
             telemetry.addData("Lateral (Strafe)", lateral);
             telemetry.addData("Heading (Turn)", heading);
@@ -213,7 +234,7 @@ public class DecodeTeleOp extends LinearOpMode {
                 telemetry.addData("Tag Center (px)",
                         String.format("(%.0f, %.0f)", tag.center.x, tag.center.y));
             }
-            return (tag.ftcPose.y);
+            return (tag.ftcPose.y * 0.0254);
 
         }
         return(0);
