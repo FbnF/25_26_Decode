@@ -43,7 +43,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
 
          launchPower = 0.0;
-         intakePower = 0.3;
+         intakePower = 0.4;
          intakeMotor=hardwareMap.get(DcMotorEx.class, "IntakeMotor");
          launchMotor=hardwareMap.get(DcMotorEx.class,"LaunchMotor");
          launchMotor.setDirection(DcMotorSimple.Direction.REVERSE);

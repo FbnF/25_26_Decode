@@ -6,6 +6,9 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -26,7 +29,7 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
     private AprilTagProcessor aprilTag;
 
     //DcMotorEx intakeMotor;
-    //DcMotorEx launchMotor;
+    DcMotorEx launchMotor;
     //double launchPower;
 
     //shooter velocity constants
@@ -38,26 +41,31 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
 
     double denominator;
     double numerator;
+    double effiencyFactor = 0.2;
 
     double VelOfShooter;
+    double Vtip;
 
+    double Radius = 0.0048;
+
+    double PulsePerRev = 28;
+
+    double RPM;
+
+    double TargetTicksPerSecond = 0;
+    
     // boolean isIntakeRunning;
     @Override
     public void runOpMode() {
         // Initialize the drive class
-         double Vtip;
+        double VelOfShooter;
+        double TargetTicksPerSecond;
 
-         double Radius = 0.0048;
+        double Vtip;
 
-         double PulsePerRev = 28;
-
-         double RPM;
-
-         double TargetTicksPerSecond;
-
-         double effiencyFactor = 0.2;
-         double VelOfShooter;
-        drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+        //    drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+        //DcMotorEx shooterMotor;
+        launchMotor = hardwareMap.get(DcMotorEx.class, "launchMotor");
         speedFactor = 0.5;
 
         initAprilTag();
@@ -86,13 +94,15 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
             x = telemetryAprilTag();
             if (x == -1) {
                 VelOfShooter = 0;
+                launchMotor.setVelocity(0);
             } else {
-                numerator = g * Math.pow(x,2);
-                denominator = 2 * Math.pow(Math.cos(Theta),2) * (x * Math.tan(Theta)-(HGoal-HShoot));
-                VelOfShooter = Math.sqrt(numerator/denominator);
-                RPM = (60* effiencyFactor)/(2*Math.PI*Radius);
-                Vtip = RPM * (2*Math.PI*Radius)/60;
-                TargetTicksPerSecond = RPM * (PulsePerRev/60);
+                numerator = g * Math.pow(x, 2);
+                denominator = 2 * Math.pow(Math.cos(Theta), 2) * (x * Math.tan(Theta) - (HGoal - HShoot));
+                VelOfShooter = Math.sqrt(numerator / denominator);
+                RPM = (60 * effiencyFactor) / (2 * Math.PI * Radius);
+                Vtip = RPM * (2 * Math.PI * Radius) / 60;
+                TargetTicksPerSecond = RPM * (PulsePerRev / 60);
+                launchMotor.setVelocity(TargetTicksPerSecond);
                 telemetry.addData("TPS", TargetTicksPerSecond);
                 telemetry.update();
             }
@@ -131,7 +141,7 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
 
             //launch system
 */
-            PoseVelocity2d drivePower = new PoseVelocity2d(
+         /*   PoseVelocity2d drivePower = new PoseVelocity2d(
                     new Vector2d(
                             axial,
                             lateral
@@ -139,10 +149,12 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
                     heading
 
             );
-            //Set drive powers
-            drive.setDrivePowers(drivePower);
+            */
 
-            drive.updatePoseEstimate();
+            //Set drive powers
+          //  drive.setDrivePowers(drivePower);
+
+         //   drive.updatePoseEstimate();
             telemetry.addData("Axial (Forward/Back)", axial);
             telemetry.addData("Lateral (Strafe)", lateral);
             telemetry.addData("Heading (Turn)", heading);

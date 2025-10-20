@@ -14,7 +14,7 @@ public class Motor extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()){
             if (gamepad1.a) {
-                my_Frontmotor.setPower(0.3);
+                my_Frontmotor.setPower(0.6);
             }
             /*
             else if (gamepad1.b){
