@@ -10,15 +10,18 @@ public class Motor extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-        my_Frontmotor=hardwareMap.get(DcMotor.class,"frontMotor");
+        my_Frontmotor=hardwareMap.get(DcMotor.class,"IntakeMotor");
         waitForStart();
         while (opModeIsActive()){
             if (gamepad1.a) {
-                my_Frontmotor.setPower(1);
+                my_Frontmotor.setPower(0.6);
             }
+            /*
             else if (gamepad1.b){
                 my_Frontmotor.setPower(-1);
             }
+
+             */
         }
     }
 }
