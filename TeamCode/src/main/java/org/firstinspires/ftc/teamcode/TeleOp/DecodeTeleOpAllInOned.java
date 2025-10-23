@@ -99,7 +99,7 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
                 numerator = g * Math.pow(x, 2);
                 denominator = 2 * Math.pow(Math.cos(Theta), 2) * (x * Math.tan(Theta) - (HGoal - HShoot));
                 VelOfShooter = Math.sqrt(numerator / denominator);
-                RPM = (60 * effiencyFactor) / (2 * Math.PI * Radius);
+                RPM = (60 * VelOfShooter) / (2 * Math.PI * Radius * effiencyFactor);
                 Vtip = RPM * (2 * Math.PI * Radius) / 60;
                 TargetTicksPerSecond = RPM * (PulsePerRev / 60);
                 launchMotor.setVelocity(TargetTicksPerSecond);
