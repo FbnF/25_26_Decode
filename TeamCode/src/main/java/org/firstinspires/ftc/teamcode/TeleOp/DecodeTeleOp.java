@@ -11,58 +11,56 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-import org.firstinspires.ftc.teamcode.TeleOp.DistanceCalc;
-//import org.firstinspires.ftc.teamcode.MecanumDrive; // Make sure this import is correct for your project
 
+//import org.firstinspires.ftc.teamcode.TeleOp.DistanceCalc;
+import org.firstinspires.ftc.teamcode.MecanumDrive; // Make sure this import is correct for your project
+import com.qualcomm.robotcore.hardware.Servo;
 import java.util.List;
 
 @TeleOp(group = "DecodeTeleop")
 public class DecodeTeleOp extends LinearOpMode {
-    //MecanumDrive drive;
-    //double speedFactor;
-
+    MecanumDrive drive;
+    double speedFactor;
+    Servo feedServo;
     double ticksPerSec;
     double intakePower;
     double launchPower;
     DcMotorEx intakeMotor;
     DcMotorEx launchMotor;
     boolean isIntakeRunning;
+    boolean isFeedServoDown;
     @Override
     public void runOpMode() {
         // Initialize the drive class
 
-        //drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
-        //speedFactor = 0.5;
+        drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+        speedFactor = 0.5;
 
-
+        //feedServo.setPosition(0);
+        isFeedServoDown = false;
 
          launchPower = 0.0;
-         intakePower = 0.4;
+         intakePower = 0.0;
          intakeMotor=hardwareMap.get(DcMotorEx.class, "IntakeMotor");
          launchMotor=hardwareMap.get(DcMotorEx.class,"LaunchMotor");
-         launchMotor.setDirection(DcMotorSimple.Direction.REVERSE);
          isIntakeRunning = true;
          intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+         feedServo = hardwareMap.get(Servo.class, "feedServo");
+         feedServo.setPosition(0); // Initial position
 
         // Wait for the start button to be pressed
+        intakeMotor.setPower(0);
+        launchMotor.setPower(0);
         waitForStart();
-        intakeMotor.setPower(intakePower);
-        launchMotor.setPower(launchPower);
-
         // Ensure the op mode is active and the robot is not interrupted
         while (opModeIsActive()) {
             // Get input from the gamepad
-            //double axial = -gamepad1.right_stick_y * speedFactor; // Invert the y-axis
-            //double lateral = -gamepad1.left_stick_x * speedFactor;  // Strafe is x-axis
-            //double heading = -gamepad1.right_stick_x * speedFactor;
+            double axial = -gamepad1.right_stick_y * speedFactor; // Invert the y-axis
+            double lateral = gamepad1.left_stick_x * speedFactor;  // Strafe is x-axis
+            double heading = gamepad1.right_stick_x * speedFactor;
             //ticksPerSec = DistanceCalc.DistanceCalc();
-            //telemetry.addData("tps", ticksPerSec);
+            telemetry.addData("tps", ticksPerSec);
             //telemetry.addData("distance calc", DistanceCalc.DistanceCalc());
             // Rotation is x-axis of right stick
 
@@ -72,7 +70,7 @@ public class DecodeTeleOp extends LinearOpMode {
                 if(isIntakeRunning){
                     intakeMotor.setPower(0);
                 } else {
-                    intakeMotor.setPower(0.5);
+                    intakeMotor.setPower(0.4);
                 }
                 isIntakeRunning = !isIntakeRunning;
             }
@@ -97,7 +95,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
             //launch speed
             if(gamepad1.dpadUpWasPressed()){
-                if (launchPower - 0.1 == -1.0){
+                if (launchPower - 0.1 < -1.0){
                     launchPower = -1.0;
                 }
                 else{
@@ -106,7 +104,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
             }
             else if (gamepad1.dpadDownWasPressed()) {
-                if (launchPower + 0.1 < 0){
+                if (launchPower + 0.1 > 0){
                     launchPower = 0;
                 }
                 else {
@@ -115,29 +113,38 @@ public class DecodeTeleOp extends LinearOpMode {
             }
             launchMotor.setPower(launchPower);
 
+            if(gamepad1.a && isFeedServoDown){
+                feedServo.setPosition(0);
+                isFeedServoDown = !isFeedServoDown;
+            }
+            if(gamepad1.b && !isFeedServoDown){
+                feedServo.setPosition(0.75);
+                isFeedServoDown = !isFeedServoDown;
+            }
+
 
             //launch system
-/*
+
             PoseVelocity2d drivePower = new PoseVelocity2d(
                     new Vector2d(
-                            axial,
+                            heading,
                             lateral
                     ),
-                    heading
+                    axial
 
             );
 
- */
+
             //Set drive powers
-            //drive.setDrivePowers(drivePower);
+            drive.setDrivePowers(drivePower);
 
-            //drive.updatePoseEstimate();
+            drive.updatePoseEstimate();
 
-            //telemetry.addData("Axial (Forward/Back)", axial);
-            //telemetry.addData("Lateral (Strafe)", lateral);
-            //telemetry.addData("Heading (Turn)", heading);
+            telemetry.addData("Axial (Forward/Back)", axial);
+            telemetry.addData("Lateral (Strafe)", lateral);
+            telemetry.addData("Heading (Turn)", heading);
             telemetry.addData("Launch speed", launchMotor.getPower());
-            telemetry.addData("Launch speed", intakeMotor.getPower());
+            telemetry.addData("Intake speed", intakeMotor.getPower());
             telemetry.addData("is intake running?", isIntakeRunning);
             telemetry.update();
 
