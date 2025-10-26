@@ -151,7 +151,7 @@ public class DecodeTeleop extends LinearOpMode {
 
             }
 
-
+            telemetry.addData("Current  Redcued Poer Indicator:", ReducePowerInd);
             // Launch Motor Info
             telemetry.addData("Current  Launch Motor Power: ",
                     "%.3f", LaunchMotor.getPower());
