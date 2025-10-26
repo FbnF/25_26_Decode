@@ -17,23 +17,22 @@ public class AutoMain extends LinearOpMode {
 
     // Small helper Action that sets a motor power once and immediately completes
     private static Action motorPower(DcMotor m, double p) {
-        return (TelemetryPacket packet) -> { m.setPower(p); return true; };
+        return (TelemetryPacket packet) -> { m.setPower(Math.abs(p)); return true; };
     }
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(0, 0, Math.toRadians(0));
+        Pose2d startPose = new Pose2d(60, 22, Math.toRadians(180));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         // Motors you want to toggle during "waits"
         DcMotor intakeMotor = hardwareMap.get(DcMotor.class, "IntakeMotor");
-        DcMotorEx launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor"); // unused here, just leaving as-is
+        DcMotor launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor"); // unused here, just leaving as-is
         intakeMotor.setPower(0);
 
         Action all = drive.actionBuilder(startPose)
-
                 // --- Leg 1 ---
-                .splineTo(new Vector2d(0, 0), Math.toRadians(135))
+                .splineTo(new Vector2d(15, -10), Math.toRadians(135))
 
                 .stopAndAdd(motorPower(launchMotor, 1.0))   // ON
                 .waitSeconds(2)
@@ -77,7 +76,6 @@ public class AutoMain extends LinearOpMode {
                 .stopAndAdd(motorPower(launchMotor, 1.0))   // ON
                 .waitSeconds(2)
                 .stopAndAdd(motorPower(launchMotor, 0.0))   // OFF
-
                 .build();
 
         waitForStart();

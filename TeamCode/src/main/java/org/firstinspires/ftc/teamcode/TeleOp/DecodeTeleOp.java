@@ -56,9 +56,9 @@ public class DecodeTeleOp extends LinearOpMode {
         // Ensure the op mode is active and the robot is not interrupted
         while (opModeIsActive()) {
             // Get input from the gamepad
-            double axial = -gamepad1.right_stick_y * speedFactor; // Invert the y-axis
-            double lateral = gamepad1.left_stick_x * speedFactor;  // Strafe is x-axis
-            double heading = gamepad1.right_stick_x * speedFactor;
+            double axial = gamepad1.right_stick_y * speedFactor; // Invert the y-axis
+            double lateral = -gamepad1.left_stick_x * speedFactor;  // Strafe is x-axis
+            double heading = gamepad1.right_stick_y * speedFactor;
             //ticksPerSec = DistanceCalc.DistanceCalc();
             telemetry.addData("tps", ticksPerSec);
             //telemetry.addData("distance calc", DistanceCalc.DistanceCalc());
@@ -95,21 +95,27 @@ public class DecodeTeleOp extends LinearOpMode {
 
             //launch speed
             if(gamepad1.dpadUpWasPressed()){
+                launchPower = 0.7;
+                /*
                 if (launchPower - 0.1 < -1.0){
                     launchPower = -1.0;
                 }
                 else{
                     launchPower=launchPower+0.1;
                 }
-
+*/
             }
             else if (gamepad1.dpadDownWasPressed()) {
-                if (launchPower + 0.1 > 0){
+                launchPower = 0;
+                /*
+                if (launchPower + 0.1 < 0){
                     launchPower = 0;
                 }
                 else {
                     launchPower=launchPower-0.1;
                 }
+
+                 */
             }
             launchMotor.setPower(launchPower);
 
@@ -118,7 +124,7 @@ public class DecodeTeleOp extends LinearOpMode {
                 isFeedServoDown = !isFeedServoDown;
             }
             if(gamepad1.b && !isFeedServoDown){
-                feedServo.setPosition(0.75);
+                feedServo.setPosition(1);
                 isFeedServoDown = !isFeedServoDown;
             }
 
@@ -127,10 +133,11 @@ public class DecodeTeleOp extends LinearOpMode {
 
             PoseVelocity2d drivePower = new PoseVelocity2d(
                     new Vector2d(
-                            heading,
-                            lateral
+                            axial,
+                            heading
                     ),
-                    axial
+
+                    lateral
 
             );
 
