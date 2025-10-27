@@ -54,6 +54,11 @@ public class TeleOpMain extends LinearOpMode {
 
     private long lastFeedNs = 0; // cooldown for feed toggle
 
+
+    private boolean feedPulseActive = false;
+    private long feedPulseStartNs = 0;
+    private static final long FEED_DWELL_NS = 150_000_000L; // 150 ms
+
     @Override
     public void runOpMode() {
 
@@ -129,6 +134,7 @@ public class TeleOpMain extends LinearOpMode {
                 telemetry.addLine("📷 Vision: OFF");
             }
 
+            /* -------------------- COMMENTED OUT: Manual/AUTO mode & manual TPS control (avoids X/B/Y clashes) --------------------
             // --- Manual/AUTO mode toggle & manual TPS control ---
             boolean xEdge    = gamepad2.x && !prevX;      // toggle manual/auto
             boolean upEdge   = gamepad2.dpad_up && !prevUp;   // increase TPS
@@ -152,6 +158,7 @@ public class TeleOpMain extends LinearOpMode {
                 if (bEdge) manualTps = clamp(1600, MAN_TPS_MIN, MAN_TPS_MAX);
                 if (yEdge) manualTps = clamp(2400, MAN_TPS_MIN, MAN_TPS_MAX);
             }
+            -------------------- END COMMENTED OUT -------------------- */
 
             // --- Shooter control using config + calculations ---
             Double tpsTarget = null;
@@ -178,45 +185,48 @@ public class TeleOpMain extends LinearOpMode {
                 }
             }
 */
+            // --- Four fixed power levels + feed pulse trigger ---
             if (gamepad2.x){
+                launchMotor.setPower(1.0);
 
-                launchMotor.setPower(1);
-
-                if (launchMotor.getPower()>0){
+                if (!feedPulseActive && launchMotor.getPower() > 0.0) {
                     feedServo.setPosition(0.75);
-                    feedServo.setPosition(0);
+                    feedPulseActive = true;
+                    feedPulseStartNs = System.nanoTime();
                 }
-
             }
             if (gamepad2.y){
-
                 launchMotor.setPower(0.7);
-
-                if (launchMotor.getPower()>0){
+                if (!feedPulseActive && launchMotor.getPower() > 0.0) {
                     feedServo.setPosition(0.75);
-                    feedServo.setPosition(0);
+                    feedPulseActive = true;
+                    feedPulseStartNs = System.nanoTime();
                 }
-
             }
             if (gamepad2.b){
-
                 launchMotor.setPower(0.5);
-
-                if (launchMotor.getPower()>0){
+                if (!feedPulseActive && launchMotor.getPower() > 0.0) {
                     feedServo.setPosition(0.75);
-                    feedServo.setPosition(0);
+                    feedPulseActive = true;
+                    feedPulseStartNs = System.nanoTime();
                 }
-
             }
             if (gamepad2.a){
-
                 launchMotor.setPower(0.3);
-
-                if (launchMotor.getPower()>0){
+                if (!feedPulseActive && launchMotor.getPower() > 0.0) {
                     feedServo.setPosition(0.75);
-                    feedServo.setPosition(0);
+                    feedPulseActive = true;
+                    feedPulseStartNs = System.nanoTime();
                 }
+            }
 
+
+            if (feedPulseActive) {
+                long now = System.nanoTime();
+                if (now - feedPulseStartNs >= FEED_DWELL_NS) {
+                    feedServo.setPosition(0.0);
+                    feedPulseActive = false;
+                }
             }
 
             if (tpsTarget != null) {
@@ -245,26 +255,17 @@ public class TeleOpMain extends LinearOpMode {
                 telemetry.addData("Δ TPS", "%.1f", tpsTarget - vel);
                 telemetry.addData("Tol (≤)", "%.1f", ShooterConfig.TPS_TOL);
             }
-            // >>> CHANGED: removed the else that forced setVelocity(0.0) so your X/Y/B/A power settings are not overridden.
-            // else {
-            //     launchMotor.setVelocity(0.0);
-            //     telemetry.addLine("Shooter IDLE");
-            // }
+            // (Keep the previously removed else that forced setVelocity(0.0) removed.)
 
             // --- Intake toggle (RB edge) ---
-            // >>> CHANGED: use standard edge detection; the stock Gamepad has no rightBumperWasPressed().
-            boolean rbEdge = gamepad2.right_bumper && !prevRB; // Detect rising edge
+
+            boolean rbEdge = gamepad2.right_bumper && !prevRB; // rising edge
             if (rbEdge) {
                 isIntakeRunning = !isIntakeRunning;
                 if (isIntakeRunning) {
-                    //intakePower = Math.max(0.0, Math.min(1.0, 0.5)); // start at 0.5
-                    if (gamepad2.x){
-                        intakePower = 0.0;
-                    } else if (gamepad2.y) {
-                        intakePower = 0.8;
-
+                    if (intakePower <= 0.0) {
+                        intakePower = 0.5; // default start power
                     }
-
                     intakeMotor.setPower(intakePower);
                 } else {
                     intakeMotor.setPower(0.0);
@@ -272,16 +273,16 @@ public class TeleOpMain extends LinearOpMode {
             }
 
             // --- Intake power trim with dpad (edges) ---
-            boolean dpadRightEdge = gamepad2.dpad_right && !prevDpadRight; // Detects the moment the dpdadRight is newly pressed (rising edge)
-            boolean dpadLeftEdge  = gamepad2.dpad_left  && !prevDpadLeft; // Detects the moment the dpdadLeft is newly pressed (rising edge)
-            if (dpadRightEdge)      intakePower = Math.min(1.0,  intakePower + 0.1); // If dpadRight is pressed  set the intakePower to the min of 1 and intakePower + 0.1 (prevents it from going beyond 1)
-            else if (dpadLeftEdge)  intakePower = Math.max(0.0, intakePower - 0.1); // If dpadRight is pressed  set the intakePower to the min of 1 and intakePower - 0.1 (prevents it from going beyond 1)
-            if (isIntakeRunning)    intakeMotor.setPower(intakePower); // If inTake is Running set power to the power
+            boolean dpadRightEdge = gamepad2.dpad_right && !prevDpadRight; // rising edge
+            boolean dpadLeftEdge  = gamepad2.dpad_left  && !prevDpadLeft;  // rising edge
+            if (dpadRightEdge)      intakePower = Math.min(1.0,  intakePower + 0.1);
+            else if (dpadLeftEdge)  intakePower = Math.max(0.0, intakePower - 0.1);
+            if (isIntakeRunning)    intakeMotor.setPower(intakePower);
 
             telemetry.addData("Vision", visionEnabled ? "ON" : "OFF");
             telemetry.addData("Intake", isIntakeRunning ? "RUNNING" : "STOPPED");
             telemetry.addData("Intake Power", "%.1f", intakePower);
-            telemetry.addData("Intake Power", "%.1f", launchMotor.getVelocity());
+            telemetry.addData("Shooter Vel (tps)", "%.1f", launchMotor.getVelocity());
             telemetry.update();
 
             // Edge bookkeeping
