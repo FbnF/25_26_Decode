@@ -34,7 +34,7 @@ public final class Calculations {
                                               double shooterH, double targetH) {
         final double cos = Math.cos(launchRad);
         final double tan = Math.tan(launchRad);
-        final double deltaH = shooterH - targetH;
+        final double deltaH = targetH - shooterH;
         final double denom = 2.0 * cos * cos * (x * tan - deltaH);
 
         if (x <= 0 || denom <= 0 || g <= 0) return Double.NaN;

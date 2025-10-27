@@ -30,7 +30,7 @@ public class TeleOpMain extends LinearOpMode {
     private boolean visionEnabled = true; // allows camera to be toggled on/off
 
     // --- Drive/settings ---
-    private double speedFactor = 0.5;
+    private double speedFactor = 0.7;
     final double SPEED_MIN = 0.2;
     final double SPEED_MAX = 1.0;
     final double SPEED_STEP = 0.1;
@@ -79,7 +79,7 @@ public class TeleOpMain extends LinearOpMode {
 
         // Safe startup
         intakeMotor.setPower(0.0);
-        launchMotor.setVelocity(0.0);
+        launchMotor.setPower(0.0);
 
         while (opModeIsActive()) {
 
@@ -92,7 +92,7 @@ public class TeleOpMain extends LinearOpMode {
             double axial   = -gamepad1.right_stick_y * speedFactor; // up = forward (+x)
             double lateral = -gamepad1.left_stick_x  * speedFactor; // right = strafe right (−y)
             double heading = -gamepad1.right_stick_x * speedFactor; // right = turn right (−CCW = CW)
-            
+
             drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), heading));
             drive.setDrivePowers(
                     new PoseVelocity2d(new Vector2d(axial, lateral), heading)
@@ -121,13 +121,8 @@ public class TeleOpMain extends LinearOpMode {
                     telemetry.addLine("🟥 AprilTag: NOT DETECTED");
                 } else {
                     telemetry.addLine("🟩 AprilTag: DETECTED");
-                    //telemetry.addData("Tag ID", reading.id);
                     telemetry.addData("Position (in)", String.format("X: %.1f  Y: %.1f  Z: %.1f",
                             reading.xIn, reading.yIn, reading.zIn));
-                    //telemetry.addData("Range (in)", String.format("%.1f", reading.rangeIn));
-                    //telemetry.addData("Bearing (deg)", String.format("%.1f", reading.bearingDeg));
-                    //telemetry.addData("Elevation (deg)", String.format("%.1f", reading.elevDeg));
-                    //telemetry.addData("Smoothed Dist (in)", String.format("%.1f", reading.smoothedDistanceIn));
                     rangeIn = reading.smoothedDistanceIn; // may be NaN if we haven’t seen a tag yet
                 }
             } else {
@@ -160,7 +155,7 @@ public class TeleOpMain extends LinearOpMode {
 
             // --- Shooter control using config + calculations ---
             Double tpsTarget = null;
-
+/*
             if (manualMode) {
                 tpsTarget = manualTps;
             } else if (!Double.isNaN(rangeIn) && rangeIn > ShooterConfig.MIN_RANGE_IN) {
@@ -181,6 +176,47 @@ public class TeleOpMain extends LinearOpMode {
                     launchMotor.setVelocity(0.0);
                     telemetry.addLine("Shooter TPS invalid → motor stopped");
                 }
+            }
+*/
+            if (gamepad2.x){
+
+                launchMotor.setPower(1);
+
+                if (launchMotor.getPower()>0){
+                    feedServo.setPosition(0.75);
+                    feedServo.setPosition(0);
+                }
+
+            }
+            if (gamepad2.y){
+
+                launchMotor.setPower(0.7);
+
+                if (launchMotor.getPower()>0){
+                    feedServo.setPosition(0.75);
+                    feedServo.setPosition(0);
+                }
+
+            }
+            if (gamepad2.b){
+
+                launchMotor.setPower(0.5);
+
+                if (launchMotor.getPower()>0){
+                    feedServo.setPosition(0.75);
+                    feedServo.setPosition(0);
+                }
+
+            }
+            if (gamepad2.a){
+
+                launchMotor.setPower(0.3);
+
+                if (launchMotor.getPower()>0){
+                    feedServo.setPosition(0.75);
+                    feedServo.setPosition(0);
+                }
+
             }
 
             if (tpsTarget != null) {
@@ -208,17 +244,27 @@ public class TeleOpMain extends LinearOpMode {
                 telemetry.addData("TPS Measured", vel);
                 telemetry.addData("Δ TPS", "%.1f", tpsTarget - vel);
                 telemetry.addData("Tol (≤)", "%.1f", ShooterConfig.TPS_TOL);
-            } else {
-                launchMotor.setVelocity(0.0);
-                telemetry.addLine("Shooter IDLE");
             }
+            // >>> CHANGED: removed the else that forced setVelocity(0.0) so your X/Y/B/A power settings are not overridden.
+            // else {
+            //     launchMotor.setVelocity(0.0);
+            //     telemetry.addLine("Shooter IDLE");
+            // }
 
             // --- Intake toggle (RB edge) ---
-            boolean rbEdge = gamepad2.right_bumper && !prevRB; // Detects the moment the right bumper is newly pressed (rising edge)
+            // >>> CHANGED: use standard edge detection; the stock Gamepad has no rightBumperWasPressed().
+            boolean rbEdge = gamepad2.right_bumper && !prevRB; // Detect rising edge
             if (rbEdge) {
                 isIntakeRunning = !isIntakeRunning;
                 if (isIntakeRunning) {
-                    intakePower = Math.max(0.0, Math.min(1.0, 0.5)); // start at 0.5
+                    //intakePower = Math.max(0.0, Math.min(1.0, 0.5)); // start at 0.5
+                    if (gamepad2.x){
+                        intakePower = 0.0;
+                    } else if (gamepad2.y) {
+                        intakePower = 0.8;
+
+                    }
+
                     intakeMotor.setPower(intakePower);
                 } else {
                     intakeMotor.setPower(0.0);
@@ -235,7 +281,7 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("Vision", visionEnabled ? "ON" : "OFF");
             telemetry.addData("Intake", isIntakeRunning ? "RUNNING" : "STOPPED");
             telemetry.addData("Intake Power", "%.1f", intakePower);
-
+            telemetry.addData("Intake Power", "%.1f", launchMotor.getVelocity());
             telemetry.update();
 
             // Edge bookkeeping
@@ -262,7 +308,9 @@ public class TeleOpMain extends LinearOpMode {
             // Make sure the camera is freed so the next OpMode can open it
             if (tagService != null) tagService.stop();
         }
+
     }
+
 
     private static double clamp(double v, double lo, double hi) {
         return Math.max(lo, Math.min(hi, v));
