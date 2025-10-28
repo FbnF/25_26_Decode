@@ -107,6 +107,7 @@ public class TeleOpMain extends LinearOpMode {
 
             telemetry.addData("Speed Factor", "%.2f (%.0f%%)", speedFactor, speedFactor*100);
 
+
             // --- Vision toggle (Left Bumper on gamepad2) ---
             /*
             boolean lbEdge = gamepad2.left_bumper && !prevLB_GP2;
@@ -190,38 +191,23 @@ public class TeleOpMain extends LinearOpMode {
 */
             // --- Four fixed power levels + feed pulse trigger ---
             if (gamepad2.a){
-                launchMotor.setPower(1.0);
-
-                if (!feedPulseActive && launchMotor.getPower() > 0.0) {
-                    feedServo.setPosition(0.75);
-                    feedPulseActive = true;
-                    feedPulseStartNs = System.nanoTime();
-                }
+                launchPower = 0.65;
             }
             if (gamepad2.b){
-                launchMotor.setPower(0.6);
-                if (!feedPulseActive && launchMotor.getPower() > 0.0) {
-                    feedServo.setPosition(0.75);
-                    feedPulseActive = true;
-                    feedPulseStartNs = System.nanoTime();
-                }
-            }
-            if (gamepad2.y){
-                launchMotor.setPower(0.5);
-                if (!feedPulseActive && launchMotor.getPower() > 0.0) {
-                    feedServo.setPosition(0.75);
-                    feedPulseActive = true;
-                    feedPulseStartNs = System.nanoTime();
-                }
+                launchPower = 0.78;
             }
             if (gamepad2.x){
-                launchMotor.setPower(0.3);
+                launchPower = 0;
+            }
+            if (gamepad2.y){
                 if (!feedPulseActive && launchMotor.getPower() > 0.0) {
                     feedServo.setPosition(0.75);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
                 }
             }
+            telemetry.addData("Launch Motor Speed", launchPower);
+            launchMotor.setPower(launchPower);
 
 
             if (feedPulseActive) {
@@ -276,11 +262,7 @@ public class TeleOpMain extends LinearOpMode {
                 intakeMotor.setPower(intakePower);
             }
 
-            boolean lbEdge = gamepad2.left_bumper; // rising edge
-            if (lbEdge) {
-                    launchMotor.setPower(0.0); // default start power
 
-            }
 
 
 
