@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.MainCode;
+package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import com.acmerobotics.roadrunner.Action;
 
 @Autonomous(name="AutoMain", group="Main")
-public class AutoMain extends LinearOpMode {
+public class SmallTRight extends LinearOpMode {
 
     // Small helper Action that sets a motor power once and immediately completes
     private static Action motorPower(DcMotor m, double p) {
@@ -22,7 +22,7 @@ public class AutoMain extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(60, 22, Math.toRadians(180));
+        Pose2d startPose = new Pose2d(60, 24, Math.toRadians(180));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         // Motors you want to toggle during "waits"
@@ -32,13 +32,13 @@ public class AutoMain extends LinearOpMode {
 
         Action all = drive.actionBuilder(startPose)
                 // --- Leg 1 ---
-                .splineTo(new Vector2d(15, -10), Math.toRadians(135))
+                .splineTo(new Vector2d(0, 0), Math.toRadians(135))
 
                 .stopAndAdd(motorPower(launchMotor, 1.0))   // ON
                 .waitSeconds(2)
                 .stopAndAdd(motorPower(launchMotor, 0.0))   // OFF
 
-                .setTangent(Math.toRadians(90))
+                /*.setTangent(Math.toRadians(90))
                 .afterDisp(0.0, motorPower(intakeMotor, 1.0))
                 .splineToLinearHeading(new Pose2d(-11, 33, Math.toRadians(90)), Math.toRadians(90))
                 .lineToY(45)
@@ -75,7 +75,7 @@ public class AutoMain extends LinearOpMode {
                 .splineTo(new Vector2d(0, 0), Math.toRadians(-40))
                 .stopAndAdd(motorPower(launchMotor, 1.0))   // ON
                 .waitSeconds(2)
-                .stopAndAdd(motorPower(launchMotor, 0.0))   // OFF
+                .stopAndAdd(motorPower(launchMotor, 0.0))   // OFF*/
                 .build();
 
         waitForStart();

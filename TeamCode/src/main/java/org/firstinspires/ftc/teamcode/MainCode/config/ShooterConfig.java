@@ -18,4 +18,5 @@ public final class ShooterConfig {
 
     // Controls
     public static double MIN_RANGE_IN = 10.0;    // ignore ranges under this (inches)
+    public static double TPS_TOL = 50.0;
 }

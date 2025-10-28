@@ -21,7 +21,7 @@ public final class Calculations {
     /**
      * Required exit (linear) velocity to hit a target at horizontal distance x, given a fixed launch angle.
      *
-     * v^2 = (g x^2) / (2 cos^2θ * (x tanθ - Δh)), where Δh = shooterH - targetH
+     * v^2 = (g x^2) / (2 cos^2θ * (x tanθ - Δh)x), where Δh = shooterH - targetH
      *
      * @param g          gravity (m/s^2), e.g. 9.81
      * @param x          horizontal distance to target (m) (>= 0)
@@ -34,7 +34,7 @@ public final class Calculations {
                                               double shooterH, double targetH) {
         final double cos = Math.cos(launchRad);
         final double tan = Math.tan(launchRad);
-        final double deltaH = shooterH - targetH;
+        final double deltaH = targetH - shooterH;
         final double denom = 2.0 * cos * cos * (x * tan - deltaH);
 
         if (x <= 0 || denom <= 0 || g <= 0) return Double.NaN;

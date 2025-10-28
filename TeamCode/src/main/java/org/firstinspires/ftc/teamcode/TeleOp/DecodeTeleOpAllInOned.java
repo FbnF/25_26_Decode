@@ -59,6 +59,8 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
 
     boolean isFeedServoDown;
 
+    boolean isFastMode;
+
     double TargetTicksPerSecond = 0;
 
 
@@ -73,6 +75,7 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
 
         feedServo.setPosition(0);
         isFeedServoDown = false;
+        isFastMode = false;
 
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
         //DcMotorEx shooterMotor;
@@ -115,33 +118,44 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
             x = telemetryAprilTag();
             telemetry.addData("distance",x);
             telemetry.update();
-            if (x > 10) {
-                x = x * 0.0254;
-                numerator = g * Math.pow(x, 2) ;
-                denominator = 2 * Math.pow(Math.cos(Theta), 2) * (x * Math.tan(Theta) - (HShoot-HGoal));
-                VelOfShooter = Math.sqrt(numerator / denominator);
-                RPM = (60 * VelOfShooter) / (2 * Math.PI * Radius * effiencyFactor);
-                // Vtip = RPM * (2 * Math.PI * Radius) / 60;
-                TargetTicksPerSecond = RPM * (PulsePerRev / 60);
-                launchMotor.setVelocity(TargetTicksPerSecond);
+            if(gamepad2.a){
+                if (x > 10) {
+                    x = x * 0.0254;
+                    numerator = g * Math.pow(x, 2) ;
+                    denominator = 2 * Math.pow(Math.cos(Theta), 2) * (x * Math.tan(Theta) - (HShoot-HGoal));
+                    VelOfShooter = Math.sqrt(numerator / denominator);
+                    RPM = (60 * VelOfShooter) / (2 * Math.PI * Radius * effiencyFactor);
+                    // Vtip = RPM * (2 * Math.PI * Radius) / 60;
+                    TargetTicksPerSecond = RPM * (PulsePerRev / 60);
+                    launchMotor.setVelocity(TargetTicksPerSecond);
 
-                telemetry.addData("distance",x);
-                telemetry.addData("numerator", numerator);
-                telemetry.addData("denominator", denominator);
-                telemetry.addData("VelOfShooter", VelOfShooter);
-                telemetry.addData("RPM", RPM);
-                telemetry.addData("TPS CaLc", TargetTicksPerSecond);
-                telemetry.addData("TPS Measured", launchMotor.getVelocity());
-                telemetry.update();
-            } else {
-                VelOfShooter = 0;
-                launchMotor.setVelocity(0);
+                    telemetry.addData("distance",x);
+                    telemetry.addData("numerator", numerator);
+                    telemetry.addData("denominator", denominator);
+                    telemetry.addData("VelOfShooter", VelOfShooter);
+                    telemetry.addData("RPM", RPM);
+                    telemetry.addData("TPS CaLc", TargetTicksPerSecond);
+                    telemetry.addData("TPS Measured", launchMotor.getVelocity());
+                    telemetry.update();
+                } else {
+                    VelOfShooter = 0;
+                    launchMotor.setVelocity(0);
 
+                }
+            }
+
+            if(gamepad1.a){
+                if(isFastMode){
+                    speedFactor = 0.5;
+                } else {
+                    speedFactor = 1;
+                }
+                isFastMode = !isFastMode;
             }
 
 
             //intake system
-            if(gamepad1.rightBumperWasPressed()){
+            if(gamepad2.rightBumperWasPressed()){
                 if(isIntakeRunning){
                     intakeMotor.setPower(0);
                 } else {
@@ -149,6 +163,7 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
                 }
                 isIntakeRunning = !isIntakeRunning;
             }
+            /*
             if(gamepad1.dpadRightWasPressed()){
                 if (intakePower - 0.1 == -1.0){
                     intakePower = -1.0;
@@ -167,9 +182,9 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
                 }
             }
             intakeMotor.setPower(intakePower);
+               */
 
-
-            if(gamepad1.a){
+            if(gamepad2.b){
                 if(isFeedServoDown){
                     feedServo.setPosition(0);
                 } else {
