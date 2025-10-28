@@ -28,7 +28,15 @@ public class SmallTRight extends LinearOpMode {
         // Motors you want to toggle during "waits"
         DcMotor intakeMotor = hardwareMap.get(DcMotor.class, "IntakeMotor");
         DcMotor launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor"); // unused here, just leaving as-is
-        intakeMotor.setPower(0);
+
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        launchMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        intakeMotor.setPower(0.0);
+        launchMotor.setPower(0.0);
 
         Action all = drive.actionBuilder(startPose)
                 // --- Leg 1 ---
