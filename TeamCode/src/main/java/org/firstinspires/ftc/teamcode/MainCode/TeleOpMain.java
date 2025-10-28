@@ -38,7 +38,9 @@ public class TeleOpMain extends LinearOpMode {
 
     // --- Intake/servo state ---
     private double intakePower = 0.0;
+    private static double launchPower;
     private boolean isIntakeRunning = false;
+    private boolean isLaunchRunning = false;
     private boolean isFeedServoDown = false;
 
     // --- Shooter manual/auto mode ---
@@ -106,6 +108,7 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("Speed Factor", "%.2f (%.0f%%)", speedFactor, speedFactor*100);
 
             // --- Vision toggle (Left Bumper on gamepad2) ---
+            /*
             boolean lbEdge = gamepad2.left_bumper && !prevLB_GP2;
             if (lbEdge) {
                 visionEnabled = !visionEnabled;
@@ -115,7 +118,7 @@ public class TeleOpMain extends LinearOpMode {
                     tagService.stop();
                 }
             }
-
+*/
             // --- AprilTag reading (smoothed inches) ---
             double rangeIn = Double.NaN;
             AprilTagService.Reading reading = null;
@@ -186,7 +189,7 @@ public class TeleOpMain extends LinearOpMode {
             }
 */
             // --- Four fixed power levels + feed pulse trigger ---
-            if (gamepad2.x){
+            if (gamepad2.a){
                 launchMotor.setPower(1.0);
 
                 if (!feedPulseActive && launchMotor.getPower() > 0.0) {
@@ -195,15 +198,15 @@ public class TeleOpMain extends LinearOpMode {
                     feedPulseStartNs = System.nanoTime();
                 }
             }
-            if (gamepad2.y){
-                launchMotor.setPower(0.7);
+            if (gamepad2.b){
+                launchMotor.setPower(0.6);
                 if (!feedPulseActive && launchMotor.getPower() > 0.0) {
                     feedServo.setPosition(0.75);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
                 }
             }
-            if (gamepad2.b){
+            if (gamepad2.y){
                 launchMotor.setPower(0.5);
                 if (!feedPulseActive && launchMotor.getPower() > 0.0) {
                     feedServo.setPosition(0.75);
@@ -211,7 +214,7 @@ public class TeleOpMain extends LinearOpMode {
                     feedPulseStartNs = System.nanoTime();
                 }
             }
-            if (gamepad2.a){
+            if (gamepad2.x){
                 launchMotor.setPower(0.3);
                 if (!feedPulseActive && launchMotor.getPower() > 0.0) {
                     feedServo.setPosition(0.75);
@@ -264,13 +267,22 @@ public class TeleOpMain extends LinearOpMode {
                 isIntakeRunning = !isIntakeRunning;
                 if (isIntakeRunning) {
                     if (intakePower <= 0.0) {
-                        intakePower = 0.5; // default start power
+                        intakePower = 1.0; // default start power
                     }
-                    intakeMotor.setPower(intakePower);
+
                 } else {
-                    intakeMotor.setPower(0.0);
+                    intakePower = 0.0;
                 }
+                intakeMotor.setPower(intakePower);
             }
+
+            boolean lbEdge = gamepad2.left_bumper; // rising edge
+            if (lbEdge) {
+                    launchMotor.setPower(0.0); // default start power
+
+            }
+
+
 
             // --- Intake power trim with dpad (edges) ---
             boolean dpadRightEdge = gamepad2.dpad_right && !prevDpadRight; // rising edge
