@@ -38,7 +38,7 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
     //shooter velocity constants
     double g = 9.8; //m/s^2
     double x;
-    double Theta = 46* Math.PI/180;
+    double Theta = 46 * Math.PI / 180;
     double HGoal = 0.984;//in meters
     double HShoot = 0.248;//in meters
 
@@ -47,7 +47,7 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
     double effiencyFactor = 0.3;
 
     double VelOfShooter;
-  //  double Vtip;
+    //  double Vtip;
 
     double Radius = 0.048;
 
@@ -69,6 +69,7 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
     @Override
     public void runOpMode() {
 
+
         feedServo = hardwareMap.get(Servo.class, "feedServo");
         // Initialize the drive class
 
@@ -84,10 +85,10 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
         initAprilTag();
 
 
-         intakeMotor=hardwareMap.get(DcMotorEx.class, "IntakeMotor");
-         launchMotor=hardwareMap.get(DcMotorEx.class,"LaunchMotor");
-         isIntakeRunning = false;
-         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
+        launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
+        isIntakeRunning = false;
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Wait for the start button to be pressed
         waitForStart();
@@ -98,8 +99,8 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
         while (opModeIsActive()) {
             // Get input from the gamepad
             double axial = -gamepad1.right_stick_y * speedFactor; // Invert the y-axis
-            double lateral = gamepad1.left_stick_x * speedFactor;  // Strafe is x-axis
-            double heading = gamepad1.right_stick_x * speedFactor;
+            double lateral = -gamepad1.left_stick_x * speedFactor;  // Strafe is x-axis
+            double heading = -gamepad1.right_stick_x * speedFactor;
             PoseVelocity2d drivePower = new PoseVelocity2d(
                     new Vector2d(
                             heading,
@@ -114,22 +115,21 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
             drive.setDrivePowers(drivePower);
 
 
-
             x = telemetryAprilTag();
-            telemetry.addData("distance",x);
+            telemetry.addData("distance", x);
             telemetry.update();
-            if(gamepad2.a){
+            if (gamepad2.a) {
                 if (x > 10) {
                     x = x * 0.0254;
-                    numerator = g * Math.pow(x, 2) ;
-                    denominator = 2 * Math.pow(Math.cos(Theta), 2) * (x * Math.tan(Theta) - (HShoot-HGoal));
+                    numerator = g * Math.pow(x, 2);
+                    denominator = 2 * Math.pow(Math.cos(Theta), 2) * (x * Math.tan(Theta) - (HShoot - HGoal));
                     VelOfShooter = Math.sqrt(numerator / denominator);
                     RPM = (60 * VelOfShooter) / (2 * Math.PI * Radius * effiencyFactor);
                     // Vtip = RPM * (2 * Math.PI * Radius) / 60;
                     TargetTicksPerSecond = RPM * (PulsePerRev / 60);
                     launchMotor.setVelocity(TargetTicksPerSecond);
 
-                    telemetry.addData("distance",x);
+                    telemetry.addData("distance", x);
                     telemetry.addData("numerator", numerator);
                     telemetry.addData("denominator", denominator);
                     telemetry.addData("VelOfShooter", VelOfShooter);
@@ -144,22 +144,22 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
                 }
             }
 
-            if(gamepad1.a){
-                if(isFastMode){
+            if (gamepad1.a) {
+                if (isFastMode) {
                     speedFactor = 0.5;
                 } else {
-                    speedFactor = 1;
+                    speedFactor = 0.8;
                 }
                 isFastMode = !isFastMode;
             }
 
 
             //intake system
-            if(gamepad2.rightBumperWasPressed()){
-                if(isIntakeRunning){
+            if (gamepad2.rightBumperWasPressed()) {
+                if (isIntakeRunning) {
                     intakeMotor.setPower(0);
                 } else {
-                    intakeMotor.setPower(0.5);
+                    intakeMotor.setPower(0.7);
                 }
                 isIntakeRunning = !isIntakeRunning;
             }
@@ -184,8 +184,8 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
             intakeMotor.setPower(intakePower);
                */
 
-            if(gamepad2.b){
-                if(isFeedServoDown){
+            if (gamepad2.b) {
+                if (isFeedServoDown) {
                     feedServo.setPosition(0);
                 } else {
                     feedServo.setPosition(0.75);
@@ -197,8 +197,7 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
             //launch system
 
 
-
-         //   drive.updatePoseEstimate();
+            //   drive.updatePoseEstimate();
            /* telemetry.addData("Axial (Forward/Back)", axial);
             telemetry.addData("Lateral (Strafe)", lateral);
             telemetry.addData("Heading (Turn)", heading);
@@ -280,19 +279,19 @@ public class DecodeTeleOpAllInOned extends LinearOpMode {
                 telemetry.addData("Position (in)",
                         String.format("X: %.1f  Y: %.1f  Z: %.1f", tag.ftcPose.x, tag.ftcPose.y, tag.ftcPose.z));
                 //telemetry.addData("Orientation (deg)",
-                        //String.format("Yaw: %.1f  Pitch: %.1f  Roll: %.1f",
-                               // tag.ftcPose.yaw, tag.ftcPose.pitch, tag.ftcPose.roll));
+                //String.format("Yaw: %.1f  Pitch: %.1f  Roll: %.1f",
+                // tag.ftcPose.yaw, tag.ftcPose.pitch, tag.ftcPose.roll));
                 //telemetry.addData("Range/Bearing/Elev",
-                        //String.format("%.1f in, %.1f°, %.1f°",
-                                //tag.ftcPose.range, tag.ftcPose.bearing, tag.ftcPose.elevation));
+                //String.format("%.1f in, %.1f°, %.1f°",
+                //tag.ftcPose.range, tag.ftcPose.bearing, tag.ftcPose.elevation));
             } //else {
-                //telemetry.addData("Tag Center (px)",
-                        //String.format("(%.0f, %.0f)", tag.center.x, tag.center.y));
+            //telemetry.addData("Tag Center (px)",
+            //String.format("(%.0f, %.0f)", tag.center.x, tag.center.y));
             //}
             return (tag.ftcPose.y);
 
         }
-        return(0);
+        return (0);
     }
-
 }
+
