@@ -189,13 +189,20 @@ public class TeleOpMain extends LinearOpMode {
                 }
             }
 */
-            // --- Four fixed power levels + feed pulse trigger ---
+            // --- Three fixed power levels + feed pulse trigger ---
+            // Long range
             if (gamepad2.a){
+                launchPower = 0.75;
+            }
+            // Middle range
+            if (gamepad2.b){
                 launchPower = 0.65;
             }
-            if (gamepad2.b){
-                launchPower = 0.78;
+            // Short range
+            if(gamepad2.left_bumper){
+                launchPower=0.6;
             }
+            // Turn off the LaunchMotor
             if (gamepad2.x){
                 launchPower = 0;
             }
