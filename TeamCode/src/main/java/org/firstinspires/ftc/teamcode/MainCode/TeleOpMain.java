@@ -192,7 +192,7 @@ public class TeleOpMain extends LinearOpMode {
             // --- Three fixed power levels + feed pulse trigger ---
             // Long range
             if (gamepad2.a){
-                launchPower = 0.75;
+                launchPower = 0.77;
             }
             // Middle range
             if (gamepad2.b){
@@ -256,18 +256,15 @@ public class TeleOpMain extends LinearOpMode {
             // --- Intake toggle (RB edge) ---
 
             boolean rbEdge = gamepad2.right_bumper && !prevRB; // rising edge
-            if (rbEdge) {
-                isIntakeRunning = !isIntakeRunning;
-                if (isIntakeRunning) {
-                    if (intakePower <= 0.0) {
-                        intakePower = 1.0; // default start power
-                    }
-
-                } else {
-                    intakePower = 0.0;
-                }
-                intakeMotor.setPower(intakePower);
+            if (gamepad2.right_trigger>0) {
+                intakePower = 1.0; // default start power
             }
+            if (gamepad2.left_trigger>0) {
+                intakePower = 0.0;
+            }
+
+            intakeMotor.setPower(intakePower);
+
 
 
 
