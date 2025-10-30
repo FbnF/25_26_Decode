@@ -93,8 +93,8 @@ public class TeleOpMain extends LinearOpMode {
             // --- Drive ---
             boolean driverbEdge = gamepad1.right_bumper && !drivePrevRB;
             boolean drivelbEdge = gamepad1.left_bumper  && !drivePrevLB;
-            if (driverbEdge) speedFactor = Math.min(SPEED_MAX, speedFactor + SPEED_STEP);
-            if (drivelbEdge) speedFactor = Math.max(SPEED_MIN, speedFactor - SPEED_STEP);
+            if (driverbEdge) speedFactor = 0.6;
+            if (drivelbEdge) speedFactor = 0.2;
 
             double axial   = -gamepad1.right_stick_y * speedFactor; // up = forward (+x)
             double lateral = -gamepad1.left_stick_x  * speedFactor; // right = strafe right (−y)
@@ -124,19 +124,19 @@ public class TeleOpMain extends LinearOpMode {
             double rangeIn = Double.NaN;
             AprilTagService.Reading reading = null;
 
-            if (visionEnabled) {
-                reading = tagService.getLatest();
-                if (reading == null || !reading.hasTag ) { // If Tag not detected
-                    telemetry.addLine("🟥 AprilTag: NOT DETECTED");
-                } else {
-                    telemetry.addLine("🟩 AprilTag: DETECTED");
-                    telemetry.addData("Position (in)", String.format("X: %.1f  Y: %.1f  Z: %.1f",
-                            reading.xIn, reading.yIn, reading.zIn));
-                    rangeIn = reading.smoothedDistanceIn; // may be NaN if we haven’t seen a tag yet
-                }
-            } else {
-                telemetry.addLine("📷 Vision: OFF");
-            }
+//            if (visionEnabled) {
+//                reading = tagService.getLatest();
+//                if (reading == null || !reading.hasTag ) { // If Tag not detected
+//                    telemetry.addLine("🟥 AprilTag: NOT DETECTED");
+//                } else {
+//                    telemetry.addLine("🟩 AprilTag: DETECTED");
+//                    telemetry.addData("Position (in)", String.format("X: %.1f  Y: %.1f  Z: %.1f",
+//                            reading.xIn, reading.yIn, reading.zIn));
+//                    rangeIn = reading.smoothedDistanceIn; // may be NaN if we haven’t seen a tag yet
+//                }
+//            } else {
+//                telemetry.addLine("📷 Vision: OFF");
+//            }
 
             /* -------------------- COMMENTED OUT: Manual/AUTO mode & manual TPS control (avoids X/B/Y clashes) --------------------
             // --- Manual/AUTO mode toggle & manual TPS control ---
@@ -224,38 +224,12 @@ public class TeleOpMain extends LinearOpMode {
                     feedPulseActive = false;
                 }
             }
-
-            if (tpsTarget != null) {
-                // --- Feed servo toggle (A edge) ---
-                boolean aEdge = gamepad2.a && !prevA; // Detects the moment the A is newly pressed (rising edge)
-                launchMotor.setVelocity(tpsTarget);
-                // read once
-                double vel = launchMotor.getVelocity();
-                boolean speedOk = Math.abs(vel - tpsTarget) <= ShooterConfig.TPS_TOL;
-                long now = System.nanoTime();
-                boolean cooldownOk = (now - lastFeedNs) > 150_000_000L; // 150ms
-
-                if (speedOk) {
-                    if (aEdge && cooldownOk) {
-                        isFeedServoDown = !isFeedServoDown; // Sets isFeeServoDown flag to the opposite of what it was
-                        double pos = isFeedServoDown ? 1.0 : 0.0;
-                        feedServo.setPosition(Math.max(0.0, Math.min(1.0, pos))); // clamp to [0,1]
-                        lastFeedNs = now;
-                    }
-                    telemetry.addLine("Shooter READY");
-
-                } else telemetry.addLine("Shooter hasn't reached correct speed");
-                telemetry.addData("Shooter Mode", manualMode ? "MANUAL" : "AUTO");
-                telemetry.addData("TPS Target", tpsTarget);
-                telemetry.addData("TPS Measured", vel);
-                telemetry.addData("Δ TPS", "%.1f", tpsTarget - vel);
-                telemetry.addData("Tol (≤)", "%.1f", ShooterConfig.TPS_TOL);
-            }
             // (Keep the previously removed else that forced setVelocity(0.0) removed.)
 
             // --- Intake toggle (RB edge) ---
 
             boolean rbEdge = gamepad2.right_bumper && !prevRB; // rising edge
+            if (rbEdge) {intakePower=-0.5;}
             if (gamepad2.right_trigger>0) {
                 intakePower = 1.0; // default start power
             }
@@ -264,8 +238,6 @@ public class TeleOpMain extends LinearOpMode {
             }
 
             intakeMotor.setPower(intakePower);
-
-
 
 
 
