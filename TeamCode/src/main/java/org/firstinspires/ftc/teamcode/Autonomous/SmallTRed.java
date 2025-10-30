@@ -27,14 +27,19 @@ public class SmallTRed extends LinearOpMode {
             @Override
             public boolean run(TelemetryPacket packet) {
                 if (!initialized) {
-                    m.setPower(Math.abs(p));
+
                     startTimeNanos = System.nanoTime();
+                    telemetry.addData("Current time",System.nanoTime( ));
+                    telemetry.update();
                     initialized = true;
-                    return false;
+                    while (System.nanoTime() - startTimeNanos < durationNanos){
+                        m.setPower(Math.abs(p));
+                    }
+                    //return false;
                 }
                 if (System.nanoTime() - startTimeNanos >= durationNanos) {
                     m.setPower(0.0);
-                    return true; // Action complete
+                   // return true; // Action complete
                 }
                 return false;
             }
@@ -83,13 +88,25 @@ public class SmallTRed extends LinearOpMode {
                 // --- Leg 1 ---
                 .splineTo(new Vector2d(-12, 12), Math.toRadians(135))
                 .stopAndAdd(launchForDuration(launchMotor,0.65,2))
-                .splineToLinearHeading(new Pose2d(-8, 24,Math.toRadians(90)),Math.toRadians(90))
+                .turn(Math.toRadians(-60))
+                //.splineToLinearHeading(new Pose2d(-4, 32,Math.toRadians(110)),Math.toRadians(110))
                 .lineToY(48)
-                .splineToLinearHeading(new Pose2d(-12, 12,Math.toRadians(135)), Math.PI/2)
+                .lineToY(12)
+                .turn(Math.toRadians(60))
                 .stopAndAdd(launchForDuration(launchMotor,0.65,2))
-                .splineToLinearHeading(new Pose2d(14, 24,Math.toRadians(90)),Math.toRadians(90))
+                .turn(Math.toRadians(-60))
+                .lineToX(16)
                 .lineToY(48)
-                .splineToLinearHeading(new Pose2d(-12, 12,Math.toRadians(135)), Math.PI/2)
+                .turn(Math.toRadians(-60))
+                .setTangent(0)
+                .lineToX(16)
+                .setTangent(Math.toRadians(90))
+                .lineToY(48)
+                .setTangent(0)
+                .lineToY(48)
+                .setTangent(Math.toRadians(90))
+                .lineToX(16)
+                .turn(Math.toRadians(-60))
                 .stopAndAdd(launchForDuration(launchMotor,0.65,2))
                 .build();
 
