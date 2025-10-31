@@ -13,8 +13,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="MEET1: SmallTRED", group="Main")
-public class STRED extends LinearOpMode {
+@Autonomous(name="MEET1: BigTriRed", group="Main")
+public class BigTriRed_1 extends LinearOpMode {
 
     // --- HELPER METHODS DEFINED AT CLASS LEVEL (OUTSIDE runOpMode) ---
 
@@ -24,7 +24,7 @@ public class STRED extends LinearOpMode {
             private boolean initialized = false;
             private long startTimeNanos;
             private final long durationNanos = (long) (seconds * 1_000_000_000L);
-            Servo launchServo = hardwareMap.get(Servo.class, "FeedServo");
+            Servo feedServo = hardwareMap.get(Servo.class, "feedServo");
 
             @Override
             public boolean run(TelemetryPacket packet) {
@@ -37,9 +37,9 @@ public class STRED extends LinearOpMode {
                     while (System.nanoTime() - startTimeNanos < durationNanos) {
                         m.setPower(Math.abs(p));
                         for (int i = 0; i <100; i++){
-                           
+
                             if (i == 30 || i == 63 || i==96){
-                                LaunchServo(launchServo, true);
+                                LaunchServo(feedServo, true);
                             }
                         }
                     }
@@ -100,7 +100,7 @@ public class STRED extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(60, 12, Math.toRadians(135));
+        Pose2d startPose = new Pose2d(-60, 34, Math.toRadians(90));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         // Motors you want to toggle during "waits"
@@ -118,8 +118,11 @@ public class STRED extends LinearOpMode {
 
         Action all = drive.actionBuilder(startPose)
                 // --- Leg 1 ---
-                .strafeToConstantHeading(new Vector2d(-12,12))
-                .stopAndAdd(launchForDuration(launchMotor, 0.65, 2))
+
+                .lineToY(12)
+                .stopAndAdd(launchForDuration(launchMotor, 0.55, 6))
+                .strafeTo(new Vector2d(12,-24))
+                .turn(Math.toRadians(180))
                 .build();
 
         waitForStart();
