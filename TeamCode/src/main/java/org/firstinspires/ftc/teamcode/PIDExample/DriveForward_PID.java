@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.PIDExample;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Disabled
 @TeleOp(name = "DriveForward_PID", group = "PID Example")
 public class DriveForward_PID extends LinearOpMode {
 

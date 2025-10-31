@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import  com.qualcomm.robotcore.hardware.DcMotor;
 
+@Disabled
 @TeleOp(name = "Sensor: Digital touch", group = "Sensor")
 
 public class TouchSensor extends LinearOpMode {

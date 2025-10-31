@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive; // Make sure this import is 
 import com.qualcomm.robotcore.hardware.Servo;
 import java.util.List;
 
+@Disabled
 @TeleOp(group = "DecodeTeleop")
 public class DecodeTeleOp extends LinearOpMode {
     MecanumDrive drive;

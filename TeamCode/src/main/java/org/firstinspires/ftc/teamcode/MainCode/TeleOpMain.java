@@ -16,7 +16,10 @@ import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 //import org.firstinspires.ftc.teamcode.MainCode.config.TagConfig;
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 
-@TeleOp(name = "TeleOpMain", group = "DecodeTeleopAllInOne")
+// --- Data Logging ---
+import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
+
+@TeleOp(name = "TeleOp: Main", group = "TeleOp")
 public class TeleOpMain extends LinearOpMode {
 
     // --- Hardware ---
@@ -50,6 +53,9 @@ public class TeleOpMain extends LinearOpMode {
     private long feedPulseStartNs = 0;
     private static final long FEED_DWELL_NS = 150_000_000L; // 150 ms
 
+    private TinyCsvLogger logger; // LOG
+
+
     @Override
     public void runOpMode() {
 
@@ -64,12 +70,18 @@ public class TeleOpMain extends LinearOpMode {
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         // Drive (verify your constructor signature)
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
 
         // Vision
         tagService = new AprilTagService();
         tagService.start(hardwareMap);
+
+        // LOG: create CSV logger
+        logger = TinyCsvLogger.create(hardwareMap, "teleop_main");
+
 
         waitForStart();
 
@@ -146,6 +158,14 @@ public class TeleOpMain extends LinearOpMode {
 
             intakeMotor.setPower(intakePower);
 
+            logger.record(
+                    "run",
+                    launchPower,    // The commanded shooter power
+                    launchMotor,    // The measured power + velocity
+                    intakePower,    // The commanded intake power
+                    feedServo       // servo position
+            );
+
             // ------------- Telemetry data -------------------------------------------------
             telemetry.addData("Intake", isIntakeRunning ? "RUNNING" : "STOPPED");
             telemetry.addData("Intake Power", "%.1f", intakePower);
@@ -160,6 +180,7 @@ public class TeleOpMain extends LinearOpMode {
         } finally {
             // Make sure the camera is freed so the next OpMode can open it
             if (tagService != null) tagService.stop();
+            if (logger != null) logger.close(); // LOG
         }
 
     }

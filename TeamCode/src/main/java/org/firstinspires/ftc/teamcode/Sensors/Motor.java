@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+@Disabled
 @TeleOp(name="M1",group="TeleOp")
 public class Motor extends LinearOpMode {
     DcMotor my_Frontmotor;

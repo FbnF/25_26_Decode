@@ -5,9 +5,11 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
+@Disabled
 @Autonomous(name = "RR v1.0 - All Motions Demo (Corrected Tangents)", group = "RoadRunner")
 public class AllMotionsDemo extends LinearOpMode {
     @Override
