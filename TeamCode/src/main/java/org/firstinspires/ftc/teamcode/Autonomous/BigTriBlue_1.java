@@ -13,125 +13,152 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="MEET1: BigTriBlue", group="Main")
+@Autonomous(name="MEET1: BigTriBlue", group="MainAuto")
 public class BigTriBlue_1 extends LinearOpMode {
 
-    // --- HELPER METHODS DEFINED AT CLASS LEVEL (OUTSIDE runOpMode) ---
+    // ---- Hardware names ----
+    private static final String FEED_SERVO   = "feedServo";
+    private static final String INTAKE_MOTOR = "IntakeMotor";
+    private static final String LAUNCH_MOTOR = "LaunchMotor";
 
-    // 1. Launch Action: Runs motor for a duration, then stops (self-completing).
-    private Action launchForDuration(DcMotor m, double p, double seconds) {
-        return new Action() {
-            private boolean initialized = false;
-            private long startTimeNanos;
-            private final long durationNanos = (long) (seconds * 1_000_000_000L);
-            Servo feedServo = hardwareMap.get(Servo.class, "feedServo");
+    // ---- Tunables ----
+    private static final double INTAKE_POWER  = 0.60;  // runs while base moves
+    private static final double SHOOTER_POWER = 0.55;  // open-loop; swap to velocity if you want
 
-            @Override
-            public boolean run(TelemetryPacket packet) {
-                if (!initialized) {
+    // Servo positions (use your tested mid-range)
+    private static final double SERVO_LOAD_POS = 0.00;
+    private static final double SERVO_FEED_POS = 0.75;
 
-                    startTimeNanos = System.nanoTime();
-                    telemetry.addData("Current time", System.nanoTime());
-                    telemetry.update();
-                    initialized = true;
-                    while (System.nanoTime() - startTimeNanos < durationNanos) {
-                        m.setPower(Math.abs(p));
-                        for (int i = 0; i <100; i++){
+    // Three feed windows while shooter is spinning (seconds from action start)
+    private static final double[] FEED_START_S = {1.0, 3.0, 5.0};
+    private static final double   FEED_HOLD_S  = 0.35;
+    private static final double   END_PADDING_S = 1.0; // extra LOAD time after last feed
 
-                            if (i == 30 || i == 63 || i==96){
-                                LaunchServo(feedServo, true);
-                            }
-                        }
-                    }
-                    //return false;
+    /** One-shot action to set motor power (non-blocking; completes immediately). */
+    private static Action setMotorPower(DcMotor m, double p) {
+        return (TelemetryPacket pkt) -> {
+            if (m != null) {
+                m.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                m.setPower(p);
+            }
+            return false; // RR Actions: false = finished (do not block)
+        };
+    }
+
+    /**
+     * Combined shooter+feeder action.
+     * return TRUE to keep running, FALSE when complete.
+     * While this returns TRUE, the follower is paused because we insert it with .stopAndAdd(...).
+     */
+    private static class ShooterAndFeederAction implements Action {
+        private final DcMotorEx shooter;
+        private final Servo feeder;
+        private final double shooterPower;
+        private final double[] starts;
+        private final double holdS;
+        private final double endPadS;
+
+        private boolean inited = false;
+        private long t0;
+
+        ShooterAndFeederAction(DcMotorEx shooter,
+                               Servo feeder,
+                               double shooterPower,
+                               double[] starts, double holdS, double endPadS) {
+            this.shooter = shooter;
+            this.feeder = feeder;
+            this.shooterPower = shooterPower;
+            this.starts = starts;
+            this.holdS = holdS;
+            this.endPadS = endPadS;
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            if (!inited) {
+                t0 = System.nanoTime();
+                if (shooter != null) {
+                    shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    shooter.setPower(shooterPower);
                 }
-                if (System.nanoTime() - startTimeNanos >= durationNanos) {
-                    m.setPower(0.0);
-                    // return true; // Action complete
-                }
-                return false;
+                feeder.setPosition(SERVO_LOAD_POS);
+                inited = true;
             }
 
-            public void preview(TelemetryPacket packet) {
+            double t = (System.nanoTime() - t0) / 1e9;
+
+            boolean feeding = false;
+            for (double s : starts) {
+                if (t >= s && t < s + holdS) { feeding = true; break; }
             }
-        };
-    }
-    private Action LaunchServo(Servo s, Boolean isActive) {
-        return new Action() {
-            private boolean initialized = false;
+            feeder.setPosition(feeding ? SERVO_FEED_POS : SERVO_LOAD_POS);
 
-            @Override
-            public boolean run(TelemetryPacket packet) {
-                if (!initialized) {
-                    if (isActive){
-                        s.setPosition(0.75);
-                    }else {
-                        s.setPosition(0);
-                    }
+            packet.put("t_s", String.format("%.2f", t));
+            packet.put("feeding", feeding);
 
-                    //return false;
-                }
-                return false;
+            double lastEnd = starts[starts.length - 1] + holdS + endPadS;
+
+            if (t < lastEnd) {
+                return true;   // keep running (base stays paused)
             }
 
-            public void preview(TelemetryPacket packet) {
-            }
-        };
+            // Finish: park servo, stop shooter
+            feeder.setPosition(SERVO_LOAD_POS);
+            if (shooter != null) shooter.setPower(0.0);
+            return false;      // done
+        }
     }
-
-    // 2. Intake Action: Runs motor continuously/in parallel (returns false).
-    private Action motorRun(DcMotor m, double p) {
-        return (TelemetryPacket packet) -> {
-            m.setPower(Math.abs(p));
-            return false; // RUNNING: Keeps the motor on while the trajectory executes
-        };
-    }
-
-    // 3. Stop Action: Stops a motor (returns true).
-    private Action motorStop(DcMotor m) {
-        return (TelemetryPacket packet) -> {
-            m.setPower(0.0);
-            return true; // COMPLETE: Stops the motor
-        };
-    }
-
-    // -------------------------------------------------------------------
-
 
     @Override
     public void runOpMode() throws InterruptedException {
+        // Drive + hardware
         Pose2d startPose = new Pose2d(-60, -34, Math.toRadians(270));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
-        // Motors you want to toggle during "waits"
-        DcMotor intakeMotor = hardwareMap.get(DcMotor.class, "IntakeMotor");
-        DcMotor launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor"); // unused here, just leaving as-is
+        DcMotor intake = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
+        DcMotorEx shooter = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
+        Servo feed = hardwareMap.get(Servo.class, FEED_SERVO);
+        // feed.setDirection(Servo.Direction.REVERSE); // if your linkage is inverted
 
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        launchMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        intakeMotor.setPower(0.0);
-        launchMotor.setPower(0.0);
-
-        Action all = drive.actionBuilder(startPose)
-                // --- Leg 1 ---
-
-                .lineToY(-12)
-                .stopAndAdd(launchForDuration(launchMotor, 0.55, 6))
-                .strafeTo(new Vector2d(12,24))
-                .turn(180)
-                .build();
+        // Default safe states
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intake.setPower(0.0);
+        shooter.setPower(0.0);
+        feed.setPosition(SERVO_LOAD_POS);
 
         waitForStart();
         if (isStopRequested()) return;
 
-        Actions.runBlocking(all);
+        // === This reproduces your original auto, with the added servo + proper scheduling ===
+        Action routine = drive.actionBuilder(startPose)
+                // Start intake so it runs WHILE driving (non-blocking one-shot)
+                //.stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
-        // safety
-        intakeMotor.setPower(0);
-        if (launchMotor != null) launchMotor.setPower(0);
+                // Drive to launch position (intake still running)
+                .lineToY(12)
+
+                // Pause base here; run shooter + 3 servo feeds; then stop shooter
+                .stopAndAdd(new ShooterAndFeederAction(
+                        shooter, feed, SHOOTER_POWER,
+                        FEED_START_S, FEED_HOLD_S, END_PADDING_S))
+
+                // Continue path with intake still on
+                .strafeTo(new Vector2d(12, 24))
+                .turn(Math.toRadians(180))   // radians!
+
+                // Stop intake at the end (non-blocking one-shot)
+                .stopAndAdd(setMotorPower(intake, 0.0))
+
+                .build();
+
+        Actions.runBlocking(routine);
+
+        // Safety
+        feed.setPosition(SERVO_LOAD_POS);
+        shooter.setPower(0.0);
+        intake.setPower(0.0);
     }
 }
