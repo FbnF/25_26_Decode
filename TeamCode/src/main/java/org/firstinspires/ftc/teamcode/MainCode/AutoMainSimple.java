@@ -121,7 +121,7 @@ public class AutoMainSimple extends LinearOpMode {
                .setTangent(0)
                 //.splineToLinearHeading(new Pose2d( -16, 0, Math.toRadians(-225)), Math.PI / 2)
                // .lineToY(0)
-                .stopAndAdd(launchForDuration(launchMotor, 0.64, 5, feedServo))
+                .stopAndAdd(launchForDuration(launchMotor, 0.84, 5, feedServo))
                 .build();
 
         waitForStart();
