@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.MainCode;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -12,23 +11,23 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.opencv.core.Mat;
 
-@Autonomous(name="AutoMainBlueSide", group="Main")
-public class AutoMain extends LinearOpMode {
+@Autonomous(name="AutoMainBlueSideSimple", group="Auto")
+public class AutoMainSimple extends LinearOpMode {
 
     // --- HELPER METHODS DEFINED AT CLASS LEVEL (OUTSIDE runOpMode) ---
 
     // 1. Launch Action: Runs motor for a duration, then stops (self-completing).
-    private Action launchForDuration(DcMotor m, double p, double seconds) {
+    private Action launchForDuration(DcMotor m, double p, double seconds, Servo feedServo) {
         return new Action() {
             private boolean initialized = false;
             private long startTimeNanos;
             private final long durationNanos = (long) (seconds * 1_000_000_000L);
 
+
+
             @Override
             public boolean run(TelemetryPacket packet) {
-                Servo feedServo = hardwareMap.get(Servo.class, "FeedServo");
                 if (!initialized) {
 
                     startTimeNanos = System.nanoTime();
@@ -36,9 +35,12 @@ public class AutoMain extends LinearOpMode {
                     telemetry.update();
                     initialized = true;
                     while (System.nanoTime() - startTimeNanos < durationNanos){
-                        LoadServo(feedServo, true);
                         m.setPower(Math.abs(p));
-                        LoadServo(feedServo, false);
+                        for(int i = 0; i < 3; i++){
+                            LoadServo(feedServo, true);
+                            sleep(500);
+                            LoadServo(feedServo, false);
+                        }
                     }
                     //return false;
                 }
@@ -115,65 +117,11 @@ public class AutoMain extends LinearOpMode {
         launchMotor.setPower(0.0);
 
         Action all = drive.actionBuilder(startPose)
-                // --- Leg 1 ---setTangent(0)
-                //.splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                //.stopAndAdd(launchForDuration(launchMotor, 0.64, 2))
-                ////.stopAndAdd(servoPower(feedServo, false))
-                ////.stopAndAdd(motorPower(launchMotor, 0.63345))
-                ////Actions.runBlocking(motorPower(launchMotor, 0.65))
-                ////This is where the intake motor would run
-                //.splineToLinearHeading(new Pose2d( -14, -52, Math.toRadians(225)), Math.PI / 2)
-                //.splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                ////launch balls
-                //.splineToLinearHeading(new Pose2d( 14, -52, Math.toRadians(270)), Math.PI / 2)
-                ////Run intake
-                //.splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                ////Launch balls again
-                //.stopAndAdd(launchForDuration(launchMotor, 0.64, 2))
-                //.splineToLinearHeading(new Pose2d( 38, -52, Math.toRadians(270)), Math.PI / 2)
-                ////run the intake
-                //.splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                //.stopAndAdd(launchForDuration(intakeMotor, 0.64, 2))
+
                .setTangent(0)
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                .stopAndAdd(LoadServo(feedServo, true))
-                .stopAndAdd(launchForDuration(launchMotor, 0.64, 5))
-                .stopAndAdd(motorRun(intakeMotor, 0.64))
-                //.stopAndAdd(servoPower(feedServo, false))
-                //.stopAndAdd(motorPower(launchMotor, 0.63345))
-                //Actions.runBlocking(motorPower(launchMotor, 0.65))
-                .turn(Math.toRadians(90))
-                .setTangent(0)
-                .lineToX(-14)
-                .setTangent(90)
-                .lineToY(-52)
-                //.splineToLinearHeading(new Pose2d( -14, -52, Math.toRadians(225)), Math.PI / 2)
-                //.stopAndAdd(launchForDuration(intakeMotor, 0.64, 2)) --Intake Motor Run
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                .stopAndAdd(launchForDuration(launchMotor, 0.64, 0.5))
-                //launch balls
-
-                .turn(Math.toRadians(90))
-                .setTangent(0)
-                .lineToX(14)
-                .setTangent(90)
-                .lineToY(-52)
-                //.splineToLinearHeading(new Pose2d( 14, -52, Math.toRadians(270)), Math.PI / 2)
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                .stopAndAdd(launchForDuration(launchMotor, 0.64, 0.5))
-
-                //Launch balls again
-
-                .turn(Math.toRadians(270))
-                .setTangent(0)
-                .lineToX(38)
-                .setTangent(90)
-                .lineToY(-52)
-               // .splineToLinearHeading(new Pose2d( 38, -t52, Math.toRadians(270)), Math.PI / 2)
-                //run the intake
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                .stopAndAdd(launchForDuration(launchMotor, 0.64, 0.5))
-
+                //.splineToLinearHeading(new Pose2d( -16, 0, Math.toRadians(-225)), Math.PI / 2)
+               // .lineToY(0)
+                .stopAndAdd(launchForDuration(launchMotor, 0.64, 5, feedServo))
                 .build();
 
         waitForStart();
