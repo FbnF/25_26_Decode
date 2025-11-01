@@ -63,7 +63,7 @@ public class BigTriRed extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 // --- Your original path, Red side ---
-                .lineToY(5)
+                .lineToY(-2)
 
                 // Pause base: shooter + 3 servo pulses (then shooter stops)
                 .stopAndAdd(new ShooterAndFeederAction(
