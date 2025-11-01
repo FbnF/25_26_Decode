@@ -28,21 +28,7 @@ public final class AutoMotorControl {
         };
     }
 
-    /**
-     * Shooter + Feeder combined action (time-window schedule).
-     * - On first tick: starts shooter, parks servo at loadPos.
-     * - While running: toggles between feedPos/loadPos whenever elapsed time is within any window.
-     * - On finish: parks servo at loadPos, stops shooter.
-     *
-     * @param shooter        DcMotorEx shooter (can be null if you only want servo pulses)
-     * @param feeder         Servo feeder (positional)
-     * @param shooterPower   open-loop power for shooter (swap to velocity if you prefer)
-     * @param feedStartS     start times (seconds from action start) for each pulse
-     * @param feedHoldS      hold time at FEED for each pulse (seconds)
-     * @param endPaddingS    extra LOAD time after last pulse before completing (seconds)
-     * @param loadPos        servo position for "load/park"
-     * @param feedPos        servo position for "feed"
-     */
+
     public static class ShooterAndFeederAction implements Action {
         private final DcMotorEx shooter;
         private final Servo feeder;
@@ -95,7 +81,7 @@ public final class AutoMotorControl {
             for (double s : feedStartS) {
                 if (t >= s && t < s + feedHoldS) { feeding = true; break; }
             }
-            feeder.setPosition(feeding ? feedPos : loadPos);
+            feeder.setPosition(feeding ? feedPos  : loadPos);
 
             // Telemetry (optional dashboard insight)
             packet.put("t_s", String.format("%.2f", t));
