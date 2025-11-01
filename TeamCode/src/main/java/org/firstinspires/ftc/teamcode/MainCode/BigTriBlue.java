@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
 
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 
-@Autonomous(name="Auto: BigTriBlue", group="Auto")
+@Autonomous(name="BigTriBlue", group="Auto")
 public class BigTriBlue extends LinearOpMode {
 
     // RC config names
@@ -78,7 +78,7 @@ public class BigTriBlue extends LinearOpMode {
 
                 // Pause base: shooter + 3 servo pulses
                 .stopAndAdd(new ShooterAndFeederAction(
-                        shooter, intake, feed,
+                        shooter, feed,
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))

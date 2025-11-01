@@ -1,10 +1,11 @@
-package org.firstinspires.ftc.teamcode.MainCode;
+package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket; // ADDED
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -14,9 +15,9 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 // ADDED
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
-
-@Autonomous(name="MEET1: SmallTriRed", group="MainAuto")
-public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
+@Disabled
+@Autonomous(name="MEET1: SmallTriRedNoTurn", group="MainAuto")
+public class AutoSmallTriangleSimpleRedSideNoTurn extends LinearOpMode {
 
     // ---- Hardware names ----
     private static final String FEED_SERVO   = "FeedServo";
@@ -48,9 +49,7 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
     }
 
     /**
-     * Combined shooter+feeder action.
-     * return TRUE to keep running, FALSE when complete.
-     * While this returns TRUE, the follower is paused because we insert it with .stopAndAdd(...).
+     * Combined shooter+feeder action (unchanged).
      */
     private static class ShooterAndFeederAction implements Action {
         private final DcMotorEx shooter;
@@ -127,7 +126,7 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
         DcMotorEx intakeExForLog = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
 
         // ADDED: create CSV logger for Auto
-        TinyCsvLogger logger = TinyCsvLogger.create(hardwareMap, "auto_smalltri_blue_simple");
+        TinyCsvLogger logger = TinyCsvLogger.create(hardwareMap, "auto_smalltri_red_noturn");
 
         // Default safe states
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -146,7 +145,6 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
 
         Action routine = drive.actionBuilder(startPose)
                 .setTangent(0)
-                .turn(35)
                 .stopAndAdd(setMotorPower(shooter, 0.74))
                 .lineToX(startPose.position.x+1)
                 .lineToX(startPose.position.x)
@@ -166,11 +164,10 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
                         shooter, feed, SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S))
                 .waitSeconds(1)
-                .splineToLinearHeading(new Pose2d( -20, -20, Math.toRadians(-225)), Math.PI / 2)
-
+                .splineToLinearHeading(new Pose2d( 20, 20, Math.toRadians(-225)), Math.PI / 2)
                 .build();
 
-        // ADDED: wrap the routine with a per-tick logger
+        // ADDED: per-tick logging wrapper
         Action logged = new Action() {
             @Override
             public boolean run(TelemetryPacket packet) {
@@ -179,10 +176,10 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
 
                 // read pose + powers
                 Pose2d pose = drive.localizer.getPose();
-                double launchCmd = shooter.getPower(); // last-set power as "command" in Auto
+                double launchCmd = shooter.getPower(); // last-set power as "command"
                 double intakeCmd = intake.getPower();
 
-                // write one CSV row
+                // write CSV row
                 logger.record(
                         "run",
                         launchCmd,
@@ -193,7 +190,7 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
                         pose
                 );
 
-                // continue original routine
+                // continue original chain
                 return routine.run(packet);
             }
         };
