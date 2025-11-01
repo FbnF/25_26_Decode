@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
+
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -10,12 +12,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
-import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="Auto: BigTriBlue", group="Auto")
-public class BigTriBlue extends LinearOpMode {
+@Autonomous(name="Main: SmallTriRed", group="Auto")
+public class SmallTriBlue extends LinearOpMode {
 
     // RC config names
     private static final String FEED_SERVO   = "feedServo";
@@ -23,64 +24,64 @@ public class BigTriBlue extends LinearOpMode {
     private static final String LAUNCH_MOTOR = "LaunchMotor";
 
     // Tunables
-    private static final double INTAKE_POWER  = 1.0;
-    private static final double SHOOTER_POWER = 0.62;
+    private static final double INTAKE_POWER  = 0.6;
+    private static final double SHOOTER_POWER = 0.8;
 
-    // Servo positions
+    // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.00;
     private static final double SERVO_FEED_POS = 0.75;
 
-    // Feed schedule (seconds from the start of the shooter/feeder action)
-    private static final double[] FEED_START_S = {2.0, 5.0, 8.0};
+    // Feed schedule at the stop (seconds from start of the shooter action)
+    private static final double[] FEED_START_S = {2.52, 5.52, 8.52};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(-60, -34, Math.toRadians(270));
+        Pose2d startPose = new Pose2d(-60, 34, Math.toRadians(90));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
         Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
-        // feed.setDirection(Servo.Direction.REVERSE); // if the linkage is inverted
+        // feed.setDirection(Servo.Direction.REVERSE); // if linkage inverted
 
-        // Defaults/safety
+        // Safe defaults
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        intake.setPower(1.0);
+        intake.setPower(0.0);
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
 
         waitForStart();
         if (isStopRequested()) return;
 
-        Action routine = drive.actionBuilder(startPose)
-                // Start intake; non-blocking (base keeps moving)
-                //.stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+        Action all = drive.actionBuilder(startPose)
+                // Intake on (non-blocking; base keeps moving)
+                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
-                // Drive to launch position
-                .lineToY(-7)
+                // --- Your original path, Red side ---
+                .setTangent(0)
 
-                // Pause base: shooter + 3 servo pulses, then stop shooter
+
+
+                // Pause base: shooter + 3 servo pulses (then shooter stops)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
+              //  .setTangent(0)
+                .splineTo(new Vector2d(48, 24), Math.PI*3 / 2)
 
-                // Finish your path
-            //    .strafeTo(new Vector2d(12, -24))
 
-
-                // Stop intake (one-shot)
-                .stopAndAdd(setMotorPower(intake, 0.0))
+       //         .strafeTo(new Vector2d(12, 24))
 
                 .build();
 
-        Actions.runBlocking(routine);
+        Actions.runBlocking(all);
 
         // Safety park
         feed.setPosition(SERVO_LOAD_POS);
