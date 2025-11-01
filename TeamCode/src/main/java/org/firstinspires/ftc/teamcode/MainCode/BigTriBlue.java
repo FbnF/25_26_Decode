@@ -63,7 +63,7 @@ public class BigTriBlue extends LinearOpMode {
                 //.stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 // Drive to launch position
-                .lineToY(2)
+                .lineToY(-5)
 
                 // Pause base: shooter + 3 servo pulses, then stop shooter
                 .stopAndAdd(new ShooterAndFeederAction(
