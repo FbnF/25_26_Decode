@@ -25,20 +25,20 @@ public class SmallTriBlue extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.6;
-    private static final double SHOOTER_POWER = 0.77;
+    private static final double SHOOTER_POWER = 0.75;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.00;
     private static final double SERVO_FEED_POS = 0.75;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = {2.52, 5.52, 8.52};
+    private static final double[] FEED_START_S = {4.52, 6.52, 9.52};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(-60, 34, Math.toRadians(90));
+        Pose2d startPose = new Pose2d(-60, -12, Math.toRadians(90));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -65,6 +65,16 @@ public class SmallTriBlue extends LinearOpMode {
                 // --- Your original path, Red side ---
                 .setTangent(0)
 
+                // Locate the right position
+//                .strafeTo(new Vector2d(-60, 5))
+//                .waitSeconds(5)
+//                .strafeTo(new Vector2d(-60, 10))
+//                .waitSeconds(5)
+//                .strafeTo(new Vector2d(-70, 10))
+//                .waitSeconds(5)
+////                .strafeTo(new Vector2d(-40, -30))
+//                .waitSeconds(20)
+
 
 
                 // Pause base: shooter + 3 servo pulses (then shooter stops)
@@ -76,7 +86,7 @@ public class SmallTriBlue extends LinearOpMode {
               //  .setTangent(0)
                // .splineTo(new Vector2d(48, -24), Math.PI*3 / 2)
 
-                .strafeTo(new Vector2d(-55, 29))
+                .strafeTo(new Vector2d(-70, 6))
        //         .strafeTo(new Vector2d(12, 24))
 
                 .build();

@@ -26,7 +26,7 @@ public class BigTriRed extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 1.0;
-    private static final double SHOOTER_POWER = 0.61;
+    private static final double SHOOTER_POWER = 0.59;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.00;

@@ -27,7 +27,7 @@ public class BigTriBlue extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 1.0;
-    private static final double SHOOTER_POWER = 0.61;
+    private static final double SHOOTER_POWER = 0.57;
 
     // Servo positions
     private static final double SERVO_LOAD_POS = 0.00;
@@ -73,8 +73,17 @@ public class BigTriBlue extends LinearOpMode {
                 // Start intake; non-blocking
                 //.stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
+//                Figure out the location
+
                 // Drive to launch position
                 .lineToY(-2)
+
+//                .waitSeconds(5)
+//                .strafeTo(new Vector2d(-80, -15))
+//                .waitSeconds(5)
+//                .strafeTo(new Vector2d(-80, -20))
+//                .waitSeconds(5)
+//                .strafeTo(new Vector2d(-90, -25))
 
                 // Pause base: shooter + 3 servo pulses
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -83,8 +92,13 @@ public class BigTriBlue extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .waitSeconds(5)
-                .strafeTo(new Vector2d(-80, 10))
+//                .waitSeconds(5)
+//                .strafeTo(new Vector2d(-80, 10))
+//                .waitSeconds(5)
+                .strafeTo(new Vector2d(-85, -15))
+//                .waitSeconds(5)
+//                .strafeTo(new Vector2d(-80, 15))
+
                 .build();
 
         // >>> ADDED: wrap routine in per-tick logger <<<
