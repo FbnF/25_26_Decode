@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket; // ADDED
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
@@ -11,6 +11,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+
+// ADDED
+import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
 
 @Autonomous(name="MEET1: SmallTriRedNoTurn", group="MainAuto")
 public class AutoSmallTriangleSimpleRedSideNoTurn extends LinearOpMode {
@@ -45,9 +48,7 @@ public class AutoSmallTriangleSimpleRedSideNoTurn extends LinearOpMode {
     }
 
     /**
-     * Combined shooter+feeder action.
-     * return TRUE to keep running, FALSE when complete.
-     * While this returns TRUE, the follower is paused because we insert it with .stopAndAdd(...).
+     * Combined shooter+feeder action (unchanged).
      */
     private static class ShooterAndFeederAction implements Action {
         private final DcMotorEx shooter;
@@ -120,6 +121,12 @@ public class AutoSmallTriangleSimpleRedSideNoTurn extends LinearOpMode {
         Servo feed = hardwareMap.get(Servo.class, FEED_SERVO);
         // feed.setDirection(Servo.Direction.REVERSE); // if your linkage is inverted
 
+        // ADDED: DcMotorEx handle for intake (for logging only)
+        DcMotorEx intakeExForLog = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
+
+        // ADDED: create CSV logger for Auto
+        TinyCsvLogger logger = TinyCsvLogger.create(hardwareMap, "auto_smalltri_red_noturn");
+
         // Default safe states
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -130,7 +137,10 @@ public class AutoSmallTriangleSimpleRedSideNoTurn extends LinearOpMode {
         feed.setPosition(SERVO_LOAD_POS);
 
         waitForStart();
-        if (isStopRequested()) return;
+        if (isStopRequested()) {
+            try { logger.close(); } catch (Exception ignored) {}
+            return;
+        }
 
         Action routine = drive.actionBuilder(startPose)
                 .setTangent(0)
@@ -154,16 +164,46 @@ public class AutoSmallTriangleSimpleRedSideNoTurn extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S))
                 .waitSeconds(1)
                 .splineToLinearHeading(new Pose2d( 20, 20, Math.toRadians(-225)), Math.PI / 2)
-
                 .build();
 
+        // ADDED: per-tick logging wrapper
+        Action logged = new Action() {
+            @Override
+            public boolean run(TelemetryPacket packet) {
+                // advance odometry
+                drive.updatePoseEstimate();
 
-        Actions.runBlocking(routine);
+                // read pose + powers
+                Pose2d pose = drive.localizer.getPose();
+                double launchCmd = shooter.getPower(); // last-set power as "command"
+                double intakeCmd = intake.getPower();
+
+                // write CSV row
+                logger.record(
+                        "run",
+                        launchCmd,
+                        shooter,
+                        intakeCmd,
+                        intakeExForLog,
+                        feed,
+                        pose
+                );
+
+                // continue original chain
+                return routine.run(packet);
+            }
+        };
+
+        // run the logged action
+        Actions.runBlocking(logged);
 
         // Safety
         feed.setPosition(SERVO_LOAD_POS);
         shooter.setPower(0.0);
         intake.setPower(0.0);
+
+        // ADDED: close the logger
+        logger.close();
     }
 
 }

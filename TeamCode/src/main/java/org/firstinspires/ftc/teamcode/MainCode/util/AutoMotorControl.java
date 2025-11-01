@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode.MainCode.util;
 
-
-
-import static java.lang.Thread.sleep;
-
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -31,11 +27,181 @@ public final class AutoMotorControl {
             return false; // finished immediately; does NOT block follower
         };
     }
+    public static Action setServoPosition(Servo s, double pos) {
+        return (TelemetryPacket pkt) -> {
+            if (s != null) s.setPosition(pos);
+            return false; // finished immediately
+        };
+    }
+    public static class TimedMotorPowerAction implements Action {
+        private final DcMotorEx motor;
+        private final double power;
+        private final double durationS;
+        private final boolean stopAtEnd;
+
+        private boolean initialized = false;
+        private long t0;
+
+        public TimedMotorPowerAction(DcMotorEx motor, double power, double durationS, boolean stopAtEnd) {
+            this.motor = motor;
+            this.power = power;
+            this.durationS = durationS;
+            this.stopAtEnd = stopAtEnd;
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            if (!initialized) {
+                t0 = System.nanoTime();
+                if (motor != null) {
+                    motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    motor.setPower(power);
+                }
+                initialized = true;
+            }
+            double t = (System.nanoTime() - t0) / 1e9;
+            packet.put("timedMotor_t_s", String.format("%.2f", t));
+
+            if (t < durationS) return true;
+
+            if (motor != null && stopAtEnd) motor.setPower(0.0);
+            return false;
+        }
+    }
+    public static class ServoPulseAction implements Action {
+        private final Servo servo;
+        private final double loadPos;
+        private final double feedPos;
+
+        private final double startDelayS; // delay before first pulse
+        private final double holdS;       // time spent at FEED
+        private final double gapS;        // time between pulse starts (period - holdS)
+        private final int repeats;        // number of pulses
+        private final double endPaddingS; // extra LOAD time after last pulse
+
+        private boolean initialized = false;
+        private long t0;
+
+        public ServoPulseAction(
+                Servo servo,
+                double loadPos,
+                double feedPos,
+                double startDelayS,
+                double holdS,
+                double gapS,
+                int repeats,
+                double endPaddingS
+        ) {
+            this.servo = servo;
+            this.loadPos = loadPos;
+            this.feedPos = feedPos;
+            this.startDelayS = Math.max(0, startDelayS);
+            this.holdS = Math.max(0, holdS);
+            this.gapS = Math.max(0, gapS);
+            this.repeats = Math.max(0, repeats);
+            this.endPaddingS = Math.max(0, endPaddingS);
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            if (!initialized) {
+                t0 = System.nanoTime();
+                if (servo != null) servo.setPosition(loadPos);
+                initialized = true;
+            }
+
+            double t = (System.nanoTime() - t0) / 1e9;
+            boolean feeding = false;
+
+            if (t >= startDelayS && repeats > 0) {
+                double tSinceStart = t - startDelayS;
+                double period = Math.max(holdS + gapS, holdS); // ensure sane period
+                // Which pulse index are we in?
+                int idx = (int) Math.floor(tSinceStart / period);
+                if (idx < repeats) {
+                    double tIntoPulse = tSinceStart - idx * period;
+                    feeding = (tIntoPulse >= 0 && tIntoPulse < holdS);
+                }
+            }
+
+            if (servo != null) servo.setPosition(feeding ? feedPos : loadPos);
+
+            // Telemetry
+            packet.put("servoPulse_t_s", String.format("%.2f", t));
+            packet.put("servoPulse_feeding", feeding);
+
+            // Compute absolute end time
+            double totalActive = startDelayS + (repeats > 0 ? (repeats * (holdS + gapS)) - gapS : 0); // last pulse doesn't need trailing full gap to "exist"
+            double lastEnd = totalActive + endPaddingS;
+
+            if (t < lastEnd) return true;
+
+            if (servo != null) servo.setPosition(loadPos);
+            return false;
+        }
+    }
+    public static class ServoScheduleAction implements Action {
+        private final Servo servo;
+        private final double loadPos;
+        private final double feedPos;
+        private final double[] feedStartS;
+        private final double feedHoldS;
+        private final double endPaddingS;
+
+        private boolean initialized = false;
+        private long t0;
+
+        public ServoScheduleAction(
+                Servo servo,
+                double loadPos,
+                double feedPos,
+                double[] feedStartS,
+                double feedHoldS,
+                double endPaddingS
+        ) {
+            this.servo = servo;
+            this.loadPos = loadPos;
+            this.feedPos = feedPos;
+            this.feedStartS = (feedStartS != null) ? feedStartS : new double[0];
+            this.feedHoldS = Math.max(0, feedHoldS);
+            this.endPaddingS = Math.max(0, endPaddingS);
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            if (!initialized) {
+                t0 = System.nanoTime();
+                if (servo != null) servo.setPosition(loadPos);
+                initialized = true;
+            }
+
+            double t = (System.nanoTime() - t0) / 1e9;
+
+            boolean feeding = false;
+            for (double s : feedStartS) {
+                if (t >= s && t < s + feedHoldS) {
+                    feeding = true;
+                    break;
+                }
+            }
+            if (servo != null) servo.setPosition(feeding ? feedPos : loadPos);
+
+            packet.put("servoSched_t_s", String.format("%.2f", t));
+            packet.put("servoSched_feeding", feeding);
+
+            double lastEnd = (feedStartS.length > 0 ? feedStartS[feedStartS.length - 1] : 0.0)
+                    + feedHoldS + endPaddingS;
+
+            if (t < lastEnd) return true;
+
+            if (servo != null) servo.setPosition(loadPos);
+            return false;
+        }
+    }
 
 
     public static class ShooterAndFeederAction implements Action {
         private final DcMotorEx shooter;
-        private final DcMotorEx intake;
         private final Servo feeder;
         private final double shooterPower;
         private final double[] feedStartS;
@@ -49,7 +215,6 @@ public final class AutoMotorControl {
 
         public ShooterAndFeederAction(
                 DcMotorEx shooter,
-                DcMotorEx intake,
                 Servo feeder,
                 double shooterPower,
                 double[] feedStartS,
@@ -59,7 +224,6 @@ public final class AutoMotorControl {
                 double feedPos
         ) {
             this.shooter = shooter;
-            this.intake = intake;
             this.feeder = feeder;
             this.shooterPower = shooterPower;
             this.feedStartS = feedStartS;
@@ -78,12 +242,6 @@ public final class AutoMotorControl {
                     shooter.setPower(shooterPower);
                 }
                 feeder.setPosition(loadPos);
-                intake.setPower(-0.5);
-                for (int i = 0; i < 100; i++){
-                    int count = i;
-                }
-                intake.setPower(1.0);
-
                 initialized = true;
             }
 

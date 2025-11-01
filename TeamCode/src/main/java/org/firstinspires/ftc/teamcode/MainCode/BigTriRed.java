@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -13,6 +14,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
+import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
 
 @Autonomous(name="Auto: BigTriRed", group="Auto")
 public class BigTriRed extends LinearOpMode {
@@ -38,13 +40,18 @@ public class BigTriRed extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d startPose = new Pose2d(-60, 34, Math.toRadians(90));
-        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose
-        );
+        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
-        DcMotorEx intake        = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
-        DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
-        Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
+        DcMotorEx intake  = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
+        DcMotorEx shooter = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
+        Servo feed        = hardwareMap.get(Servo.class, FEED_SERVO);
         // feed.setDirection(Servo.Direction.REVERSE); // if linkage inverted
+
+        // ADDED: separate handle for intake (for logging only; same name)
+        DcMotorEx intakeExForLog = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
+
+        // ADDED: CSV logger
+        TinyCsvLogger logger = TinyCsvLogger.create(hardwareMap, "auto_bigtri_red");
 
         // Safe defaults
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -56,7 +63,10 @@ public class BigTriRed extends LinearOpMode {
         feed.setPosition(SERVO_LOAD_POS);
 
         waitForStart();
-        if (isStopRequested()) return;
+        if (isStopRequested()) {
+            try { logger.close(); } catch (Exception ignored) {}
+            return;
+        }
 
         Action all = drive.actionBuilder(startPose)
                 // Intake on (non-blocking; base keeps moving)
@@ -64,9 +74,6 @@ public class BigTriRed extends LinearOpMode {
 
                 // --- Your original path, Red side ---
                 .lineToY(5)
-//                .waitSeconds(5)
-//                .strafeTo(new Vector2d(-85, 10))
-//                .waitSeconds(20)
 
                 // Pause base: shooter + 3 servo pulses (then shooter stops)
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -74,19 +81,47 @@ public class BigTriRed extends LinearOpMode {
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                //.lineToX(3)
 
                 .strafeTo(new Vector2d(-85, 10))
 
-//                .waitSeconds(20)
-
                 .build();
 
-        Actions.runBlocking(all);
+        // ADDED: wrap the action with per-tick logging
+        Action logged = new Action() {
+            @Override
+            public boolean run(TelemetryPacket packet) {
+                // advance odometry
+                drive.updatePoseEstimate();
+
+                // read pose + powers
+                Pose2d pose = drive.localizer.getPose();
+                double launchCmd = shooter.getPower(); // treat last-set power as "command" in Auto
+                double intakeCmd = intake.getPower();
+
+                // write CSV row
+                logger.record(
+                        "run",
+                        launchCmd,
+                        shooter,
+                        intakeCmd,
+                        intakeExForLog,
+                        feed,
+                        pose
+                );
+
+                // continue original chain
+                return all.run(packet);
+            }
+        };
+
+        Actions.runBlocking(logged);
 
         // Safety park
         feed.setPosition(SERVO_LOAD_POS);
         shooter.setPower(0.0);
         intake.setPower(0.0);
+
+        // ADDED: close the logger
+        logger.close();
     }
 }

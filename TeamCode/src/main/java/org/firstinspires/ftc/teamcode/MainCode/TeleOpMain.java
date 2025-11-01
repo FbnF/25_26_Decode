@@ -46,7 +46,7 @@ public class TeleOpMain extends LinearOpMode {
     private boolean isLaunchRunning = false;
     private boolean isFeedServoDown = false;
 
-   // --- Button edge detection ---
+    // --- Button edge detection ---
     private boolean prevRB = false;
 
     private boolean feedPulseActive = false;
@@ -71,6 +71,8 @@ public class TeleOpMain extends LinearOpMode {
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // NEW: intake runs open-loop (no encoder feedback)
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Drive (verify your constructor signature)
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
@@ -100,10 +102,12 @@ public class TeleOpMain extends LinearOpMode {
             double lateral = -gamepad1.left_stick_x  * speedFactor; // right = strafe right (−y)
             double heading = -gamepad1.right_stick_x * speedFactor; // right = turn right (−CCW = CW)
 
+            // Keep a single call
             drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), heading));
-            drive.setDrivePowers(
-                    new PoseVelocity2d(new Vector2d(axial, lateral), heading)
-            );
+
+            // Update odometry and read pose
+            drive.updatePoseEstimate();
+            Pose2d pose = drive.localizer.getPose();
 
             telemetry.addData("Speed Factor", "%.2f (%.0f%%)", speedFactor, speedFactor*100);
 
@@ -142,10 +146,8 @@ public class TeleOpMain extends LinearOpMode {
                     feedPulseActive = false;
                 }
             }
-            // (Keep the previously removed else that forced setVelocity(0.0) removed.)
 
             // --- Intake toggle (RB edge) ---
-
             boolean rbEdge = gamepad2.right_bumper && !prevRB; // rising edge
             if (rbEdge) {intakePower=-0.5;}
             prevRB = gamepad2.right_bumper;
@@ -158,12 +160,15 @@ public class TeleOpMain extends LinearOpMode {
 
             intakeMotor.setPower(intakePower);
 
+            // LOG: now pass intake motor and pose (matches TinyCsvLogger signature)
             logger.record(
                     "run",
-                    launchPower,    // The commanded shooter power
-                    launchMotor,    // The measured power + velocity
-                    intakePower,    // The commanded intake power
-                    feedServo       // servo position
+                    launchPower,    // commanded shooter power
+                    launchMotor,    // measured power + velocity
+                    intakePower,    // commanded intake power
+                    intakeMotor,    // intake motor (for power/velocity if present)
+                    feedServo,      // servo position
+                    pose            // pose from RR localizer
             );
 
             // ------------- Telemetry data -------------------------------------------------
