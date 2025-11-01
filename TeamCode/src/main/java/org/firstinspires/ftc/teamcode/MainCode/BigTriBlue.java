@@ -34,7 +34,7 @@ public class BigTriBlue extends LinearOpMode {
     private static final double SERVO_FEED_POS = 0.75;
 
     // Feed schedule (seconds from start of shooter/feeder action)
-    private static final double[] FEED_START_S = {2.0, 5.0, 8.0};
+    private static final double[] FEED_START_S = {3.0, 6.0, 9.0};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
@@ -74,7 +74,7 @@ public class BigTriBlue extends LinearOpMode {
                 //.stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 // Drive to launch position
-                .lineToY(-5)
+                .lineToY(-2)
 
                 // Pause base: shooter + 3 servo pulses
                 .stopAndAdd(new ShooterAndFeederAction(

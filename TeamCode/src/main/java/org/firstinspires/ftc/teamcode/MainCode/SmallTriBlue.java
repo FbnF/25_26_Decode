@@ -25,7 +25,7 @@ public class SmallTriBlue extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.6;
-    private static final double SHOOTER_POWER = 0.8;
+    private static final double SHOOTER_POWER = 0.77;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.00;
@@ -74,9 +74,9 @@ public class SmallTriBlue extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
               //  .setTangent(0)
-                .splineTo(new Vector2d(48, -24), Math.PI*3 / 2)
+               // .splineTo(new Vector2d(48, -24), Math.PI*3 / 2)
 
-
+                .strafeTo(new Vector2d(-55, 29))
        //         .strafeTo(new Vector2d(12, 24))
 
                 .build();
