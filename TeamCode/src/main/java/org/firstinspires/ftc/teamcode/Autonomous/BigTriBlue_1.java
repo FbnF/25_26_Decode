@@ -33,7 +33,7 @@ public class BigTriBlue_1 extends LinearOpMode {
 
     // Three feed windows while shooter is spinning (seconds from action start)
     private static final double[] FEED_START_S = {1.0, 3.0, 5.0};
-    private static final double   FEED_HOLD_S  = 0.35;
+    private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0; // extra LOAD time after last feed
 
     /** One-shot action to set motor power (non-blocking; completes immediately). */
@@ -101,7 +101,7 @@ public class BigTriBlue_1 extends LinearOpMode {
             double lastEnd = starts[starts.length - 1] + holdS + endPadS;
 
             if (t < lastEnd) {
-                return true;   // keep running (base stays paused)
+                return false;   // keep running (base stays paused)
             }
 
             // Finish: park servo, stop shooter
@@ -146,10 +146,11 @@ public class BigTriBlue_1 extends LinearOpMode {
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed, SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S))
-
+                .lineToY(14)
+                .lineToY(12)
                 // Continue path with intake still on
-                .strafeTo(new Vector2d(12, 24))
-                .turn(Math.toRadians(180))   // radians!
+                .strafeTo(new Vector2d(12, -24))
+                 // radians!
 
                 // Stop intake at the end (non-blocking one-shot)
                 .stopAndAdd(setMotorPower(intake, 0.0))
