@@ -64,6 +64,9 @@ public class BigTriRed extends LinearOpMode {
 
                 // --- Your original path, Red side ---
                 .lineToY(5)
+//                .waitSeconds(5)
+//                .strafeTo(new Vector2d(-85, 10))
+//                .waitSeconds(20)
 
                 // Pause base: shooter + 3 servo pulses (then shooter stops)
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -71,8 +74,11 @@ public class BigTriRed extends LinearOpMode {
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
+                //.lineToX(3)
 
-                .strafeTo(new Vector2d(5, 5))
+                .strafeTo(new Vector2d(-85, 10))
+
+//                .waitSeconds(20)
 
                 .build();
 

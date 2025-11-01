@@ -73,8 +73,9 @@ public class BigTriBlue extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
                 // Finish your path
-                .lineToY(0)
-
+//                .lineToY(0)
+                .waitSeconds(5)
+                .strafeTo(new Vector2d(-80, 10))
                 // Stop intake (one-shot)
 
 
