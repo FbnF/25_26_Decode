@@ -74,7 +74,7 @@ public class SmallTriBlue extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
               //  .setTangent(0)
-                .splineTo(new Vector2d(48, 24), Math.PI*3 / 2)
+                .splineTo(new Vector2d(48, -24), Math.PI*3 / 2)
 
 
        //         .strafeTo(new Vector2d(12, 24))
