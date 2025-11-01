@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.MainCode.util;
 
+
+
+import static java.lang.Thread.sleep;
+
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -31,6 +35,7 @@ public final class AutoMotorControl {
 
     public static class ShooterAndFeederAction implements Action {
         private final DcMotorEx shooter;
+        private final DcMotorEx intake;
         private final Servo feeder;
         private final double shooterPower;
         private final double[] feedStartS;
@@ -44,6 +49,7 @@ public final class AutoMotorControl {
 
         public ShooterAndFeederAction(
                 DcMotorEx shooter,
+                DcMotorEx intake,
                 Servo feeder,
                 double shooterPower,
                 double[] feedStartS,
@@ -53,6 +59,7 @@ public final class AutoMotorControl {
                 double feedPos
         ) {
             this.shooter = shooter;
+            this.intake = intake;
             this.feeder = feeder;
             this.shooterPower = shooterPower;
             this.feedStartS = feedStartS;
@@ -71,6 +78,12 @@ public final class AutoMotorControl {
                     shooter.setPower(shooterPower);
                 }
                 feeder.setPosition(loadPos);
+                intake.setPower(-0.5);
+                for (int i = 0; i < 100; i++){
+                    int count = i;
+                }
+                intake.setPower(1.0);
+
                 initialized = true;
             }
 

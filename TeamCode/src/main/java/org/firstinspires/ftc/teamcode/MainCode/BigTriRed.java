@@ -24,7 +24,7 @@ public class BigTriRed extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 1.0;
-    private static final double SHOOTER_POWER = 0.62;
+    private static final double SHOOTER_POWER = 0.61;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.00;
@@ -38,9 +38,10 @@ public class BigTriRed extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d startPose = new Pose2d(-60, 34, Math.toRadians(90));
-        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
+        MecanumDrive drive = new MecanumDrive(hardwareMap, startPose
+        );
 
-        DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
+        DcMotorEx intake        = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
         Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
         // feed.setDirection(Servo.Direction.REVERSE); // if linkage inverted
@@ -62,16 +63,16 @@ public class BigTriRed extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 // --- Your original path, Red side ---
-                .lineToY(7)
+                .lineToY(5)
 
                 // Pause base: shooter + 3 servo pulses (then shooter stops)
                 .stopAndAdd(new ShooterAndFeederAction(
-                        shooter, feed,
+                        shooter, intake, feed,
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-       //         .strafeTo(new Vector2d(12, 24))
+                .strafeTo(new Vector2d(5, 5))
 
                 .build();
 
