@@ -23,16 +23,16 @@ public class BigTriRed extends LinearOpMode {
     private static final String LAUNCH_MOTOR = "LaunchMotor";
 
     // Tunables
-    private static final double INTAKE_POWER  = 0.60;
-    private static final double SHOOTER_POWER = 0.55;
+    private static final double INTAKE_POWER  = 1.0;
+    private static final double SHOOTER_POWER = 0.62;
 
     // Servo positions (use what worked in your tests)
-    private static final double SERVO_LOAD_POS = 0.30;
+    private static final double SERVO_LOAD_POS = 0.00;
     private static final double SERVO_FEED_POS = 0.70;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = {1.0, 3.0, 5.0};
-    private static final double   FEED_HOLD_S  = 0.35;
+    private static final double[] FEED_START_S = {2.0, 5.0, 8.0};
+    private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
     @Override
@@ -62,7 +62,7 @@ public class BigTriRed extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 // --- Your original path, Red side ---
-                .lineToY(12)
+                .lineToY(7)
 
                 // Pause base: shooter + 3 servo pulses (then shooter stops)
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -71,8 +71,8 @@ public class BigTriRed extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .strafeTo(new Vector2d(12, -24))
-                .turn(Math.toRadians(180))
+       //         .strafeTo(new Vector2d(12, 24))
+
                 .build();
 
         Actions.runBlocking(all);
