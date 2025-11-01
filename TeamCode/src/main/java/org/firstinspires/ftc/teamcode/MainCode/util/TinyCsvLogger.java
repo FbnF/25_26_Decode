@@ -55,6 +55,7 @@ public final class TinyCsvLogger {
     public void record(String tag, double launchCmd,
                        DcMotorEx launchMotor,
                        double intakeCmd,
+                       DcMotorEx intakeMotor,
                        Servo feedServo) {
         try {
             long t_ms = (System.nanoTime() - t0Ns) / 1_000_000L;

@@ -67,10 +67,11 @@ public class TeleOpMain extends LinearOpMode {
         feedServo.setPosition(0.0);
         isFeedServoDown = false;
 
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        intakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Drive (verify your constructor signature)
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
@@ -110,7 +111,7 @@ public class TeleOpMain extends LinearOpMode {
             // --- Three fixed power levels + feed pulse trigger ---
             // Long range
             if (gamepad2.a){
-                launchPower = 0.74;
+                launchPower = 0.75;
             }
             // Middle range
             if (gamepad2.b){
@@ -163,6 +164,7 @@ public class TeleOpMain extends LinearOpMode {
                     launchPower,    // The commanded shooter power
                     launchMotor,    // The measured power + velocity
                     intakePower,    // The commanded intake power
+                    intakeMotor,    // The measured power + velocity
                     feedServo       // servo position
             );
 
