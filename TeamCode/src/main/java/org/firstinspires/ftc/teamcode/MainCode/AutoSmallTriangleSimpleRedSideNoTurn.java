@@ -134,22 +134,25 @@ public class AutoSmallTriangleSimpleRedSideNoTurn extends LinearOpMode {
 
         Action routine = drive.actionBuilder(startPose)
                 .setTangent(0)
-                .lineToX(startPose.position.x+1)
-                .lineToX(startPose.position.x)
                 .stopAndAdd(setMotorPower(shooter, 0.74))
-                .stopAndAdd(new ShooterAndFeederAction(
-                        shooter, feed, SHOOTER_POWER,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S))
                 .lineToX(startPose.position.x+1)
                 .lineToX(startPose.position.x)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed, SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S))
+                .waitSeconds(1)
                 .lineToX(startPose.position.x+1)
                 .lineToX(startPose.position.x)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed, SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S))
+                .waitSeconds(1)
+                .lineToX(startPose.position.x+1)
+                .lineToX(startPose.position.x)
+                .stopAndAdd(new ShooterAndFeederAction(
+                        shooter, feed, SHOOTER_POWER,
+                        FEED_START_S, FEED_HOLD_S, END_PADDING_S))
+                .waitSeconds(1)
                 .splineToLinearHeading(new Pose2d( 20, 20, Math.toRadians(-225)), Math.PI / 2)
 
                 .build();

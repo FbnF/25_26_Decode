@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="MEET1: SmallTriBlue", group="MainAuto")
+@Autonomous(name="MEET1: SmallTriRed", group="MainAuto")
 public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
 
     // ---- Hardware names ----
@@ -25,12 +25,12 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
     private static final double SHOOTER_POWER = 0.74;  // open-loop; swap to velocity if you want
 
     // Servo positions (use your tested mid-range)
-    private static final double SERVO_LOAD_POS = 0.00;
+    private static final double SERVO_LOAD_POS = -5.00;
     private static final double SERVO_FEED_POS = 0.75;
 
     // Three feed windows while shooter is spinning (seconds from action start)
     private static final double[] FEED_START_S = {1.0, 3.0, 5.0};
-    private static final double   FEED_HOLD_S  = 0.35;
+    private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0; // extra LOAD time after last feed
 
     /** One-shot action to set motor power (non-blocking; completes immediately). */
@@ -98,7 +98,7 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
             double lastEnd = starts[starts.length - 1] + holdS + endPadS;
 
             if (t < lastEnd) {
-                return true;   // keep running (base stays paused)
+                return false;   // keep running (base stays paused)
             }
 
             // Finish: park servo, stop shooter
@@ -108,10 +108,11 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
         }
     }
 
+
     @Override
     public void runOpMode() throws InterruptedException {
         // Drive + hardware
-        Pose2d startPose = new Pose2d(-60, -10, Math.toRadians(180));
+        Pose2d startPose = new Pose2d(60, 10, Math.toRadians(180));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -133,15 +134,30 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
 
         Action routine = drive.actionBuilder(startPose)
                 .setTangent(0)
-                .turn(Math.toRadians(35))
-                .lineToX(61)
-                .lineToX(60)
+                .turn(35)
+                .stopAndAdd(setMotorPower(shooter, 0.74))
+                .lineToX(startPose.position.x+1)
+                .lineToX(startPose.position.x)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed, SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S))
-                .splineToLinearHeading(new Pose2d( 20, 20, Math.toRadians(-225)), Math.PI / 2)
+                .waitSeconds(1)
+                .lineToX(startPose.position.x+1)
+                .lineToX(startPose.position.x)
+                .stopAndAdd(new ShooterAndFeederAction(
+                        shooter, feed, SHOOTER_POWER,
+                        FEED_START_S, FEED_HOLD_S, END_PADDING_S))
+                .waitSeconds(1)
+                .lineToX(startPose.position.x+1)
+                .lineToX(startPose.position.x)
+                .stopAndAdd(new ShooterAndFeederAction(
+                        shooter, feed, SHOOTER_POWER,
+                        FEED_START_S, FEED_HOLD_S, END_PADDING_S))
+                .waitSeconds(1)
+                .splineToLinearHeading(new Pose2d( -20, -20, Math.toRadians(-225)), Math.PI / 2)
 
                 .build();
+
 
         Actions.runBlocking(routine);
 
@@ -150,4 +166,5 @@ public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
         shooter.setPower(0.0);
         intake.setPower(0.0);
     }
+
 }
