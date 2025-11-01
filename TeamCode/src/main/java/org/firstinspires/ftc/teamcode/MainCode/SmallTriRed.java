@@ -14,8 +14,8 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 
-@Autonomous(name="Auto: SmallTriRed", group="Auto")
-public class SmallTri extends LinearOpMode {
+@Autonomous(name="Main: SmallTriRed", group="Auto")
+public class SmallTriRed extends LinearOpMode {
 
     // RC config names
     private static final String FEED_SERVO   = "feedServo";
