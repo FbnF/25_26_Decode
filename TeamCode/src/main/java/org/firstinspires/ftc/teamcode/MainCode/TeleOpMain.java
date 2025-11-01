@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 
 // --- Data Logging ---
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
+import com.acmerobotics.roadrunner.Pose2d;
 
 @TeleOp(name = "TeleOp: Main", group = "TeleOp")
 public class TeleOpMain extends LinearOpMode {
@@ -71,6 +72,7 @@ public class TeleOpMain extends LinearOpMode {
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Drive (verify your constructor signature)
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
@@ -100,7 +102,7 @@ public class TeleOpMain extends LinearOpMode {
             double lateral = -gamepad1.left_stick_x  * speedFactor; // right = strafe right (−y)
             double heading = -gamepad1.right_stick_x * speedFactor; // right = turn right (−CCW = CW)
 
-            drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), heading));
+            //drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), heading));
             drive.setDrivePowers(
                     new PoseVelocity2d(new Vector2d(axial, lateral), heading)
             );
@@ -158,12 +160,18 @@ public class TeleOpMain extends LinearOpMode {
 
             intakeMotor.setPower(intakePower);
 
+            // Get current estimated pose (position + heading)
+            drive.updatePoseEstimate();
+            Pose2d pose = drive.localizer.getPose();
+
             logger.record(
                     "run",
                     launchPower,    // The commanded shooter power
                     launchMotor,    // The measured power + velocity
                     intakePower,    // The commanded intake power
-                    feedServo       // servo position
+                    intakeMotor,    // The measured power
+                    feedServo,      // servo position
+                    pose
             );
 
             // ------------- Telemetry data -------------------------------------------------

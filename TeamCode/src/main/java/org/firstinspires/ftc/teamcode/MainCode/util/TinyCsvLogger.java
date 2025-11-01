@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.MainCode.util;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -12,6 +13,8 @@ import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import com.acmerobotics.roadrunner.Pose2d;
+
 
 /** Ultra-minimal CSV logger for TeleOp metrics. */
 public final class TinyCsvLogger {
@@ -37,7 +40,12 @@ public final class TinyCsvLogger {
             File out = new File(dir, fname);
             BufferedWriter bw = new BufferedWriter(new FileWriter(out));
             // header
-            bw.write("t_ms,tag,batt_V,launch_cmd,launch_power,launch_tps,intake_cmd,feed_pos\n");
+            bw.write(
+                    "t_ms,tag,batt_V," + // t_ms, tag, batt_V
+                            "launch_cmd,launch_power,launch_tps," + // launch_cmd, launch_power, launch_tps
+                            "intake_cmd,intake_power,intake_tps,intake_has_enc," +  // intake_cmd, intake_power, intake_tps
+                            "feed_pos,x_m,y_m,head_rad\n" // feed_pos, x_m, y_m, head_rad
+            );
             bw.flush();
 
             // pick any available voltage sensor
@@ -55,19 +63,59 @@ public final class TinyCsvLogger {
     public void record(String tag, double launchCmd,
                        DcMotorEx launchMotor,
                        double intakeCmd,
-                       Servo feedServo) {
+                       DcMotorEx intakeMotor,
+                       Servo feedServo,
+                       Pose2d pose) {
         try {
             long t_ms = (System.nanoTime() - t0Ns) / 1_000_000L;
             double batt = (vSensor != null) ? vSensor.getVoltage() : Double.NaN;
-            double lmPower = (launchMotor != null) ? launchMotor.getPower() : Double.NaN;
-            double lmTps   = (launchMotor != null) ? launchMotor.getVelocity() : Double.NaN;
-            double feedPos = (feedServo != null)   ? feedServo.getPosition() : Double.NaN;
+
+            // Launcher
+            double lmPower = (launchMotor != null) ? launchMotor.getPower()     : Double.NaN;  // last set power
+            double lmTps   = (launchMotor != null) ? launchMotor.getVelocity()  : Double.NaN;  // ticks/sec
+
+            // Intake (measured) + encoder flag
+            boolean intakeHasEnc = false;
+            double imPower = (intakeMotor != null) ? intakeMotor.getPower()     : Double.NaN;  // last set power
+            double imTps   = Double.NaN; // default to NaN unless we confirm encoder/mode supports velocity
+
+            if (intakeMotor != null) {
+                try {
+                    DcMotor.RunMode mode = intakeMotor.getMode();
+                    intakeHasEnc = (mode != DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    if (intakeHasEnc) {
+                        imTps = intakeMotor.getVelocity(); // valid only if encoder present & mode uses it
+                    }
+                } catch (Exception ignored) {
+                    // leave as NaN/false
+                }
+            }
+
+            // Servo (commanded position only — FTC servos have no feedback)
+            double feedPos = (feedServo != null)   ? feedServo.getPosition()    : Double.NaN;
+
+            // Pose
+            double x    = (pose != null) ? pose.position.x          : Double.NaN;
+            double y    = (pose != null) ? pose.position.y          : Double.NaN;
+            double head = (pose != null) ? pose.heading.toDouble()  : Double.NaN;
 
             // tag is free-form; avoid commas to keep CSV simple
             String safeTag = (tag == null) ? "" : tag.replace(",", " ");
-            bw.write(String.format(Locale.US,
-                    "%d,%s,%.3f,%.3f,%.3f,%.2f,%.3f,%.3f\n",
-                    t_ms, safeTag, batt, launchCmd, lmPower, lmTps, intakeCmd, feedPos));
+            bw.write(String.format(
+                    Locale.US,
+                    "%d,%s," +                 // t_ms, tag
+                            "%.3f," +                  // batt_V
+                            "%.3f,%.3f,%.2f," +        // launch_cmd, launch_power, launch_tps
+                            "%.3f,%.3f,%.2f,%d," +     // intake_cmd, intake_power, intake_tps, intake_has_enc
+                            "%.3f," +                  // feed_pos
+                            "%.3f,%.3f,%.4f\n",        // x_m, y_m, head_rad
+                    t_ms, safeTag,
+                    batt,
+                    launchCmd, lmPower, lmTps,
+                    intakeCmd, imPower, imTps, (intakeHasEnc ? 1 : 0),
+                    feedPos,
+                    x, y, head
+            ));
             bw.flush(); // flush each line so partial runs still save
         } catch (Exception ignored) {
             // intentionally swallow to keep TeleOp resilient

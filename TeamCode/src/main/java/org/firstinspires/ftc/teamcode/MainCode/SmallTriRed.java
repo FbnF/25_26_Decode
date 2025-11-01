@@ -14,6 +14,10 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 
+// >>> ADDED: imports for logging <<<
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
+
 @Autonomous(name="Main: SmallTriRed", group="Auto")
 public class SmallTriRed extends LinearOpMode {
 
@@ -45,6 +49,12 @@ public class SmallTriRed extends LinearOpMode {
         Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
         // feed.setDirection(Servo.Direction.REVERSE); // if linkage inverted
 
+        // >>> ADDED: DcMotorEx handle for intake (for logging only) <<<
+        DcMotorEx intakeExForLog = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
+
+        // >>> ADDED: create CSV logger for Auto <<<
+        TinyCsvLogger logger = TinyCsvLogger.create(hardwareMap, "auto_smalltri_red");
+
         // Safe defaults
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -55,7 +65,11 @@ public class SmallTriRed extends LinearOpMode {
         feed.setPosition(SERVO_LOAD_POS);
 
         waitForStart();
-        if (isStopRequested()) return;
+        if (isStopRequested()) {
+            // >>> ADDED: close logger on early stop <<<
+            try { logger.close(); } catch (Exception ignored) {}
+            return;
+        }
 
         Action all = drive.actionBuilder(startPose)
                 // Intake on (non-blocking; base keeps moving)
@@ -64,27 +78,56 @@ public class SmallTriRed extends LinearOpMode {
                 // --- Your original path, Red side ---
                 .setTangent(0)
 
-
-
                 // Pause base: shooter + 3 servo pulses (then shooter stops)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-              //  .setTangent(0)
+                //  .setTangent(0)
                 .splineTo(new Vector2d(48, -24), Math.PI*3 / 2)
 
-
-       //         .strafeTo(new Vector2d(12, 24))
+                // .strafeTo(new Vector2d(12, 24))
 
                 .build();
 
-        Actions.runBlocking(all);
+        // >>> ADDED: wrap with per-tick logging action <<<
+        Action logged = new Action() {
+            @Override
+            public boolean run(TelemetryPacket packet) {
+                // Update odometry
+                drive.updatePoseEstimate();
+
+                // Read pose and current powers
+                Pose2d pose = drive.localizer.getPose();
+                double launchCmd = shooter.getPower(); // treat last-set power as command in Auto
+                double intakeCmd = intake.getPower();
+
+                // Write CSV row
+                logger.record(
+                        "run",
+                        launchCmd,
+                        shooter,
+                        intakeCmd,
+                        intakeExForLog,
+                        feed,
+                        pose
+                );
+
+                // Continue the original action chain
+                return all.run(packet);
+            }
+        };
+
+        // Run the logged action chain
+        Actions.runBlocking(logged);
 
         // Safety park
         feed.setPosition(SERVO_LOAD_POS);
         shooter.setPower(0.0);
         intake.setPower(0.0);
+
+        // >>> ADDED: close the logger at end <<<
+        logger.close();
     }
 }
