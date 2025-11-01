@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="Main: SmallTriRed", group="Auto")
+@Autonomous(name="Main: SmallTriBlue", group="Auto")
 public class SmallTriBlue extends LinearOpMode {
 
     // RC config names
