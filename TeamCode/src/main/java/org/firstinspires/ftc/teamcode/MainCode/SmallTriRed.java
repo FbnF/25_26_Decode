@@ -24,14 +24,14 @@ public class SmallTriRed extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.6;
-    private static final double SHOOTER_POWER = 0.75;
+    private static final double SHOOTER_POWER = 0.74;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.00;
     private static final double SERVO_FEED_POS = 0.75;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = {3.52, 6.52, 9.52};
+    private static final double[] FEED_START_S = {4.52, 6.52, 9.52};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
