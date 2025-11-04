@@ -40,7 +40,7 @@ public class BigTriBlue extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(-60, -34, Math.toRadians(270));
+        Pose2d startPose = new Pose2d(-48, -48, Math.toRadians(225));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotorEx intake  = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
@@ -76,7 +76,7 @@ public class BigTriBlue extends LinearOpMode {
 //                Figure out the location
 
                 // Drive to launch position
-                .lineToY(-2)
+                .lineToY(-20)
 
 //                .waitSeconds(5)
 //                .strafeTo(new Vector2d(-80, -15))
@@ -95,7 +95,7 @@ public class BigTriBlue extends LinearOpMode {
 //                .waitSeconds(5)
 //                .strafeTo(new Vector2d(-80, 10))
 //                .waitSeconds(5)
-                .strafeTo(new Vector2d(-85, -15))
+                .strafeTo(new Vector2d(-48, -16))
 //                .waitSeconds(5)
 //                .strafeTo(new Vector2d(-80, 15))
 

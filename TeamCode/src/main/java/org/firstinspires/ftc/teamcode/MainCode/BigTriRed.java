@@ -39,7 +39,7 @@ public class BigTriRed extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(-60, 34, Math.toRadians(90));
+        Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotorEx intake  = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
@@ -73,7 +73,7 @@ public class BigTriRed extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 // --- Your original path, Red side ---
-                .lineToY(2)
+                .lineToY(20)
 
                 // Pause base: shooter + 3 servo pulses (then shooter stops)
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -82,7 +82,7 @@ public class BigTriRed extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .strafeTo(new Vector2d(-85, 10))
+                .strafeTo(new Vector2d(-48, 16))
 
                 .build();
 
