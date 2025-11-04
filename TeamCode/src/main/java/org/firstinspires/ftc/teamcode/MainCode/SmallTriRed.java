@@ -53,7 +53,7 @@ public class SmallTriRed extends LinearOpMode {
         VoltageSensor voltageSensor = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR);
         // feed.setDirection(Servo.Direction.REVERSE); // if linkage inverted
         CURRENT_POWER = voltageSensor.getVoltage();
-        SHOOTER_POWER = SHOOTER_POWER - (FULL_POWER-CURRENT_POWER)*0.05;
+        SHOOTER_POWER = SHOOTER_POWER + ((FULL_POWER-CURRENT_POWER)*0.05);
         // Safe defaults
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
