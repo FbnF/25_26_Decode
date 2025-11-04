@@ -14,6 +14,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
+
 
 @Autonomous(name="SmallTriBlue", group="Auto")
 public class SmallTriBlue extends LinearOpMode {
@@ -23,9 +25,11 @@ public class SmallTriBlue extends LinearOpMode {
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
 
+    private static  final String VOLTAGE_SENSOR = "VoltageSensor";
+
     // Tunables
     private static final double INTAKE_POWER  = 0.6;
-    private static final double SHOOTER_POWER = 0.75;
+    private static double SHOOTER_POWER = 0.75;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.00;
@@ -36,6 +40,10 @@ public class SmallTriBlue extends LinearOpMode {
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
+    private static final  double FULL_POWER = 13.4;
+
+    private double CURRENT_POWER;
+
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d startPose = new Pose2d(60, -12, Math.toRadians(207));
@@ -44,8 +52,10 @@ public class SmallTriBlue extends LinearOpMode {
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
         Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
+        VoltageSensor voltageSensor = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR);
         // feed.setDirection(Servo.Direction.REVERSE); // if linkage inverted
-
+        CURRENT_POWER = voltageSensor.getVoltage();
+        SHOOTER_POWER = SHOOTER_POWER - (FULL_POWER-CURRENT_POWER)*0.05;
         // Safe defaults
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
