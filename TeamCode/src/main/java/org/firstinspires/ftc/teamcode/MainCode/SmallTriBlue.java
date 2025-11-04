@@ -38,7 +38,7 @@ public class SmallTriBlue extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(-60, -12, Math.toRadians(90));
+        Pose2d startPose = new Pose2d(60, -12, Math.toRadians(207));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -86,7 +86,7 @@ public class SmallTriBlue extends LinearOpMode {
               //  .setTangent(0)
                // .splineTo(new Vector2d(48, -24), Math.PI*3 / 2)
 
-                .strafeTo(new Vector2d(-70, 6))
+                .strafeTo(new Vector2d(38, -20))
        //         .strafeTo(new Vector2d(12, 24))
 
                 .build();

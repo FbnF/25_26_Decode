@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 @Autonomous(name="SmallTriRed", group="Auto")
 public class SmallTriRed extends LinearOpMode {
@@ -22,9 +23,11 @@ public class SmallTriRed extends LinearOpMode {
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
 
+    private static final String VOLTAGE_SENSOR = "VoltageSensor";
+
     // Tunables
     private static final double INTAKE_POWER  = 0.6;
-    private static final double SHOOTER_POWER = 0.74;
+    private static double SHOOTER_POWER = 0.74;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.00;
@@ -35,16 +38,22 @@ public class SmallTriRed extends LinearOpMode {
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
+    private static final  double FULL_POWER = 13.4;
+
+    private double CURRENT_POWER;
+
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(-60, 34, Math.toRadians(90));
+        Pose2d startPose = new Pose2d(60, 12, Math.toRadians(145));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
         Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
+        VoltageSensor voltageSensor = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR);
         // feed.setDirection(Servo.Direction.REVERSE); // if linkage inverted
-
+       /* CURRENT_POWER = voltageSensor.getVoltage();
+        SHOOTER_POWER = SHOOTER_POWER - (FULL_POWER-CURRENT_POWER)*0.05;*/
         // Safe defaults
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -53,13 +62,15 @@ public class SmallTriRed extends LinearOpMode {
         intake.setPower(0.0);
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
+        telemetry.addData("SHOOTER_POWER", SHOOTER_POWER);
+        telemetry.update();
 
         waitForStart();
         if (isStopRequested()) return;
 
         Action all = drive.actionBuilder(startPose)
                 // Intake on (non-blocking; base keeps moving)
-                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+                //.stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 // --- Your original path, Red side ---
                 .setTangent(0)
@@ -80,7 +91,7 @@ public class SmallTriRed extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
               //  .setTangent(0)
                // .splineTo(new Vector2d(48, 24), Math.PI*3 / 2)
-                    .strafeTo(new Vector2d(-45, 46))
+                    .strafeTo(new Vector2d(38, 20))
 
        //         .strafeTo(new Vector2d(12, 24))
 
