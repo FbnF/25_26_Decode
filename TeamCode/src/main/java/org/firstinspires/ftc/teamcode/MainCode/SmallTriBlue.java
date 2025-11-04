@@ -40,7 +40,7 @@ public class SmallTriBlue extends LinearOpMode {
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
-    private static final  double FULL_POWER = 13.4;
+    private static final  double FULL_POWER = 12;
 
     private double CURRENT_POWER;
 
