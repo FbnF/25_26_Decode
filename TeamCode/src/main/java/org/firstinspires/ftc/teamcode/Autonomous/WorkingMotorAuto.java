@@ -9,59 +9,17 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import com.acmerobotics.roadrunner.Action;
+import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 
 @Disabled
-@Autonomous(name="AutoMain", group="Main")
+@Autonomous(name="Coach_Sidd's_AutoMain", group="Main")
 public class WorkingMotorAuto extends LinearOpMode {
-
-    // --- HELPER METHODS DEFINED AT CLASS LEVEL (OUTSIDE runOpMode) ---
-
-    // 1. Launch Action: Runs motor for a duration, then stops (self-completing).
-    private Action launchForDuration(DcMotor m, double p, double seconds) {
-        return new Action() {
-            private boolean initialized = false;
-            private long startTimeNanos;
-            private final long durationNanos = (long) (seconds * 1_000_000_000L);
-
-            @Override
-            public boolean run(TelemetryPacket packet) {
-                if (!initialized) {
-                    m.setPower(Math.abs(p));
-                    startTimeNanos = System.nanoTime();
-                    initialized = true;
-                    return false;
-                }
-                if (System.nanoTime() - startTimeNanos >= durationNanos) {
-                    m.setPower(0.0);
-                    return true; // Action complete
-                }
-                return false;
-            }
-            public void preview(TelemetryPacket packet) {}
-        };
-    }
-
-    // 2. Intake Action: Runs motor continuously/in parallel (returns false).
-    private Action motorRun(DcMotor m, double p) {
-        return (TelemetryPacket packet) -> {
-            m.setPower(Math.abs(p));
-            return false; // RUNNING: Keeps the motor on while the trajectory executes
-        };
-    }
-
-    // 3. Stop Action: Stops a motor (returns true).
-    private Action motorStop(DcMotor m) {
-        return (TelemetryPacket packet) -> {
-            m.setPower(0.0);
-            return true; // COMPLETE: Stops the motor
-        };
-    }
-
-    // -------------------------------------------------------------------
-
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -69,8 +27,10 @@ public class WorkingMotorAuto extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         // Motors you want to toggle during "waits"
-        DcMotor intakeMotor = hardwareMap.get(DcMotor.class, "IntakeMotor");
-        DcMotor launchMotor = hardwareMap.get(DcMotor.class, "LaunchMotor");
+        DcMotor intakeMotor      = hardwareMap.get(DcMotor.class, "IntakeMotor");
+        DcMotorEx launchMotor    = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
+        Servo feedServo          = hardwareMap.get(Servo.class, "feedServo");
+        VoltageSensor battery    = hardwareMap.get(VoltageSensor.class, "VoltageSensor");
 
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -78,19 +38,40 @@ public class WorkingMotorAuto extends LinearOpMode {
         launchMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intakeMotor.setPower(0.0);
         launchMotor.setPower(0.0);
+        feedServo.setPosition(0.0);
 
-        // Create specific, reusable actions by calling the class-level helpers
-        Action launch2s = launchForDuration(launchMotor, 1.0, 5.0);
-        Action intakeOn  = motorRun(intakeMotor, 1.0);
-        Action intakeOff = motorStop(intakeMotor);
+        // Tunables (nominal @ 12V)
+        final double INTAKE_POWER     = 1.0;
+        double SHOOTER_POWER          = 1.0; // adjust to your tuned value at 12V
+        final double SERVO_LOAD_POS   = 0.00;
+        final double SERVO_FEED_POS   = 0.75;
 
+        // Shooter feed schedule (seconds from start of the shooter action)
+        final double[] FEED_START_S   = {4.52, 6.52, 9.52};
+        final double   FEED_HOLD_S    = 0.7;
+        final double   END_PADDING_S  = 1.0;
+
+        // Proportional battery compensation (keep effective motor voltage ~constant)
+        double vbat = (battery != null) ? battery.getVoltage() : 12.0;
+        if (!Double.isFinite(vbat) || vbat <= 0) vbat = 12.0;
+        SHOOTER_POWER = Math.min(1.0, SHOOTER_POWER * (12.0 / vbat));
+
+        // Create specific, reusable actions (new shooter + intake logic)
+        Action shooterVolley = new ShooterAndFeederAction(
+                launchMotor, feedServo,
+                SHOOTER_POWER,
+                FEED_START_S, FEED_HOLD_S, END_PADDING_S,
+                SERVO_LOAD_POS, SERVO_FEED_POS
+        );
+        Action intakeOn  = setMotorPower(intakeMotor, INTAKE_POWER);
+        Action intakeOff = setMotorPower(intakeMotor, 0.0);
 
         Action all = drive.actionBuilder(startPose)
                 // --- Leg 1 ---
                 .splineTo(new Vector2d(15, -10), Math.toRadians(135))
 
-                // LAUNCH SEQUENCE: Stop, run for 2s, continue
-                .stopAndAdd(launch2s)
+                // LAUNCH SEQUENCE: Stop, run volley with feeder, continue
+                .stopAndAdd(shooterVolley)
 
                 .setTangent(Math.toRadians(90))
                 // INTAKE SEQUENCE: Start intake and run in parallel
@@ -103,7 +84,7 @@ public class WorkingMotorAuto extends LinearOpMode {
 
                 // --- Leg 2 ---
                 .splineTo(new Vector2d(0, 0), Math.toRadians(-40))
-                .stopAndAdd(launch2s)
+                .stopAndAdd(shooterVolley)
 
                 .setTangent(Math.toRadians(90))
                 .afterDisp(0.0, intakeOn)
@@ -114,7 +95,7 @@ public class WorkingMotorAuto extends LinearOpMode {
 
                 // --- Leg 3 ---
                 .splineTo(new Vector2d(0, 0), Math.toRadians(-40))
-                .stopAndAdd(launch2s)
+                .stopAndAdd(shooterVolley)
 
                 .setTangent(Math.toRadians(90))
                 .afterDisp(0.0, intakeOn)
@@ -125,7 +106,7 @@ public class WorkingMotorAuto extends LinearOpMode {
 
                 // --- Leg 4 ---
                 .splineTo(new Vector2d(0, 0), Math.toRadians(-40))
-                .stopAndAdd(launch2s)
+                .stopAndAdd(shooterVolley)
                 .build();
 
         waitForStart();
@@ -134,7 +115,8 @@ public class WorkingMotorAuto extends LinearOpMode {
         Actions.runBlocking(all);
 
         // safety
-        intakeMotor.setPower(0);
-        if (launchMotor != null) launchMotor.setPower(0);
+        intakeMotor.setPower(0.0);
+        launchMotor.setPower(0.0);
+        feedServo.setPosition(SERVO_LOAD_POS);
     }
 }

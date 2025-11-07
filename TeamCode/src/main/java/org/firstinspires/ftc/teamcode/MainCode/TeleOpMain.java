@@ -1,19 +1,24 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
+// --- Roadrunner Libraries ---
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 
+// --- FTC Libraries ---
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive; // <-- adjust path if needed
+// -- Defined by us ---
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
-//import org.firstinspires.ftc.teamcode.MainCode.config.TagConfig;
+import org.firstinspires.ftc.teamcode.MainCode.config.TagConfig;
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 
 // --- Data Logging ---
@@ -27,10 +32,31 @@ public class TeleOpMain extends LinearOpMode {
     private MecanumDrive drive;
     private DcMotorEx intakeMotor;
     private DcMotorEx launchMotor;
+    private RevBlinkinLedDriver blinkin; // LED
+    private VoltageSensor battery;
 
     // --- Vision ---
     private AprilTagService tagService;
-    private boolean visionEnabled = true; // allows camera to be toggled on/off
+    private boolean visionEnabled = false; // allows camera to be toggled on/off
+
+    // Auto shooter (closed-loop velocity) path
+    private boolean autoShooter = false;
+    private boolean prevDpadUp = false, prevDpadDown = false;
+    private double shooterSetpointTPS = 0.0;
+    private static final double NO_SETPOINT = 0.0;
+
+    // --- Config flags ---
+    private static final boolean LOG_ENABLED = true;  // turn CSV logging on/off
+    private TinyCsvLogger logger; // logging Data
+    private static final int GOAL_TAG_ID = 20;        // 20 = blue goal, 24 = red goal
+
+    // require driver to arm auto-spin before controlling flywheel
+    private boolean autoSpinArmed = false;
+    private boolean prevDpadRight = false;
+
+    // flash window when Y pressed too soon
+    private long yTooSoonFlashUntilNs = 0L;
+    private static final long FLASH_YELLOW_NS = 500_000_000L; // 500 ms
 
     // --- Drive/settings ---
     private double speedFactor = 0.7;
@@ -53,8 +79,8 @@ public class TeleOpMain extends LinearOpMode {
     private long feedPulseStartNs = 0;
     private static final long FEED_DWELL_NS = 150_000_000L; // 150 ms
 
-    private TinyCsvLogger logger; // LOG
-
+    //edge state for GP1 dpad-down (vision toggle)
+    private boolean prevG1DpadDown = false;
 
     @Override
     public void runOpMode() {
@@ -63,6 +89,10 @@ public class TeleOpMain extends LinearOpMode {
         feedServo   = hardwareMap.get(Servo.class,    "feedServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class,"IntakeMotor");
         launchMotor = hardwareMap.get(DcMotorEx.class,"LaunchMotor");
+        battery     = hardwareMap.voltageSensor.iterator().next();
+
+        blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+        blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
 
         feedServo.setPosition(0.0);
         isFeedServoDown = false;
@@ -71,7 +101,7 @@ public class TeleOpMain extends LinearOpMode {
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        // NEW: intake runs open-loop (no encoder feedback)
+        // intake runs open-loop (no encoder feedback)
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Drive (verify your constructor signature)
@@ -79,11 +109,12 @@ public class TeleOpMain extends LinearOpMode {
 
         // Vision
         tagService = new AprilTagService();
-        tagService.start(hardwareMap);
+        //tagService.start(hardwareMap);
 
         // LOG: create CSV logger
-        logger = TinyCsvLogger.create(hardwareMap, "teleop_main");
-
+        if (LOG_ENABLED) {
+            logger = TinyCsvLogger.create(hardwareMap, "teleop_main");
+        }
 
         waitForStart();
 
@@ -92,6 +123,8 @@ public class TeleOpMain extends LinearOpMode {
         launchMotor.setPower(0.0);
 
         while (opModeIsActive()) {
+
+            // # # # Gamepad 1 (Driver) # # #
 
             // -------------------------------- Base Drive -----------------------------------------
             if (gamepad1.a) speedFactor = 0.95;
@@ -109,84 +142,201 @@ public class TeleOpMain extends LinearOpMode {
             drive.updatePoseEstimate();
             Pose2d pose = drive.localizer.getPose();
 
-            telemetry.addData("Speed Factor", "%.2f (%.0f%%)", speedFactor, speedFactor*100);
+            telemetry.addData("Speed Factor", "%.2f", speedFactor);
 
-            // --- Three fixed power levels + feed pulse trigger ---
-            // Long range
-            if (gamepad2.a){
-                launchPower = 0.75;
+            // \--- Vision toggle (edge-based, no sleep) ---
+            boolean g1DownEdge = gamepad1.dpad_down && !prevG1DpadDown;
+            if (g1DownEdge) {
+                if (visionEnabled) {
+                    tagService.stop();
+                    visionEnabled = false;
+                } else {
+                    tagService.start(hardwareMap);
+                    visionEnabled = true;
+                }
             }
-            // Middle range
-            if (gamepad2.b){
-                launchPower = 0.60;
+            prevG1DpadDown = gamepad1.dpad_down;
+
+            // # # # Gamepad 2 (Controls) # # #
+            // --------------------------- MODE TOGGLES -------------------------
+            boolean upEdge   = gamepad2.dpad_up && !prevDpadUp;
+            boolean downEdge = gamepad2.dpad_down && !prevDpadDown;
+            if (upEdge) {
+                autoShooter = true;
+                autoSpinArmed = false;
+                launchMotor.setPower(0.0);
             }
-            // Short range
-            if(gamepad2.left_bumper){
-                launchPower=0.55;
+            if (downEdge) {
+                autoShooter = false;
+                autoSpinArmed = false;
+                launchMotor.setPower(0.0);
             }
-            // Turn off the LaunchMotor
-            if (gamepad2.x){
-                launchPower = 0;
+            prevDpadUp = gamepad2.dpad_up;
+            prevDpadDown = gamepad2.dpad_down;
+
+            // Dpad-right → arm auto spin
+            boolean rightEdge = gamepad2.dpad_right && !prevDpadRight;
+            if (rightEdge && autoShooter) {
+                autoSpinArmed = !autoSpinArmed;
+            }
+            prevDpadRight = gamepad2.dpad_right;
+
+            // --------------------------- MANUAL MODE --------------------------
+            if (!autoShooter) {
+                if (gamepad2.a) launchPower = 0.75;
+                if (gamepad2.b) launchPower = 0.60;
+                if (gamepad2.left_bumper) launchPower = 0.55;
+                if (gamepad2.x) launchPower = 0.0;
+
+                // Battery compensation for open-loop power
+                double vbat = battery.getVoltage();
+                double scaledPower = Math.min(1.0, launchPower * (12.0 / vbat));
+                launchMotor.setPower(scaledPower);
+            }
+
+            // --------------------------- AUTO MODE ----------------------------
+            if (autoShooter) {
+                if (autoSpinArmed) {
+                    Double dInches = getVisionDistanceInches();
+                    if (dInches != null && dInches >= ShooterConfig.MIN_RANGE_IN) {
+                        double tps = Calculations.computeTPSFromRangeInches(
+                                ShooterConfig.G, dInches,
+                                ShooterConfig.LAUNCH_DEG,
+                                ShooterConfig.SHOOTER_H_M,
+                                ShooterConfig.TARGET_H_M,
+                                ShooterConfig.WHEEL_RADIUS_M,
+                                ShooterConfig.EFFICIENCY,
+                                ShooterConfig.TICKS_PER_REV
+                        );
+                        if (!Double.isNaN(tps) && Double.isFinite(tps)) {
+                            if (ShooterConfig.TEST_TPS > 0){
+                                tps = ShooterConfig.TEST_TPS;
+                            }
+                            tps = Math.min(tps, ShooterConfig.TPS_MAX);
+                            shooterSetpointTPS = tps;      // set after overrides/clamp
+                            launchMotor.setVelocity(tps);  // single call
+                        } else {
+                            shooterSetpointTPS = 0.0;
+                            launchMotor.setPower(0.0);
+                        }
+                    } else {
+                        shooterSetpointTPS = 0.0;
+                        launchMotor.setPower(0.0);
+                    }
+                } else {
+                    shooterSetpointTPS = 0.0;
+                    launchMotor.setPower(0.0);
+                }
+            }
+
+            // --------------------------- FEED LOGIC ---------------------------
+            boolean spunUpOk = false;
+            if (autoShooter && shooterSetpointTPS > 0.0) {
+                double vel = launchMotor.getVelocity();
+                spunUpOk = Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
+            } else if (!autoShooter) {
+                spunUpOk = (launchMotor.getPower() > 0.0);
             }
             if (gamepad2.y){
-                if (!feedPulseActive && launchMotor.getPower() > 0.0) {
+                if (!feedPulseActive && spunUpOk) {
                     feedServo.setPosition(0.75);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
-                }
-            }
-            telemetry.addData("Launch Motor Power", launchPower);
-            launchMotor.setPower(launchPower);
-
-
-            if (feedPulseActive) {
-                long now = System.nanoTime();
-                if (now - feedPulseStartNs >= FEED_DWELL_NS) {
-                    feedServo.setPosition(0.0);
-                    feedPulseActive = false;
+                } else if (!spunUpOk) {
+                    yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
             }
 
-            // --- Intake toggle (RB edge) ---
-            boolean rbEdge = gamepad2.right_bumper && !prevRB; // rising edge
-            if (rbEdge) {intakePower=-0.5;}
+            if (feedPulseActive && System.nanoTime() - feedPulseStartNs >= FEED_DWELL_NS) {
+                feedServo.setPosition(0.0);
+                feedPulseActive = false;
+            }
+
+            // --------------------------- INTAKE -------------------------------
+            boolean rbEdge = gamepad2.right_bumper && !prevRB;
+            if (rbEdge) intakePower = -0.5;
             prevRB = gamepad2.right_bumper;
-            if (gamepad2.right_trigger>0) {
-                intakePower = 1.0; // default start power
-            }
-            if (gamepad2.left_trigger>0) {
-                intakePower = 0.0;
-            }
-
+            if (gamepad2.right_trigger > 0) intakePower = 1.0;
+            if (gamepad2.left_trigger > 0) intakePower = 0.0;
             intakeMotor.setPower(intakePower);
 
-            // LOG: now pass intake motor and pose (matches TinyCsvLogger signature)
-            logger.record(
-                    "run",
-                    launchPower,    // commanded shooter power
-                    launchMotor,    // measured power + velocity
-                    intakePower,    // commanded intake power
-                    intakeMotor,    // intake motor (for power/velocity if present)
-                    feedServo,      // servo position
-                    pose            // pose from RR localizer
-            );
+            // --------------------------- LED STATES ---------------------------
+            RevBlinkinLedDriver.BlinkinPattern pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
+            AprilTagService.Reading r = tagService.getLatest();
+            boolean hasTag = (r != null && r.hasTag);
+            boolean correctTag = hasTag && (r.id == GOAL_TAG_ID);
+
+            if (!visionEnabled) {
+                pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
+            } else if (!correctTag) {
+                pat = RevBlinkinLedDriver.BlinkinPattern.RED;
+            } else {
+                boolean atSpeed = spunUpOk && autoSpinArmed && autoShooter;
+                pat = atSpeed ? RevBlinkinLedDriver.BlinkinPattern.GREEN
+                        : RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+            }
+            if (System.nanoTime() < yTooSoonFlashUntilNs) {
+                pat = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
+            }
+            blinkin.setPattern(pat);
+
+            // --------------------------- LOGGING ------------------------------
+            if (LOG_ENABLED && logger != null) {
+                logger.record(
+                        "run",
+                        (autoShooter ? shooterSetpointTPS : launchPower),
+                        launchMotor,
+                        intakePower,
+                        intakeMotor,
+                        feedServo,
+                        pose
+                );
+            }
 
             // ------------- Telemetry data -------------------------------------------------
-            telemetry.addData("Intake", isIntakeRunning ? "RUNNING" : "STOPPED");
-            telemetry.addData("Intake Power", "%.1f", intakePower);
-            telemetry.addData("Shooter Vel (tps)", "%.1f", launchMotor.getVelocity());
+            // TELEMETRY: compute measured speed each loop
+            double tpsMeas = launchMotor.getVelocity();
+            double rpmMeas = (tpsMeas * 60.0) / ShooterConfig.TICKS_PER_REV;
+            Double visInches = getVisionDistanceInches();
+            int tagId = (r != null && r.hasTag) ? r.id : -1;
+
+            telemetry.addLine("---- Shooter ----");
+            telemetry.addData("Mode", autoShooter ? "AUTO" : "MANUAL");
+            telemetry.addData("Armed", autoSpinArmed);
+            telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
+            telemetry.addData("Actual TPS", "%.0f", tpsMeas);
+            telemetry.addData("Actual RPM", "%.0f", rpmMeas);
+            if (!autoShooter) telemetry.addData("Manual Power", "%.2f", launchPower);
+            telemetry.addData("Ready?", spunUpOk);
+
+            telemetry.addLine("---- Vision ----");
+            telemetry.addData("Vision Enabled", visionEnabled);
+            telemetry.addData("Tag ID", tagId);
+            telemetry.addData("Goal Tag ID", GOAL_TAG_ID);
+            telemetry.addData("Correct Tag", correctTag);
+            telemetry.addData("Range (in)", (visInches == null) ? "N/A" : String.format("%.1f", visInches));
+            telemetry.addData("LED", pat.name());
+
             telemetry.update();
-
         }
-        // ---- cleanup runs after STOP is pressed ----
+
+        // cleanup
         try {
-            if (launchMotor != null) launchMotor.setPower(0.0);
-            if (intakeMotor != null) intakeMotor.setPower(0.0);
+            launchMotor.setPower(0.0);
+            intakeMotor.setPower(0.0);
         } finally {
-            // Make sure the camera is freed so the next OpMode can open it
-            if (tagService != null) tagService.stop();
-            if (logger != null) logger.close(); // LOG
+            tagService.stop();
+            if (LOG_ENABLED && logger != null) logger.close();
         }
+    }
 
+    /** Get distance in inches from AprilTagService (already smoothed) */
+    private Double getVisionDistanceInches() {
+        if (tagService == null) return null;
+        AprilTagService.Reading r = tagService.getLatest();
+        if (r == null || !r.hasTag) return null;
+        double d = r.smoothedDistanceIn;
+        if (!TagConfig.USE_RANGE && !Double.isNaN(d)) d = Math.abs(d);
+        return Double.isNaN(d) ? null : d;
     }
 }

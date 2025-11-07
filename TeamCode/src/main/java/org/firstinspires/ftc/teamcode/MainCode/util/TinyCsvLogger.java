@@ -35,7 +35,7 @@ public final class TinyCsvLogger {
             File dir = AppUtil.ROBOT_DATA_DIR; // FIRST/data
             if (!dir.exists()) dir.mkdirs();
             String stamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-            String fname = "teleop_" + stamp + ".csv";
+            String fname = (runTag != null ? runTag : "log") + "_" + stamp + ".csv";
             File out = new File(dir, fname);
             BufferedWriter bw = new BufferedWriter(new FileWriter(out));
             // header
