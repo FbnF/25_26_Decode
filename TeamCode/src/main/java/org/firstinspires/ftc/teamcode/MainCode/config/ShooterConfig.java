@@ -19,4 +19,7 @@ public final class ShooterConfig {
     // Controls
     public static double MIN_RANGE_IN = 10.0;    // ignore ranges under this (inches)
     public static double TPS_TOL = 50.0;
+
+    public static double TPS_MAX = 2500.0; // placeholder, will measure
+    public static double TEST_TPS = 0.0;   // 0 disables; >0 forces that command
 }

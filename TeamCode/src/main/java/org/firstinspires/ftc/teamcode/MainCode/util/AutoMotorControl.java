@@ -226,7 +226,7 @@ public final class AutoMotorControl {
             this.shooter = shooter;
             this.feeder = feeder;
             this.shooterPower = shooterPower;
-            this.feedStartS = feedStartS;
+            this.feedStartS = (feedStartS != null) ? feedStartS : new double[0];
             this.feedHoldS = feedHoldS;
             this.endPaddingS = endPaddingS;
             this.loadPos = loadPos;
@@ -241,7 +241,7 @@ public final class AutoMotorControl {
                     shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     shooter.setPower(shooterPower);
                 }
-                feeder.setPosition(loadPos);
+                if (feeder != null) feeder.setPosition(loadPos);
                 initialized = true;
             }
 
@@ -252,7 +252,7 @@ public final class AutoMotorControl {
             for (double s : feedStartS) {
                 if (t >= s && t < s + feedHoldS) { feeding = true; break; }
             }
-            feeder.setPosition(feeding ? feedPos  : loadPos);
+            if (feeder != null) feeder.setPosition(feeding ? feedPos  : loadPos);
 
             // Telemetry (optional dashboard insight)
             packet.put("t_s", String.format("%.2f", t));
@@ -265,7 +265,7 @@ public final class AutoMotorControl {
             if (t < lastEnd) return true;
 
             // Finish
-            feeder.setPosition(loadPos);
+            if (feeder != null) feeder.setPosition(loadPos);
             if (shooter != null) shooter.setPower(0.0);
             return false;
         }

@@ -11,10 +11,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-
 
 @Autonomous(name="SmallTriBlueExtended", group="Auto")
 public class SmallTriBlueAutoMain extends LinearOpMode {
@@ -23,23 +23,20 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
     private static final String FEED_SERVO   = "feedServo";
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
-
-    private static  final String VOLTAGE_SENSOR = "VoltageSensor";
+    private static final String VOLTAGE_SENSOR = "VoltageSensor";
 
     // Tunables
     private static final double INTAKE_POWER  = 0.6;
-    private static double SHOOTER_POWER = 0.64;
+    private static double SHOOTER_POWER = 0.64; // nominal power at 12V
 
-    // Servo positions (use what worked in your tests)
+    // Servo positions
     private static final double SERVO_LOAD_POS = 0.00;
     private static final double SERVO_FEED_POS = 0.75;
 
-    // Feed schedule at the stop (seconds from start of the shooter action)
+    // Feed schedule
     private static final double[] FEED_START_S = {4.52, 6.52, 9.52};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
-
-
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -49,7 +46,7 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
         Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
-        // feed.setDirection(Servo.Direction.REVERSE); // if linkage inverted
+        VoltageSensor battery  = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR);
 
         // Safe defaults
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -60,27 +57,31 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
 
+        // proportional compensation: keep motor voltage constant
+        double vbat = (battery != null) ? battery.getVoltage() : 12.0;
+        if (!Double.isFinite(vbat) || vbat <= 0) vbat = 12.0;
+        SHOOTER_POWER = Math.min(1.0, SHOOTER_POWER * (12.0 / vbat));
+
         waitForStart();
         if (isStopRequested()) return;
 
         Action all = drive.actionBuilder(startPose)
-                // Intake on (non-blocking; base keeps moving)
                 .setTangent(0)
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(225)), Math.PI / 2)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(45))
-                //first artifact round
+                // first artifact round
                 .setTangent(0)
                 .lineToX(-10)
-                .setTangent(90)
+                .setTangent(Math.PI / 2)
                 .strafeTo(new Vector2d(-10, -52))
-                //second artifact round
+                // second artifact round
                 .setTangent(0)
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(225)), Math.PI / 2)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
@@ -89,9 +90,9 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
                 .turn(Math.toRadians(45))
                 .setTangent(0)
                 .lineToX(10)
-                .setTangent(90)
+                .setTangent(Math.PI / 2)
                 .strafeTo(new Vector2d(10, -52))
-                //third artifact round
+                // third artifact round
                 .setTangent(0)
                 .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(225)), Math.PI / 2)
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -102,7 +103,7 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
                 .turn(Math.toRadians(45))
                 .setTangent(0)
                 .lineToX(34)
-                .setTangent(90)
+                .setTangent(Math.PI / 2)
                 .strafeTo(new Vector2d(34, -52))
                 .setTangent(0)
                 .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(225)), Math.PI / 2)
@@ -111,20 +112,10 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-
-
                 .build();
 
         Actions.runBlocking(all);
 
-/*
-                .stopAndAdd(new ShooterAndFeederAction(
-                        shooter, feed,
-                        SHOOTER_POWER,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
-
-                   */
         // Safety park
         feed.setPosition(SERVO_LOAD_POS);
         shooter.setPower(0.0);

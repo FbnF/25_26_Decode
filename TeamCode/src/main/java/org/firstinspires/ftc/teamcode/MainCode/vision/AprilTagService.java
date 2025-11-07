@@ -43,6 +43,9 @@ public class AprilTagService {
 
     /** Build processor + portal. Call once in init. */
     public void start(HardwareMap hardwareMap) {
+        // ensure clean restart if start() is called again
+        stop();
+
         processor = new AprilTagProcessor.Builder()
                 .setDrawAxes(TagConfig.DRAW_AXES)
                 .setDrawTagOutline(TagConfig.DRAW_OUTLINE)
@@ -126,7 +129,7 @@ public class AprilTagService {
 
     private static double smoothValue(double newVal, double prev, double alpha) {
         // alpha in (0,1], where 1 means no smoothing
-        if (Double.isNaN(newVal)) return Double.NaN;
+        if (Double.isNaN(newVal)) return prev;
         if (Double.isNaN(prev)) return newVal;
         alpha = clamp(alpha, 0.0, 1.0);
         return alpha * newVal + (1.0 - alpha) * prev;

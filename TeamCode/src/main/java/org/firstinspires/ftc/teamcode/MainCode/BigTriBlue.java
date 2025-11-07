@@ -44,7 +44,7 @@ public class BigTriBlue extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotorEx intake  = hardwareMap.get(DcMotorEx.class, INTAKE_MOTOR);
-        DcMotorEx shooter = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
+        DcMotorEx shooter = hardwareMap.get(DcMotorEx.class, LAUNCH_MOTOR);
         Servo feed        = hardwareMap.get(Servo.class, FEED_SERVO);
         // feed.setDirection(Servo.Direction.REVERSE); // if the linkage is inverted
 
