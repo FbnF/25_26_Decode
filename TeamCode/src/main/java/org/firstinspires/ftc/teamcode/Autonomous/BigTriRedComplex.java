@@ -1,4 +1,6 @@
-package org.firstinspires.ftc.teamcode.MainCode;
+package org.firstinspires.ftc.teamcode.Autonomous;
+
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
@@ -11,13 +13,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
-import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="BigTriRed", group="Auto")
-public class BigTriRed extends LinearOpMode {
+@Autonomous(name="BigTriRedComplex", group="Auto")
+public class BigTriRedComplex extends LinearOpMode {
 
     // RC config names
     private static final String FEED_SERVO   = "feedServo";
@@ -73,9 +74,45 @@ public class BigTriRed extends LinearOpMode {
 
 
                 // --- Your original path, Red side ---
-                .strafeTo(new Vector2d(-20,20))
+                .setTangent(Math.toRadians(135))
+                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+                .strafeTo(new Vector2d(-20, 20))
 
-                // Pause base: shooter + 3 servo pulses (then shooter stops)
+                // Shooter runs
+                .stopAndAdd(new ShooterAndFeederAction(
+                        shooter, feed,
+                        SHOOTER_POWER,
+                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
+                        SERVO_LOAD_POS, SERVO_FEED_POS))
+
+                .splineToLinearHeading(new Pose2d(-8, 24,Math.toRadians(90)),Math.toRadians(90))
+                .lineToY(48)
+
+                .splineToLinearHeading(new Pose2d(-20, 20,Math.toRadians(135)),Math.toRadians(135))
+
+                // Shooter runs
+                .stopAndAdd(new ShooterAndFeederAction(
+                        shooter, feed,
+                        SHOOTER_POWER,
+                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
+                        SERVO_LOAD_POS, SERVO_FEED_POS))
+
+                .splineToLinearHeading(new Pose2d(14, 24,Math.toRadians(90)),Math.toRadians(90))
+                .lineToY(48)
+
+                .splineToLinearHeading(new Pose2d(-20, 20,Math.toRadians(135)),Math.toRadians(135))
+
+                // Shooter runs
+                .stopAndAdd(new ShooterAndFeederAction(
+                        shooter, feed,
+                        SHOOTER_POWER,
+                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
+                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                .splineToLinearHeading(new Pose2d(38, 24,Math.toRadians(90)),Math.toRadians(90))
+                .lineToY(48)
+
+                .splineToLinearHeading(new Pose2d(-20, 20,Math.toRadians(135)),Math.toRadians(135))
+                //shooter runs
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
