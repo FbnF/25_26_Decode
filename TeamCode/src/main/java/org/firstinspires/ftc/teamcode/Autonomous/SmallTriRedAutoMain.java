@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="SmallTriRed", group="Auto")
+@Autonomous(name="SmallTriRedExtended", group="Auto")
 public class SmallTriRedAutoMain extends LinearOpMode {
 
     // RC config names
