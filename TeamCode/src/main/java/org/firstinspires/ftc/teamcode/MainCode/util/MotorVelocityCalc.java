@@ -9,7 +9,7 @@ public class MotorVelocityCalc {
     public double HShoot = 0.248;//in meters
     public double denominator;
     public double numerator;
-    public double efficiencyFactor = 0.299;
+    public double efficiencyFactor = 0.30;
     public double VelOfShooter;
     //  double Vtip;
     public double Radius = 0.048;
