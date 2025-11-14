@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,9 +13,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Disabled
-@Autonomous(name="AutoMainBlueSide", group="Main")
-public class AutoMain extends LinearOpMode {
+@Autonomous(name="AutoMainRedSide", group="Main")
+public class AutoMainRed extends LinearOpMode {
 
     // --- HELPER METHODS DEFINED AT CLASS LEVEL (OUTSIDE runOpMode) ---
 
@@ -96,7 +95,7 @@ public class AutoMain extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(60, 24, Math.toRadians(180));
+        Pose2d startPose = new Pose2d(60, 16, Math.toRadians(180));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         // Motors you want to toggle during "waits"
@@ -115,64 +114,33 @@ public class AutoMain extends LinearOpMode {
         launchMotor.setPower(0.0);
 
         Action all = drive.actionBuilder(startPose)
-                // --- Leg 1 ---setTangent(0)
-                //.splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                //.stopAndAdd(launchForDuration(launchMotor, 0.64, 2))
-                ////.stopAndAdd(servoPower(feedServo, false))
-                ////.stopAndAdd(motorPower(launchMotor, 0.63345))
-                ////Actions.runBlocking(motorPower(launchMotor, 0.65))
-                ////This is where the intake motor would run
-                //.splineToLinearHeading(new Pose2d( -14, -52, Math.toRadians(225)), Math.PI / 2)
-                //.splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                ////launch balls
-                //.splineToLinearHeading(new Pose2d( 14, -52, Math.toRadians(270)), Math.PI / 2)
-                ////Run intake
-                //.splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                ////Launch balls again
-                //.stopAndAdd(launchForDuration(launchMotor, 0.64, 2))
-                //.splineToLinearHeading(new Pose2d( 38, -52, Math.toRadians(270)), Math.PI / 2)
-                ////run the intake
-                //.splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                //.stopAndAdd(launchForDuration(intakeMotor, 0.64, 2))
-               .setTangent(0)
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                .stopAndAdd(LoadServo(feedServo, true))
-                .stopAndAdd(launchForDuration(launchMotor, 0.64, 5))
-                .stopAndAdd(motorRun(intakeMotor, 0.64))
-                //.stopAndAdd(servoPower(feedServo, false))
-                //.stopAndAdd(motorPower(launchMotor, 0.63345))
-                //Actions.runBlocking(motorPower(launchMotor, 0.65))
-                .turn(Math.toRadians(90))
                 .setTangent(0)
-                .lineToX(-14)
-                .setTangent(90)
-                .lineToY(-52)
-                //.splineToLinearHeading(new Pose2d( -14, -52, Math.toRadians(225)), Math.PI / 2)
-                //.stopAndAdd(launchForDuration(intakeMotor, 0.64, 2)) --Intake Motor Run
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                .stopAndAdd(launchForDuration(launchMotor, 0.64, 0.5))
-                //launch balls
-
-                .turn(Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(135)), Math.PI / 2)
+                .turn(Math.toRadians(-45))
+                //first artifact round
                 .setTangent(0)
-                .lineToX(14)
+                .lineToX(-10)
                 .setTangent(90)
-                .lineToY(-52)
-                //.splineToLinearHeading(new Pose2d( 14, -52, Math.toRadians(270)), Math.PI / 2)
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                .stopAndAdd(launchForDuration(launchMotor, 0.64, 0.5))
-
-                //Launch balls again
-
-                .turn(Math.toRadians(270))
+                .strafeTo(new Vector2d(-10, 52))
+                //second artifact round
                 .setTangent(0)
-                .lineToX(38)
+                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(135)), Math.PI / 2)
+                .turn(Math.toRadians(-45))
+                .setTangent(0)
+                .lineToX(10)
                 .setTangent(90)
-                .lineToY(-52)
-               // .splineToLinearHeading(new Pose2d( 38, -t52, Math.toRadians(270)), Math.PI / 2)
-                //run the intake
-                .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(225)), Math.PI / 2)
-                .stopAndAdd(launchForDuration(launchMotor, 0.64, 0.5))
+                .strafeTo(new Vector2d(10, 52))
+                //third artifact round
+                .setTangent(0)
+                .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(135)), Math.PI / 2)
+                .turn(Math.toRadians(-45))
+                .setTangent(0)
+                .lineToX(34)
+                .setTangent(90)
+                .strafeTo(new Vector2d(34, 52))
+                .setTangent(0)
+                .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(135)), Math.PI / 2)
+
 
                 .build();
 
