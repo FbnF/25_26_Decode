@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
+
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -11,6 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor; // battery sag compensation
 
+import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
@@ -22,7 +25,7 @@ public class SmallTriRedAutoMain extends LinearOpMode {
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
 
-    private static final String VOLTAGE_SENSOR = "VoltageSensor";
+    //private static final String VOLTAGE_SENSOR = "VoltageSensor";
 
     // Tunables
     private static final double INTAKE_POWER  = 0.6;
@@ -45,7 +48,7 @@ public class SmallTriRedAutoMain extends LinearOpMode {
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
         Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
-        VoltageSensor battery = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR); // read battery
+       // VoltageSensor battery = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR); // read battery
 
         // Safe defaults
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -57,9 +60,9 @@ public class SmallTriRedAutoMain extends LinearOpMode {
         feed.setPosition(SERVO_LOAD_POS);
 
         // proportional compensation: keep motor voltage constant
-        double vbat = (battery != null) ? battery.getVoltage() : 12.0;
+       /* double vbat = (battery != null) ? battery.getVoltage() : 12.0;
         if (!Double.isFinite(vbat) || vbat <= 0) vbat = 12.0;
-        SHOOTER_POWER = Math.min(1.0, SHOOTER_POWER * (12.0 / vbat));
+        SHOOTER_POWER = Math.min(1.0, SHOOTER_POWER * (12.0 / vbat));*/
 
         telemetry.addData("SHOOTER_POWER", SHOOTER_POWER);
         telemetry.update();
@@ -71,7 +74,9 @@ public class SmallTriRedAutoMain extends LinearOpMode {
                 // Intake on (non-blocking; base keeps moving)
                 //.stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
+
                 // --- Your original path, Red side ---
+                .stopAndAdd(setMotorPower(intake, 0.64))
                 .setTangent(0)
                 .splineToLinearHeading(new Pose2d( 0, 0, Math.toRadians(135)), Math.PI / 2)
                 .stopAndAdd(new ShooterAndFeederAction(
