@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.MainCode.config.TagConfig;
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 
 // --- Data Logging ---
-import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
+import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
 
 @TeleOp(name = "TeleOp: Main", group = "TeleOp")
 public class TeleOpMain extends LinearOpMode {
@@ -47,7 +47,7 @@ public class TeleOpMain extends LinearOpMode {
 
     // --- Config flags ---
     private static final boolean LOG_ENABLED = true;  // turn CSV logging on/off
-    private TinyCsvLogger logger; // logging Data
+    private TinyCsvLoggerFlex logger; // logging Data
     private static final int GOAL_TAG_ID = 20;        // 20 = blue goal, 24 = red goal
 
     // require driver to arm auto-spin before controlling flywheel
@@ -113,7 +113,16 @@ public class TeleOpMain extends LinearOpMode {
 
         // LOG: create CSV logger
         if (LOG_ENABLED) {
-            logger = TinyCsvLogger.create(hardwareMap, "teleop_main");
+            logger = TinyCsvLoggerFlex.create(
+                    hardwareMap,
+                    "teleop_main",
+                    TinyCsvLoggerFlex.doubleCol("launch_cmd", () -> (autoShooter ? shooterSetpointTPS : launchPower)),
+                    TinyCsvLoggerFlex.motorEx("launch", launchMotor),
+                    TinyCsvLoggerFlex.doubleCol("intake_cmd", () -> intakePower),
+                    TinyCsvLoggerFlex.motorEx("intake", intakeMotor),
+                    TinyCsvLoggerFlex.servoPos("feed_pos", feedServo),
+                    TinyCsvLoggerFlex.pose2d("pose", () -> drive.localizer.getPose())
+            );
         }
 
         waitForStart();
@@ -282,19 +291,10 @@ public class TeleOpMain extends LinearOpMode {
 
             // --------------------------- LOGGING ------------------------------
             if (LOG_ENABLED && logger != null) {
-                logger.record(
-                        "run",
-                        (autoShooter ? shooterSetpointTPS : launchPower),
-                        launchMotor,
-                        intakePower,
-                        intakeMotor,
-                        feedServo,
-                        pose
-                );
+                logger.record("run");
             }
 
             // ------------- Telemetry data -------------------------------------------------
-            // TELEMETRY: compute measured speed each loop
             double tpsMeas = launchMotor.getVelocity();
             double rpmMeas = (tpsMeas * 60.0) / ShooterConfig.TICKS_PER_REV;
             Double visInches = getVisionDistanceInches();
@@ -330,7 +330,6 @@ public class TeleOpMain extends LinearOpMode {
         }
     }
 
-    /** Get distance in inches from AprilTagService (already smoothed) */
     private Double getVisionDistanceInches() {
         if (tagService == null) return null;
         AprilTagService.Reading r = tagService.getLatest();
