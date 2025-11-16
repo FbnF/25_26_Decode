@@ -57,7 +57,7 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
 
-        // proportional compensation: keep motor voltage constant
+        // keep motor voltage constant
         double vbat = (battery != null) ? battery.getVoltage() : 12.0;
         if (!Double.isFinite(vbat) || vbat <= 0) vbat = 12.0;
         SHOOTER_POWER = Math.min(1.0, SHOOTER_POWER * (12.0 / vbat));
@@ -67,7 +67,7 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
 
         Action all = drive.actionBuilder(startPose)
                 .setTangent(0)
-                .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(225)), Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(startPose.position.x, startPose.position.y, Math.toRadians(225)), Math.PI / 2)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
@@ -81,7 +81,7 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
                 .strafeTo(new Vector2d(-10, -52))
                 // second artifact round
                 .setTangent(0)
-                .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(225)), Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(startPose.position.x, startPose.position.y, Math.toRadians(225)), Math.PI / 2)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
@@ -94,7 +94,7 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
                 .strafeTo(new Vector2d(10, -52))
                 // third artifact round
                 .setTangent(0)
-                .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(225)), Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(startPose.position.x, startPose.position.y, Math.toRadians(225)), Math.PI / 2)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
@@ -106,7 +106,7 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
                 .setTangent(Math.PI / 2)
                 .strafeTo(new Vector2d(34, -52))
                 .setTangent(0)
-                .splineToLinearHeading(new Pose2d(0, 0, Math.toRadians(225)), Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(startPose.position.x, startPose.position.y, Math.toRadians(225)), Math.PI / 2)
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
@@ -116,7 +116,7 @@ public class SmallTriBlueAutoMain extends LinearOpMode {
 
         Actions.runBlocking(all);
 
-        // Safety park
+        // this is where the robot does the safety parking
         feed.setPosition(SERVO_LOAD_POS);
         shooter.setPower(0.0);
         intake.setPower(0.0);
