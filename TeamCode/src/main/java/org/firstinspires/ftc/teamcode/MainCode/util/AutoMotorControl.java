@@ -220,7 +220,6 @@ public final class AutoMotorControl {
 
 
 
-        private final double VMax;
         private boolean initialized = false;
         private long t0;
 
@@ -232,8 +231,7 @@ public final class AutoMotorControl {
                 double feedHoldS,
                 double endPaddingS,
                 double loadPos,
-                double feedPos,
-                double VMax
+                double feedPos
 
         ) {
             this.shooter = shooter;
@@ -244,7 +242,6 @@ public final class AutoMotorControl {
             this.endPaddingS = endPaddingS;
             this.loadPos = loadPos;
             this.feedPos = feedPos;
-            this.VMax = VMax;
           //  battery = hardwareMap.voltageSensor.iterator().next();
         }
 
