@@ -256,7 +256,7 @@ public class TeleOpMain extends LinearOpMode {
             boolean rbEdge = gamepad2.right_bumper && !prevRB;
             if (rbEdge) intakePower = -0.5;
             prevRB = gamepad2.right_bumper;
-            if (gamepad2.right_trigger > 0) intakePower = 1.0;
+            if (gamepad2.right_trigger > 0) intakePower = 0.65;
             if (gamepad2.left_trigger > 0) intakePower = 0.0;
             intakeMotor.setPower(intakePower);
 
