@@ -75,8 +75,6 @@ public class SmallRedNoSpline extends LinearOpMode {
         if (isStopRequested()) return;
 
         Action all = drive.actionBuilder(startPose)
-                // Intake on (non-blocking; base keeps moving)
-                //.stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setMotorPower(shooter, 0.74))
                 .turn(Math.toRadians(-28))
@@ -86,43 +84,11 @@ public class SmallRedNoSpline extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(28))
-
-                //      .turn(Math.toRadians(-45))
-                //first artifact round
-                //Pick up artifacts.
+                .setTangent(Math.toRadians(180))
                 .splineTo(new Vector2d(33, 36), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
                 .lineToY(48)
-                .setTangent(Math.toRadians(0))
-                .turn(Math.toRadians(90))
-                .strafeTo(new Vector2d(60, 12))
-                .turn(Math.toRadians(-28))
-                .stopAndAdd(new ShooterAndFeederAction(
-                        shooter, feed,
-                        SHOOTER_POWER,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
-                .turn(Math.toRadians(28))
-                /*.stopAndAdd(setMotorPower(intake, 1.0))
-                .turn(Math.toRadians(-90))
-                .strafeTo(new Vector2d(33, 52))
-                //End pick up.
-                .strafeTo(new Vector2d(60,16))
-                .turn(Math.toRadians(-35))*/
-             /*   .stopAndAdd(new ShooterAndFeederAction(
-                        shooter, feed,
-                        SHOOTER_POWER,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS, MAX_VOLTAGE))
-
-                //new pickup
-                .setTangent(90)
-                .turn(Math.toRadians(-35))
-                .setTangent(90)
-                .strafeTo(new Vector2d(15,0))
-                //.lineToX(15)
-                // .turn(Math.toRadians(-55))
-                .strafeTo(new Vector2d(15, 52))*/
+                .lineToY(36)
                 .build();
 
         Actions.runBlocking(all);

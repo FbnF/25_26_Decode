@@ -40,9 +40,7 @@ public class SmallTriBlue extends LinearOpMode {
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
-    private static final  double FULL_POWER = 12;
 
-    private double CURRENT_POWER;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -52,10 +50,8 @@ public class SmallTriBlue extends LinearOpMode {
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
         Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
-        VoltageSensor voltageSensor = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR);
         // feed.setDirection(Servo.Direction.REVERSE); // if linkage inverted
-        CURRENT_POWER = voltageSensor.getVoltage();
-        SHOOTER_POWER = SHOOTER_POWER + ((FULL_POWER-CURRENT_POWER)*0.05);
+
         // Safe defaults
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
