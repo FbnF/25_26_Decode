@@ -84,8 +84,7 @@ public class SmallRedNoSpline extends LinearOpMode {
                         shooter, feed,
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS,
-                        MAX_VOLTAGE))
+                        SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(28))
 
                 //      .turn(Math.toRadians(-45))
@@ -102,8 +101,7 @@ public class SmallRedNoSpline extends LinearOpMode {
                         shooter, feed,
                         SHOOTER_POWER,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS,
-                        MAX_VOLTAGE))
+                        SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(28))
                 /*.stopAndAdd(setMotorPower(intake, 1.0))
                 .turn(Math.toRadians(-90))
