@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.MainCode.util;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 /**
  * Reusable Road Runner Actions:
@@ -151,6 +154,8 @@ public final class AutoMotorControl {
         private boolean initialized = false;
         private long t0;
 
+
+
         public ServoScheduleAction(
                 Servo servo,
                 double loadPos,
@@ -209,7 +214,13 @@ public final class AutoMotorControl {
         private final double endPaddingS;
         private final double loadPos;
         private final double feedPos;
+        private double Vcurrent;
 
+        private VoltageSensor battery;
+
+
+
+        private final double VMax;
         private boolean initialized = false;
         private long t0;
 
@@ -221,7 +232,9 @@ public final class AutoMotorControl {
                 double feedHoldS,
                 double endPaddingS,
                 double loadPos,
-                double feedPos
+                double feedPos,
+                double VMax
+
         ) {
             this.shooter = shooter;
             this.feeder = feeder;
@@ -231,6 +244,8 @@ public final class AutoMotorControl {
             this.endPaddingS = endPaddingS;
             this.loadPos = loadPos;
             this.feedPos = feedPos;
+            this.VMax = VMax;
+          //  battery = hardwareMap.voltageSensor.iterator().next();
         }
 
         @Override
@@ -238,7 +253,11 @@ public final class AutoMotorControl {
             if (!initialized) {
                 t0 = System.nanoTime();
                 if (shooter != null) {
-                    shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+                   // shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                  //  Vcurrent = battery.getVoltage();
+              //      double shooterPowerAdapted = Math.min(1.0, shooterPower + (Vcurrent - VMax) * 0.05);
+                  //  double shooterPowerAdapted = shooterPower * VMax/Vcurrent;
                     shooter.setPower(shooterPower);
                 }
                 if (feeder != null) feeder.setPosition(loadPos);
