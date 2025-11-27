@@ -62,7 +62,7 @@ public class BigTriRedComplex extends LinearOpMode {
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        intake.setPower(1);
+
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
 
@@ -71,11 +71,10 @@ public class BigTriRedComplex extends LinearOpMode {
             try { logger.close(); } catch (Exception ignored) {}
             return;
         }
-
+        intake.setPower(0.7);
         Action all = drive.actionBuilder(startPose)
                 // Intake on (non-blocking; base keeps moving)
-
-
+                
                 // --- Your original path, Red side ---
                 .setTangent(Math.toRadians(135))
 
