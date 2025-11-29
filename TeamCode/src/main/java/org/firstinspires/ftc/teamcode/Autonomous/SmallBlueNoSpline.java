@@ -27,14 +27,14 @@ public class SmallBlueNoSpline extends LinearOpMode {
     //private static final String VOLTAGE_SENSOR = "VoltageSensor";
 
     // Tunables
-    private static final double INTAKE_POWER  = 0.6;
-    private static double SHOOTER_POWER = 0.75;
+    private static final double INTAKE_POWER  = 0.73;
+    private static double SHOOTER_POWER = 0.78;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.02;
     private static final double SERVO_FEED_POS = 0.12;
 
-    private static final double ANGLE_OF_TURN = -25;
+    private static final double ANGLE_OF_TURN = -28;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double[] FEED_START_S = {3.52, 6.52, 9.52, 12.52};
@@ -77,8 +77,8 @@ public class SmallBlueNoSpline extends LinearOpMode {
         if (isStopRequested()) return;
 
         Action all = drive.actionBuilder(startPose)
-                .stopAndAdd(setMotorPower(intake, 0.7))
-                .stopAndAdd(setMotorPower(shooter, 0.8))
+                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+                .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
                 .turn(Math.toRadians(ANGLE_OF_TURN * -1))
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,

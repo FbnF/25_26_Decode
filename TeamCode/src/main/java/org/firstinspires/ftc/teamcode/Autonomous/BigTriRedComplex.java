@@ -27,7 +27,7 @@ public class BigTriRedComplex extends LinearOpMode {
     private static final String LAUNCH_MOTOR = "LaunchMotor";
 
     // Tunables
-    private static final double INTAKE_POWER  = 0.65;
+    private static final double INTAKE_POWER  = 0.0;
     private static final double SHOOTER_POWER = 0.59;
 
     // Servo positions (use what worked in your tests)
@@ -35,8 +35,8 @@ public class BigTriRedComplex extends LinearOpMode {
     private static final double SERVO_FEED_POS = 0.12;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = {2.5, 5.5, 8.5, 11.5};
-    private static final double[] FEED_CON_S = {1.0, 4.0, 7.0, 10.0};
+    private static final double[] FEED_START_S = {2.5, 5.5, 8.5};
+    private static final double[] FEED_CON_S = {1.0, 4.0, 7.0};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
@@ -71,7 +71,7 @@ public class BigTriRedComplex extends LinearOpMode {
             try { logger.close(); } catch (Exception ignored) {}
             return;
         }
-        intake.setPower(0.7);
+        intake.setPower(0.73);
         Action all = drive.actionBuilder(startPose)
                 // Intake on (non-blocking; base keeps moving)
                 
