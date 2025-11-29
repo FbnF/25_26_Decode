@@ -87,10 +87,10 @@ public class SmallBlueNoSpline extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(180))
-                .splineTo(new Vector2d(33, -36), Math.toRadians(90))
+                .splineTo(new Vector2d(33, -36), Math.toRadians(270))
                 .setTangent(Math.toRadians(90))
-                .lineToY(48)
-                .lineToY(36)
+                .lineToY(-48)
+                .lineToY(-36)
 
                 .turn(Math.toRadians(90))
                 .strafeTo(new Vector2d(60, -16))
@@ -102,7 +102,7 @@ public class SmallBlueNoSpline extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(180))
-                .splineTo(new Vector2d(16, -20), Math.toRadians(90))
+                .splineTo(new Vector2d(9, -20), Math.toRadians(270))
                 .lineToY(-52)
                 .build();
 
