@@ -81,6 +81,7 @@ public class TeleOpMain extends LinearOpMode {
 
     //edge state for GP1 dpad-down (vision toggle)
     private boolean prevG1DpadDown = false;
+    private double CompPower;
 
     @Override
     public void runOpMode() {
@@ -193,15 +194,15 @@ public class TeleOpMain extends LinearOpMode {
 
             // --------------------------- MANUAL MODE --------------------------
             if (!autoShooter) {
-                if (gamepad2.a) launchPower = 0.75;
-                if (gamepad2.b) launchPower = 0.60;
-                if (gamepad2.left_bumper) launchPower = 0.55;
+                if (gamepad2.a) launchPower = 0.825;
+                if (gamepad2.b) launchPower = 0.65;
+                if (gamepad2.left_bumper) launchPower = 0.6;
                 if (gamepad2.x) launchPower = 0.0;
 
                 // Battery compensation for open-loop power
                 double vbat = battery.getVoltage();
-                double scaledPower = Math.min(1.0, launchPower * (12.0 / vbat));
-                launchMotor.setPower(scaledPower);
+                CompPower = Math.min(1.0, (launchPower+(12.7-vbat)*0.05));
+                launchMotor.setPower(CompPower);
             }
 
             // --------------------------- AUTO MODE ----------------------------
@@ -249,7 +250,7 @@ public class TeleOpMain extends LinearOpMode {
             }
             if (gamepad2.y){
                 if (!feedPulseActive && spunUpOk) {
-                    feedServo.setPosition(0.12);
+                    feedServo.setPosition(0.16);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
                 } else if (!spunUpOk) {
@@ -307,7 +308,7 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
             telemetry.addData("Actual TPS", "%.0f", tpsMeas);
             telemetry.addData("Actual RPM", "%.0f", rpmMeas);
-            if (!autoShooter) telemetry.addData("Manual Power", "%.2f", launchPower);
+            if (!autoShooter) telemetry.addData("Manual Power", "%.2f", CompPower);
             telemetry.addData("Ready?", spunUpOk);
 
             telemetry.addLine("---- Vision ----");
