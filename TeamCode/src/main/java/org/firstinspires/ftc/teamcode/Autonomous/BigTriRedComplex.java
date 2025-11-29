@@ -31,8 +31,8 @@ public class BigTriRedComplex extends LinearOpMode {
     private static final double SHOOTER_POWER = 0.59;
 
     // Servo positions (use what worked in your tests)
-    private static final double SERVO_LOAD_POS = 0.0;
-    private static final double SERVO_FEED_POS = 0.75;
+    private static final double SERVO_LOAD_POS = 0.02;
+    private static final double SERVO_FEED_POS = 0.12;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double[] FEED_START_S = {2.5, 5.5, 8.5, 11.5};
@@ -62,7 +62,7 @@ public class BigTriRedComplex extends LinearOpMode {
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        intake.setPower(0.0);
+
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
 
@@ -71,11 +71,10 @@ public class BigTriRedComplex extends LinearOpMode {
             try { logger.close(); } catch (Exception ignored) {}
             return;
         }
-
+        intake.setPower(0.7);
         Action all = drive.actionBuilder(startPose)
                 // Intake on (non-blocking; base keeps moving)
-
-
+                
                 // --- Your original path, Red side ---
                 .setTangent(Math.toRadians(135))
 
@@ -89,7 +88,7 @@ public class BigTriRedComplex extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
                 .splineToLinearHeading(new Pose2d(-6, 24,Math.toRadians(90)),Math.toRadians(90))
-                .stopAndAdd(setMotorPower(intake, 1.0))
+
                 .lineToY(48)
 
                 .splineToLinearHeading(new Pose2d(-20, 20,Math.toRadians(135)),Math.toRadians(135))
@@ -102,7 +101,7 @@ public class BigTriRedComplex extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
                 .splineToLinearHeading(new Pose2d(15, 24,Math.toRadians(90)),Math.toRadians(90))
-                .stopAndAdd(setMotorPower(intake, 1.0))
+
                 .lineToY(48)
 
 
@@ -115,9 +114,9 @@ public class BigTriRedComplex extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .splineToLinearHeading(new Pose2d(38, 24,Math.toRadians(90)),Math.toRadians(90))
-                .stopAndAdd(setMotorPower(intake, 1.0))
+
                 .lineToY(48)
-              
+
 
                 .splineToLinearHeading(new Pose2d(-20, 20,Math.toRadians(135)),Math.toRadians(135))
                 //shooter runs
