@@ -94,7 +94,7 @@ public class TeleOpMain extends LinearOpMode {
         blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
 
-        feedServo.setPosition(0.0);
+        feedServo.setPosition(0.02);
         isFeedServoDown = false;
 
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -149,6 +149,7 @@ public class TeleOpMain extends LinearOpMode {
 
             // Update odometry and read pose
             drive.updatePoseEstimate();
+
             Pose2d pose = drive.localizer.getPose();
 
             telemetry.addData("Speed Factor", "%.2f", speedFactor);
@@ -248,7 +249,7 @@ public class TeleOpMain extends LinearOpMode {
             }
             if (gamepad2.y){
                 if (!feedPulseActive && spunUpOk) {
-                    feedServo.setPosition(0.75);
+                    feedServo.setPosition(0.12);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
                 } else if (!spunUpOk) {
@@ -257,7 +258,7 @@ public class TeleOpMain extends LinearOpMode {
             }
 
             if (feedPulseActive && System.nanoTime() - feedPulseStartNs >= FEED_DWELL_NS) {
-                feedServo.setPosition(0.0);
+                feedServo.setPosition(0.02);
                 feedPulseActive = false;
             }
 
