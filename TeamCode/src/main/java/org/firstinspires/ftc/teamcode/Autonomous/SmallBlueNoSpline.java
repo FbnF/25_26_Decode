@@ -76,6 +76,8 @@ public class SmallBlueNoSpline extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
+        telemetry.addData("SHOOTER_VELOCITY", shooter.getVelocity());
+        telemetry.update();
         if (isStopRequested()) return;
 
         Action all = drive.actionBuilder(startPose)

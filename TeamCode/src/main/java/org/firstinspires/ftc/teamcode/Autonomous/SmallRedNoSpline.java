@@ -72,9 +72,12 @@ public class SmallRedNoSpline extends LinearOpMode {
         SHOOTER_POWER = Math.min(1.0, SHOOTER_POWER * (12.0 / vbat));*/
 
         telemetry.addData("SHOOTER_POWER", SHOOTER_POWER);
-        telemetry.update();
+
+
 
         waitForStart();
+        telemetry.addData("SHOOTER_VELOCITY", shooter.getVelocity());
+        telemetry.update();
         if (isStopRequested()) return;
 
         Action all = drive.actionBuilder(startPose)
