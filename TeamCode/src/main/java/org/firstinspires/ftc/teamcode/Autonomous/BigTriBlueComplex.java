@@ -12,14 +12,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="BigTriRedComplex", group="Auto")
-public class BigTriRedComplex extends LinearOpMode {
+@Autonomous(name="BigTriBlueComplex", group="Auto")
+public class BigTriBlueComplex extends LinearOpMode {
 
     // RC config names
     private static final String FEED_SERVO   = "feedServo";
@@ -42,7 +41,7 @@ public class BigTriRedComplex extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
+        Pose2d startPose = new Pose2d(-48, -48, Math.toRadians(225));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
 
@@ -76,30 +75,9 @@ public class BigTriRedComplex extends LinearOpMode {
                 // Intake on (non-blocking; base keeps moving)
                 
                 // --- Your original path, Red side ---
-                .setTangent(Math.toRadians(135))
+                .setTangent(Math.toRadians(225))
 
-                .strafeTo(new Vector2d(-20, 20))
-
-                // Shooter runs
-                .stopAndAdd(new ShooterAndFeederAction(
-                        shooter, feed,
-                        SHOOTER_POWER,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
-                .stopAndAdd(setMotorPower(intake, 0.73))
-                .stopAndAdd(new ShooterAndFeederAction(
-                        shooter, feed,
-                        SHOOTER_POWER,
-                        FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
-
-                .splineToLinearHeading(new Pose2d(-6, 24,Math.toRadians(90)),Math.toRadians(90))
-
-                .lineToY(52)
-                .lineToY(45)
-                .lineToY(52)
-                .stopAndAdd(setMotorPower(intake, 0.0))
-                .splineToLinearHeading(new Pose2d(-20, 20,Math.toRadians(135)),Math.toRadians(135))
+                .strafeTo(new Vector2d(-20, -20))
 
                 // Shooter runs
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -114,12 +92,13 @@ public class BigTriRedComplex extends LinearOpMode {
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .splineToLinearHeading(new Pose2d(15, 24,Math.toRadians(90)),Math.toRadians(90))
-                .lineToY(52)
-                .lineToY(45)
-                .lineToY(52)
+                .splineToLinearHeading(new Pose2d(-6, -24,Math.toRadians(270)),Math.toRadians(270))
+
+                .lineToY(-52)
+                .lineToY(-45)
+                .lineToY(-52)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .splineToLinearHeading(new Pose2d(-20, 20,Math.toRadians(135)),Math.toRadians(135))
+                .splineToLinearHeading(new Pose2d(-20, -20,Math.toRadians(225)),Math.toRadians(225))
 
                 // Shooter runs
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -134,15 +113,35 @@ public class BigTriRedComplex extends LinearOpMode {
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .splineToLinearHeading(new Pose2d(38, 24,Math.toRadians(90)),Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(15, -24,Math.toRadians(270)),Math.toRadians(270))
+                .lineToY(-52)
+                .lineToY(-45)
+                .lineToY(-52)
+                .stopAndAdd(setMotorPower(intake, 0.0))
+                .splineToLinearHeading(new Pose2d(-20, -20,Math.toRadians(225)),Math.toRadians(225))
 
-                .lineToY(52)
-                .lineToY(45)
-                .lineToY(52)
+                // Shooter runs
+                .stopAndAdd(new ShooterAndFeederAction(
+                        shooter, feed,
+                        SHOOTER_POWER,
+                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
+                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                .stopAndAdd(setMotorPower(intake, 0.73))
+                .stopAndAdd(new ShooterAndFeederAction(
+                        shooter, feed,
+                        SHOOTER_POWER,
+                        FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
+                        SERVO_LOAD_POS, SERVO_FEED_POS))
+
+                .splineToLinearHeading(new Pose2d(38, -24,Math.toRadians(270)),Math.toRadians(270))
+
+                .lineToY(-52)
+                .lineToY(-45)
+                .lineToY(-52)
                 .stopAndAdd(setMotorPower(intake, 0.0))
 
 
-                .splineToLinearHeading(new Pose2d(-20, 20,Math.toRadians(135)),Math.toRadians(135))
+                .splineToLinearHeading(new Pose2d(-20, -20,Math.toRadians(225)),Math.toRadians(225))
 
                 //shooter runs
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -157,7 +156,7 @@ public class BigTriRedComplex extends LinearOpMode {
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .strafeTo(new Vector2d(-48, 16))
+                .strafeTo(new Vector2d(-48, -16))
 
                 .build();
 
