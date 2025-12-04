@@ -13,7 +13,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
+import org.firstinspires.ftc.teamcode.MainCode.config.TagConfig;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
+import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 @Autonomous(name="SmallTriRedNoSpline", group="Auto")
@@ -28,7 +30,9 @@ public class SmallRedNoSpline extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.73;
+
     private static double SHOOTER_POWER = 0.78;
+    private static double SHOOTER_VEL = 2061.466742868544;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.02;
@@ -65,6 +69,7 @@ public class SmallRedNoSpline extends LinearOpMode {
         intake.setPower(0.0);
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
+
 
         // proportional compensation: keep motor voltage constant
        /* double vbat = (battery != null) ? battery.getVoltage() : 12.0;
