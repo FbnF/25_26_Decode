@@ -30,6 +30,15 @@ public final class AutoMotorControl {
             return false; // finished immediately; does NOT block follower
         };
     }
+    public static Action setMotorVel(DcMotorEx m, double TTPS) {
+        return (TelemetryPacket pkt) -> {
+            if (m != null) {
+                m.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                m.setVelocity(TTPS);
+            }
+            return false; // finished immediately; does NOT block follower
+        };
+    }
     public static Action setServoPosition(Servo s, double pos) {
         return (TelemetryPacket pkt) -> {
             if (s != null) s.setPosition(pos);
@@ -283,6 +292,87 @@ public final class AutoMotorControl {
             // Finish
             if (feeder != null) feeder.setPosition(loadPos);
             if (shooter != null) shooter.setPower(0.0);
+            return false;
+        }
+    }
+    public static class ShooterAndFeederActionVel implements Action {
+        private final DcMotorEx shooter;
+        private final Servo feeder;
+        private final double shooterVel;
+        private final double[] feedStartS;
+        private final double feedHoldS;
+        private final double endPaddingS;
+        private final double loadPos;
+        private final double feedPos;
+        private double Vcurrent;
+
+        private VoltageSensor battery;
+
+
+
+        private boolean initialized = false;
+        private long t0;
+
+        public ShooterAndFeederActionVel(
+                DcMotorEx shooter,
+                Servo feeder,
+                double shooterVel,
+                double[] feedStartS,
+                double feedHoldS,
+                double endPaddingS,
+                double loadPos,
+                double feedPos
+
+        ) {
+            this.shooter = shooter;
+            this.feeder = feeder;
+            this.shooterVel = shooterVel;
+            this.feedStartS = (feedStartS != null) ? feedStartS : new double[0];
+            this.feedHoldS = feedHoldS;
+            this.endPaddingS = endPaddingS;
+            this.loadPos = loadPos;
+            this.feedPos = feedPos;
+            //  battery = hardwareMap.voltageSensor.iterator().next();
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            if (!initialized) {
+                t0 = System.nanoTime();
+                if (shooter != null) {
+
+                    shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                    //  Vcurrent = battery.getVoltage();
+                    //      double shooterPowerAdapted = Math.min(1.0, shooterPower + (Vcurrent - VMax) * 0.05);
+                    //  double shooterPowerAdapted = shooterPower * VMax/Vcurrent;
+                    shooter.setVelocity(shooterVel);
+                }
+                if (feeder != null) feeder.setPosition(loadPos);
+                initialized = true;
+            }
+
+            double t = (System.nanoTime() - t0) / 1e9;
+
+            // Inside any FEED window?
+            boolean feeding = false;
+            for (double s : feedStartS) {
+                if (t >= s && t < s + feedHoldS) { feeding = true; break; }
+            }
+            if (feeder != null) feeder.setPosition(feeding ? feedPos  : loadPos);
+
+            // Telemetry (optional dashboard insight)
+            packet.put("t_s", String.format("%.2f", t));
+            packet.put("feeding", feeding);
+
+            double lastEnd = (feedStartS.length > 0 ? feedStartS[feedStartS.length - 1] : 0.0)
+                    + feedHoldS + endPaddingS;
+
+            // TRUE = keep running, FALSE = done (per your RR build)
+            if (t < lastEnd) return true;
+
+            // Finish
+            if (feeder != null) feeder.setPosition(loadPos);
+            if (shooter != null) shooter.setVelocity(0);
             return false;
         }
     }
