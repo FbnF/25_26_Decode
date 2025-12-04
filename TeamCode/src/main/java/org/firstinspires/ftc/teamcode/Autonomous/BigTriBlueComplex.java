@@ -34,8 +34,8 @@ public class BigTriBlueComplex extends LinearOpMode {
     private static final double SERVO_FEED_POS = 0.12;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = {2.5};
-    private static final double[] FEED_CON_S = {2.0, 4.0};
+    private static final double[] FEED_START_S = {1.5};//2.5
+    private static final double[] FEED_CON_S = {1.0, 3.0};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
@@ -61,7 +61,7 @@ public class BigTriBlueComplex extends LinearOpMode {
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
+        intake.setPower(0.0);
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
 
@@ -70,12 +70,15 @@ public class BigTriBlueComplex extends LinearOpMode {
             try { logger.close(); } catch (Exception ignored) {}
             return;
         }
+        telemetry.addData( "TTPS", shooter.getVelocity());
+
 
         Action all = drive.actionBuilder(startPose)
                 // Intake on (non-blocking; base keeps moving)
                 
                 // --- Your original path, Red side ---
                 .setTangent(Math.toRadians(225))
+                .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
 
                 .strafeTo(new Vector2d(-20, -20))
 
@@ -92,13 +95,13 @@ public class BigTriBlueComplex extends LinearOpMode {
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .splineToLinearHeading(new Pose2d(-6, -24,Math.toRadians(270)),Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(-10, -24,Math.toRadians(270)),Math.toRadians(270))
 
-                .lineToY(-52)
+                .lineToY(-48)
                 .lineToY(-45)
-                .lineToY(-52)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .splineToLinearHeading(new Pose2d(-20, -20,Math.toRadians(225)),Math.toRadians(225))
+                .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
+                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(225))
 
                 // Shooter runs
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -113,12 +116,13 @@ public class BigTriBlueComplex extends LinearOpMode {
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .splineToLinearHeading(new Pose2d(15, -24,Math.toRadians(270)),Math.toRadians(270))
-                .lineToY(-52)
+                .splineToLinearHeading(new Pose2d(14, -24,Math.toRadians(270)),Math.toRadians(270))
+                .lineToY(-50)
                 .lineToY(-45)
-                .lineToY(-52)
+
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .splineToLinearHeading(new Pose2d(-20, -20,Math.toRadians(225)),Math.toRadians(225))
+                .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
+                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(225))
 
                 // Shooter runs
                 .stopAndAdd(new ShooterAndFeederAction(
@@ -133,11 +137,12 @@ public class BigTriBlueComplex extends LinearOpMode {
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .splineToLinearHeading(new Pose2d(38, -24,Math.toRadians(270)),Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(36, -24,Math.toRadians(270)),Math.toRadians(270))
 
-                .lineToY(-52)
+
+                .lineToY(-50)
                 .lineToY(-45)
-                .lineToY(-52)
+                .lineToY(-50)
                 .stopAndAdd(setMotorPower(intake, 0.0))
 
 
@@ -186,7 +191,10 @@ public class BigTriBlueComplex extends LinearOpMode {
                 // continue original chain
                 return all.run(packet);
             }
+
+
         };
+        telemetry.update();
 
         Actions.runBlocking(logged);
 
