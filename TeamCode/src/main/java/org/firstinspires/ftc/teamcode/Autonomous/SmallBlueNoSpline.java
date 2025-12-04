@@ -28,17 +28,17 @@ public class SmallBlueNoSpline extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.73;
-    private static double SHOOTER_POWER = 0.78;
+    private static double SHOOTER_POWER = 0.76;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.02;
     private static final double SERVO_FEED_POS = 0.12;
 
-    private static final double ANGLE_OF_TURN = -28;
+    private static final double ANGLE_OF_TURN = -23;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = { 6.52, 9.52};
-    private static final double[] FEED_START_S_FIRST = {3.52};
+    private static final double[] FEED_START_S = { 3.5, 6.5};
+    private static final double[] FEED_START_S_FIRST = {3.5};
 
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
@@ -83,7 +83,8 @@ public class SmallBlueNoSpline extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
-                .turn(Math.toRadians(-ANGLE_OF_TURN))
+                .strafeToLinearHeading(new Vector2d(52, -9), Math.toRadians(198))
+               // .turn(Math.toRadians(-ANGLE_OF_TURN))
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
@@ -97,14 +98,15 @@ public class SmallBlueNoSpline extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(180))
-                .splineTo(new Vector2d(34, -36), Math.toRadians(270))
+                .splineTo(new Vector2d(32, -36), Math.toRadians(270))
                 .setTangent(Math.toRadians(90))
                 .lineToY(-48)
                 .lineToY(-52)
                // .lineToY(-36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .strafeTo(new Vector2d(58, -16))
                 .turn(Math.toRadians(-(90 + ANGLE_OF_TURN)))
+                .strafeTo(new Vector2d(52, -9))
+
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
                         SHOOTER_POWER,
@@ -118,7 +120,7 @@ public class SmallBlueNoSpline extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(180))
-                .splineTo(new Vector2d(9, -20), Math.toRadians(270))
+                .splineTo(new Vector2d(7, -19), Math.toRadians(270))
                 .lineToY(-52)
                 .build();
 
