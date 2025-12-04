@@ -255,7 +255,7 @@ public class TeleOpMain extends LinearOpMode {
             }
             if (gamepad2.y){
                 if (!feedPulseActive && spunUpOk) {
-                    feedServo.setPosition(0.16);
+                    feedServo.setPosition(0.12);//0.16
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
                 } else if (!spunUpOk) {
@@ -272,7 +272,7 @@ public class TeleOpMain extends LinearOpMode {
             boolean rbEdge = gamepad2.right_bumper && !prevRB;
             if (rbEdge) intakePower = -0.5;
             prevRB = gamepad2.right_bumper;
-            if (gamepad2.right_trigger > 0) intakePower = 0.65;
+            if (gamepad2.right_trigger > 0) intakePower = 0.73;
             if (gamepad2.left_trigger > 0) intakePower = 0.0;
             intakeMotor.setPower(intakePower);
 
