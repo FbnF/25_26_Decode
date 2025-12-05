@@ -38,7 +38,7 @@ public class SmallRedNoSpline extends LinearOpMode {
     private static final double SERVO_LOAD_POS = 0.02;
     private static final double SERVO_FEED_POS = 0.12;
 
-    private static final double ANGLE_OF_TURN = 28;
+    private static final double ANGLE_OF_TURN = 23;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double[] FEED_START_S = {2.25, 4.5};
