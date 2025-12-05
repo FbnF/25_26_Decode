@@ -28,7 +28,7 @@ public class SmallBlueNoSpline extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.73;
-    private static double SHOOTER_POWER = 0.76;
+    private static double SHOOTER_POWER = 0.74;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.02;
@@ -37,7 +37,7 @@ public class SmallBlueNoSpline extends LinearOpMode {
     private static final double ANGLE_OF_TURN = -23;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = { 3.5, 6.5};
+    private static final double[] FEED_START_S = { 2.5, 3.5};
     private static final double[] FEED_START_S_FIRST = {3.5};
 
     private static final double   FEED_HOLD_S  = 0.7;
@@ -83,7 +83,7 @@ public class SmallBlueNoSpline extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
-                .strafeToLinearHeading(new Vector2d(52, -9), Math.toRadians(198))
+                .strafeToLinearHeading(new Vector2d(51, -10), Math.toRadians(197))
                // .turn(Math.toRadians(-ANGLE_OF_TURN))
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
@@ -105,7 +105,9 @@ public class SmallBlueNoSpline extends LinearOpMode {
                // .lineToY(-36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .turn(Math.toRadians(-(90 + ANGLE_OF_TURN)))
-                .strafeTo(new Vector2d(52, -9))
+                .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
+                .strafeTo(new Vector2d(51, -10))
+
 
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
