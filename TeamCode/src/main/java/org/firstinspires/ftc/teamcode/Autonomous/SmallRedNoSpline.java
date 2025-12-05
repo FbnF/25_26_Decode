@@ -38,7 +38,7 @@ public class SmallRedNoSpline extends LinearOpMode {
     private static final double SERVO_LOAD_POS = 0.02;
     private static final double SERVO_FEED_POS = 0.12;
 
-    private static final double ANGLE_OF_TURN = 28;
+    private static final double ANGLE_OF_TURN = 25.5;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double[] FEED_START_S = {2.25, 4.5};
@@ -126,8 +126,8 @@ public class SmallRedNoSpline extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(180))
-                .splineTo(new Vector2d(16, 18), Math.toRadians(90))
-                .lineToY(52)
+                //  .splineTo(new Vector2d(16, 18), Math.toRadians(90))
+                .lineToY(20)
                 .build();
 
         Actions.runBlocking(all);

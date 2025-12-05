@@ -83,7 +83,9 @@ public class SmallBlueNoSpline extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
-                .strafeToLinearHeading(new Vector2d(51, -10), Math.toRadians(197))
+                .strafeToLinearHeading(new Vector2d(51, -10), Math.toRadians(199))
+                .strafeToLinearHeading(new Vector2d(60, -16), Math.toRadians(180))
+
                // .turn(Math.toRadians(-ANGLE_OF_TURN))
                 .stopAndAdd(new ShooterAndFeederAction(
                         shooter, feed,
