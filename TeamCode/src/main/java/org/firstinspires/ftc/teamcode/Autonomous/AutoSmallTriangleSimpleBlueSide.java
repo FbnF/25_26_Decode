@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLogger;
 @Disabled
 @Autonomous(name="SmallTriRed", group="MainAuto")
+
 public class AutoSmallTriangleSimpleBlueSide extends LinearOpMode {
 
     // ---- Hardware names ----

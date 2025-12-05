@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -20,9 +21,10 @@ import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
+@Disabled
 @TeleOp(name = "TeleOp: Tune", group = "TeleOp")
-public class TeleOpMainTunner extends LinearOpMode {
 
+public class TeleOpMainTunner extends LinearOpMode {
     // --- Hardware ---
     private Servo feedServo;
     private MecanumDrive drive;
@@ -80,8 +82,8 @@ public class TeleOpMainTunner extends LinearOpMode {
     private double CompPower;
 
     @Override
-    public void runOpMode() {
 
+    public void runOpMode() {
         // Map hardware
         feedServo   = hardwareMap.get(Servo.class,    "feedServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class,"IntakeMotor");
