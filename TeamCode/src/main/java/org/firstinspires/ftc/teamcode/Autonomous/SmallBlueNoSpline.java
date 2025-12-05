@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -13,6 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
+import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
@@ -30,6 +32,7 @@ public class SmallBlueNoSpline extends LinearOpMode {
     private static final double INTAKE_POWER  = 0.73;
     private static double SHOOTER_POWER = 0.74;
 
+    private static double SHOOTER_VEL = 1900;
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.02;
     private static final double SERVO_FEED_POS = 0.12;
@@ -37,8 +40,8 @@ public class SmallBlueNoSpline extends LinearOpMode {
     private static final double ANGLE_OF_TURN = -23;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = { 2.5, 3.5};
-    private static final double[] FEED_START_S_FIRST = {3.5};
+    private static final double[] FEED_START_S = { 2.5, 4.5};
+    private static final double[] FEED_START_S_FIRST = {2.5};
 
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
@@ -82,44 +85,44 @@ public class SmallBlueNoSpline extends LinearOpMode {
 
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(51, -10), Math.toRadians(199))
-                .strafeToLinearHeading(new Vector2d(60, -16), Math.toRadians(180))
 
                // .turn(Math.toRadians(-ANGLE_OF_TURN))
-                .stopAndAdd(new ShooterAndFeederAction(
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_POWER,
+                        SHOOTER_VEL,
                         FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .stopAndAdd(new ShooterAndFeederAction(
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_POWER,
+                        SHOOTER_VEL,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                .turn(Math.toRadians(ANGLE_OF_TURN))
+                //.turn(Math.toRadians(ANGLE_OF_TURN))
+
+                .strafeToLinearHeading(new Vector2d(60, -16), Math.toRadians(180))
                 .setTangent(Math.toRadians(180))
-                .splineTo(new Vector2d(32, -36), Math.toRadians(270))
+                //.splineTo(new Vector2d(32, -36), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(32, -26), Math.toRadians(270))
                 .setTangent(Math.toRadians(90))
                 .lineToY(-48)
                 .lineToY(-52)
                // .lineToY(-36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .turn(Math.toRadians(-(90 + ANGLE_OF_TURN)))
-                .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeTo(new Vector2d(51, -10))
-
-
-                .stopAndAdd(new ShooterAndFeederAction(
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_POWER,
+                        SHOOTER_VEL,
                         FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .stopAndAdd(new ShooterAndFeederAction(
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_POWER,
+                        SHOOTER_VEL,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(ANGLE_OF_TURN))

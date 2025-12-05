@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -14,6 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.MainCode.config.TagConfig;
+import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
@@ -32,7 +34,7 @@ public class SmallRedNoSpline extends LinearOpMode {
     private static final double INTAKE_POWER  = 0.73;
 
     private static double SHOOTER_POWER = 0.78;
-    private static double SHOOTER_VEL = 2061.466742868544;
+    private static double SHOOTER_VEL = 1900;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.02;
@@ -87,17 +89,17 @@ public class SmallRedNoSpline extends LinearOpMode {
 
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .turn(Math.toRadians(ANGLE_OF_TURN * -1))
-                .stopAndAdd(new ShooterAndFeederAction(
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_POWER,
+                        SHOOTER_VEL,
                         FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-               .stopAndAdd(new ShooterAndFeederAction(
+               .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_POWER,
+                        SHOOTER_VEL,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(ANGLE_OF_TURN))
@@ -111,17 +113,17 @@ public class SmallRedNoSpline extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .turn(Math.toRadians(90-ANGLE_OF_TURN))
                 .strafeTo(new Vector2d(58, 16))
-                .stopAndAdd(setMotorPower(shooter, SHOOTER_POWER))
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
               //  .turn(Math.toRadians(ANGLE_OF_TURN * -1))
-                .stopAndAdd(new ShooterAndFeederAction(
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_POWER,
+                        SHOOTER_VEL,
                         FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .stopAndAdd(new ShooterAndFeederAction(
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_POWER,
+                        SHOOTER_VEL,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(ANGLE_OF_TURN))
