@@ -198,17 +198,28 @@ public class TeleOpMain extends LinearOpMode {
                 if (gamepad2.b) launchPower = 0.6;
                 if (gamepad2.left_bumper) launchPower = 0.55;
                 if (gamepad2.x) launchPower = 0.0;
+                if(launchPower != 1){
+                    if (gamepad1.dpad_left)  launchPower += 0.5;
+                }
+                if (launchPower != 0) {
+                    if (gamepad1.dpad_right) launchPower -= 0.5;
+                }
+
+
 
                 // Battery compensation for open-loop power
+
                 double vbat = battery.getVoltage();
                 if (launchPower>0.01) {
-                    CompPower = Math.min(1.0, (launchPower + (12.7 - vbat) * 0.05));
+                    //CompPower = Math.min(1.0, (launchPower + (12.7 - vbat) * 0.05));
                 }
                 else {
                     CompPower=0;
                 }
-                launchMotor.setPower(CompPower);
+                launchMotor.setPower(launchPower);
             }
+
+
 
             // --------------------------- AUTO MODE ----------------------------
             if (autoShooter) {

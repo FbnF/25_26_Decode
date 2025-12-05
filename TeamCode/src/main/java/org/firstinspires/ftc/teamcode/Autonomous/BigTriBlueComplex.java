@@ -28,7 +28,7 @@ public class BigTriBlueComplex extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1400;
+    private static final double SHOOTER_Vel = 1500;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.02;
@@ -118,11 +118,12 @@ public class BigTriBlueComplex extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
                 .splineToLinearHeading(new Pose2d(14, -24,Math.toRadians(270)),Math.toRadians(270))
-                .lineToY(-50)
+                .lineToY(-52)
                 .lineToY(-45)
 
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
+                /*
                 .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(225))
 
                 // Shooter runs
@@ -163,7 +164,7 @@ public class BigTriBlueComplex extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
                 .strafeTo(new Vector2d(-48, -16))
-
+*/
                 .build();
 
         // ADDED: wrap the action with per-tick logging
