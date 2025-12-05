@@ -28,7 +28,8 @@ public class BigTriRedComplex extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1500;
+    private static final double SHOOTER_Vel = 1490;
+    private static final double SHOOTER_Vel2 = 1460;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.02;
@@ -92,7 +93,7 @@ public class BigTriRedComplex extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.73))
                 .stopAndAdd(new ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_Vel,
+                        SHOOTER_Vel2,
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
@@ -113,11 +114,11 @@ public class BigTriRedComplex extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.73))
                 .stopAndAdd(new ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_Vel,
+                        SHOOTER_Vel2,
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .splineToLinearHeading(new Pose2d(15, 24,Math.toRadians(90)),Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(18, 24,Math.toRadians(90)),Math.toRadians(90))
                 .lineToY(52)
                 .lineToY(45)
 

@@ -1,31 +1,27 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
 // --- Roadrunner Libraries ---
+
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
-
-// --- FTC Libraries ---
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-// -- Defined by us ---
-import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 import org.firstinspires.ftc.teamcode.MainCode.config.TagConfig;
-import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
-
-// --- Data Logging ---
+import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
+import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@TeleOp(name = "TeleOp: Main", group = "TeleOp")
-public class TeleOpMain extends LinearOpMode {
+@TeleOp(name = "TeleOp: Tune", group = "TeleOp")
+public class TeleOpMainTunner extends LinearOpMode {
 
     // --- Hardware ---
     private Servo feedServo;
@@ -67,7 +63,7 @@ public class TeleOpMain extends LinearOpMode {
 
     // --- Intake/servo state ---
     private double intakePower = 0.0;
-    private static double launchVel;
+    private static double launchPowerVel;
     private boolean isIntakeRunning = false;
     private boolean isLaunchRunning = false;
     private boolean isFeedServoDown = false;
@@ -117,7 +113,7 @@ public class TeleOpMain extends LinearOpMode {
             logger = TinyCsvLoggerFlex.create(
                     hardwareMap,
                     "teleop_main",
-                    TinyCsvLoggerFlex.doubleCol("launch_cmd", () -> (autoShooter ? shooterSetpointTPS : launchVel)),
+                    TinyCsvLoggerFlex.doubleCol("launch_cmd", () -> (autoShooter ? shooterSetpointTPS : launchPowerVel)),
                     TinyCsvLoggerFlex.motorEx("launch", launchMotor),
                     TinyCsvLoggerFlex.doubleCol("intake_cmd", () -> intakePower),
                     TinyCsvLoggerFlex.motorEx("intake", intakeMotor),
@@ -194,23 +190,28 @@ public class TeleOpMain extends LinearOpMode {
 
             // --------------------------- MANUAL MODE --------------------------
             if (!autoShooter) {
-                if (gamepad2.a) launchVel = 1920;
-                if (gamepad2.b) launchVel = 1500;
-                if (gamepad2.left_bumper) launchVel = 1460;
-                if (gamepad2.x) launchVel = 0;
-                if(launchVel != 1){
-                    if (gamepad1.dpad_left)  launchVel += 50;
+                /*
+                if (gamepad2.a) launchPowerVel = 0.75;
+                if (gamepad2.b) launchPowerVel = 0.6;
+                if (gamepad2.left_bumper) launchPowerVel = 0.55;
+
+                 */
+                if (gamepad2.x) launchPowerVel = 0;
+                if (gamepad2.left_bumper) launchPowerVel = 1500;
+                if(launchPowerVel != 2800){
+                    if (gamepad2.b)  launchPowerVel += 50;
                 }
-                if (launchVel != 0) {
-                    if (gamepad1.dpad_right) launchVel -= 50;
+                if (launchPowerVel != 0) {
+                    if (gamepad2.a) launchPowerVel -= 50;
                 }
 
+                launchPowerVel = Math.min(2800, launchPowerVel);
 
 
                 // Battery compensation for open-loop power
 
 
-                launchMotor.setVelocity(launchVel);
+                launchMotor.setVelocity(launchPowerVel);
             }
 
 
