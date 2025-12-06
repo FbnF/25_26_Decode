@@ -32,12 +32,12 @@ public class BigTriRedComplex extends LinearOpMode {
     private static final double SHOOTER_Vel2 = 1460;
 
     // Servo positions (use what worked in your tests)
-    private static final double SERVO_LOAD_POS = 0.02;
+    private static final double SERVO_LOAD_POS = 0.00;
     private static final double SERVO_FEED_POS = 0.12;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = {1.5};//2.5
-    private static final double[] FEED_CON_S = {1.0, 3.0};
+    private static final double[] FEED_START_S = {2};//2.5
+    private static final double[] FEED_CON_S = {1.5, 3.5};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
