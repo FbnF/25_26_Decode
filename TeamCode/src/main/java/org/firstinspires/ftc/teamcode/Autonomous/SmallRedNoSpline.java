@@ -128,8 +128,9 @@ public class SmallRedNoSpline extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(180))
-                //  .splineTo(new Vector2d(16, 18), Math.toRadians(90))
-                .lineToY(20)
+             //   .splineTo(new Vector2d(16, 18), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(16, 18), Math.toRadians(90))
+
                 .build();
 
         Actions.runBlocking(all);
