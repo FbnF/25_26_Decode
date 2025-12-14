@@ -6,6 +6,8 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 
 // --- FTC Libraries ---
+//import com.google.blocks.ftcrobotcontroller.runtime.Limelight3AAccess;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,14 +17,20 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 // -- Defined by us ---
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 import org.firstinspires.ftc.teamcode.MainCode.config.TagConfig;
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.LLStatus;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 // --- Data Logging ---
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
+import org.opencv.core.Mat;
 
 @TeleOp(name = "TeleOp: Main", group = "TeleOp")
 public class TeleOpMain extends LinearOpMode {
@@ -64,6 +72,7 @@ public class TeleOpMain extends LinearOpMode {
     final double SPEED_MAX = 1.0;
     final double SPEED_STEP = 0.1;
     boolean drivePrevRB = false, drivePrevLB = false;
+    BNO055IMU imu;
 
     // --- Intake/servo state ---
     private double intakePower = 0.0;
@@ -94,6 +103,12 @@ public class TeleOpMain extends LinearOpMode {
 
         blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+
+        Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
+        limelight.start();
+        limelight.pipelineSwitch(0);
+        // This tells Limelight to start looking!
 
         feedServo.setPosition(0.02);
         isFeedServoDown = false;
@@ -216,9 +231,10 @@ public class TeleOpMain extends LinearOpMode {
 
 
             // --------------------------- AUTO MODE ----------------------------
+            LLResult result = limelight.getLatestResult();
             if (autoShooter) {
                 if (autoSpinArmed) {
-                    Double dInches = getVisionDistanceInches();
+                    Double dInches = getVisionDistanceInches(limelight);
                     if (dInches != null && dInches >= ShooterConfig.MIN_RANGE_IN) {
                         double tps = Calculations.computeTPSFromRangeInches(
                                 ShooterConfig.G, dInches,
@@ -309,7 +325,7 @@ public class TeleOpMain extends LinearOpMode {
             // ------------- Telemetry data -------------------------------------------------
             double tpsMeas = launchMotor.getVelocity();
             double rpmMeas = (tpsMeas * 60.0) / ShooterConfig.TICKS_PER_REV;
-            Double visInches = getVisionDistanceInches();
+            Double visInches = getVisionDistanceInches(limelight);
             int tagId = (r != null && r.hasTag) ? r.id : -1;
 
             telemetry.addLine("---- Shooter ----");
@@ -342,12 +358,34 @@ public class TeleOpMain extends LinearOpMode {
         }
     }
 
-    private Double getVisionDistanceInches() {
-        if (tagService == null) return null;
+    private Double getVisionDistanceInches(Limelight3A limelight) {
+        //Add limelight distances here
+        LLResult result = limelight.getLatestResult();
+
+        double robotYaw = imu.getAngularOrientation().firstAngle;
+        limelight.updateRobotOrientation(robotYaw);
+        if (result != null && result.isValid()) {
+            Pose3D botpose = result.getBotpose_MT2();
+            if (botpose != null) {
+                double x = botpose.getPosition().x;
+                double y = botpose.getPosition().y;
+                double distance = Math.sqrt(Math.pow((-70-x), 2) + Math.pow((56-y), 2));
+                telemetry.addData("MTx", x);
+                telemetry.addData("MTy", y);
+                telemetry.addData("MTDistance", distance);
+                telemetry.update();
+                return distance;
+            }
+            return null;
+        }else {
+            return null;
+        }
+
+    /*    if (tagService == null) return null;
         AprilTagService.Reading r = tagService.getLatest();
         if (r == null || !r.hasTag) return null;
         double d = r.smoothedDistanceIn;
         if (!TagConfig.USE_RANGE && !Double.isNaN(d)) d = Math.abs(d);
-        return Double.isNaN(d) ? null : d;
+        return Double.isNaN(d) ? null : d;*/
     }
 }
