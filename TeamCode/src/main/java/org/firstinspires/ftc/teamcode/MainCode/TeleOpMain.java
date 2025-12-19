@@ -21,16 +21,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
-import org.firstinspires.ftc.teamcode.MainCode.config.TagConfig;
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 // --- Data Logging ---
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
-import org.opencv.core.Mat;
 
 @TeleOp(name = "TeleOp: Main", group = "TeleOp")
 public class TeleOpMain extends LinearOpMode {
@@ -60,7 +56,7 @@ public class TeleOpMain extends LinearOpMode {
 
     // require driver to arm auto-spin before controlling flywheel
     private boolean autoSpinArmed = false;
-    private boolean prevDpadRight = false;
+    private boolean prevBpress = false;
 
     // flash window when Y pressed too soon
     private long yTooSoonFlashUntilNs = 0L;
@@ -88,8 +84,8 @@ public class TeleOpMain extends LinearOpMode {
     private long feedPulseStartNs = 0;
     private static final long FEED_DWELL_NS = 150_000_000L; // 150 ms
 
-    //edge state for GP1 dpad-down (vision toggle)
-    private boolean prevG1DpadDown = false;
+    //edge state for GP2 dpad-Left (vision toggle)
+    private boolean prevG2DpadLeft = false;
     private double CompPower;
 
     @Override
@@ -171,8 +167,8 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("Speed Factor", "%.2f", speedFactor);
 
             // \--- Vision toggle (edge-based, no sleep) ---
-            boolean g1DownEdge = gamepad1.dpad_down && !prevG1DpadDown;
-            if (g1DownEdge) {
+            boolean g2LeftEdge = gamepad2.dpad_down && prevG2DpadLeft;
+            if (g2LeftEdge) {
                 if (visionEnabled) {
                     tagService.stop();
                     visionEnabled = false;
@@ -181,7 +177,7 @@ public class TeleOpMain extends LinearOpMode {
                     visionEnabled = true;
                 }
             }
-            prevG1DpadDown = gamepad1.dpad_down;
+            prevG2DpadLeft = gamepad2.dpad_left;
 
             // # # # Gamepad 2 (Controls) # # #
             // --------------------------- MODE TOGGLES -------------------------
@@ -201,11 +197,11 @@ public class TeleOpMain extends LinearOpMode {
             prevDpadDown = gamepad2.dpad_down;
 
             // Dpad-right → arm auto spin
-            boolean rightEdge = gamepad2.dpad_right && !prevDpadRight;
-            if (rightEdge && autoShooter) {
+            boolean bEdge = gamepad2.b && !prevBpress;
+            if (bEdge && autoShooter) {
                 autoSpinArmed = !autoSpinArmed;
             }
-            prevDpadRight = gamepad2.dpad_right;
+            prevBpress = gamepad2.b;
 
             // --------------------------- MANUAL MODE --------------------------
             if (!autoShooter) {
