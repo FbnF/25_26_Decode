@@ -12,7 +12,7 @@ GAMEPAD 1  (DRIVER)
  B Button                           Low Speed Mode  (0.40)
  X Button                           Normal Speed Mode (0.70)
  Y Button                           Unused
- D-Pad Down                         Toggle Vision (on/off)
+ D-Pad Down                         Unused
  D-Pad (Up, Left, Right)            Unused
  Right Trigger/Bumper               Unused
  Left Trigger/Bumper                Unused
@@ -22,11 +22,11 @@ GAMEPAD 2  (OPERATOR)
 ------------------------------------------------------------
  D-Pad Up                           Switch to AUTO shooter mode
  D-Pad Down                         Switch to MANUAL shooter mode
- D-Pad Right                        Arm / Disarm auto-spin (AUTO mode only)
- D-Pad Left                         Unused
+ D-Pad Right                        Unused
+ D-Pad Left                         Toggle Vision (on/off)
 
  A Button                           Long-range shooter preset (Manual)
- B Button                           Mid-range shooter preset  (Manual)
+ B Button                           Mid-range shooter preset  (Manual) / Arm/Disarm auto-spin (AUTO mode only)
  Left Bumper                        Short-range shooter preset (Manual)
  X Button                           Stop shooter (Manual)
  Y Button                           Feed ring (fires only when shooter ready)
