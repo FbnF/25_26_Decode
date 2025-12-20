@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 // --- FTC Libraries ---
 //import com.google.blocks.ftcrobotcontroller.runtime.Limelight3AAccess;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,6 +18,7 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 // -- Defined by us ---
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
@@ -27,6 +29,8 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 // --- Data Logging ---
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
+
+import java.util.List;
 
 @TeleOp(name = "TeleOp: Main", group = "TeleOp")
 public class TeleOpMain extends LinearOpMode {
@@ -48,6 +52,10 @@ public class TeleOpMain extends LinearOpMode {
     private boolean prevDpadUp = false, prevDpadDown = false;
     private double shooterSetpointTPS = 0.0;
     private static final double NO_SETPOINT = 0.0;
+
+    double x=0;
+    double y=0;
+    double distance= 0;
 
     // --- Config flags ---
     private static final boolean LOG_ENABLED = true;  // turn CSV logging on/off
@@ -100,7 +108,7 @@ public class TeleOpMain extends LinearOpMode {
         blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
 
-        Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        Limelight3A limelight = hardwareMap.get(Limelight3A.class, "Limelight");
         limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
         limelight.start();
         limelight.pipelineSwitch(0);
@@ -339,6 +347,9 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("Goal Tag ID", GOAL_TAG_ID);
             telemetry.addData("Correct Tag", correctTag);
             telemetry.addData("Range (in)", (visInches == null) ? "N/A" : String.format("%.1f", visInches));
+            telemetry.addData("MTx", x);
+            telemetry.addData("MTy", y);
+            telemetry.addData("MTDistance", distance);
             telemetry.addData("LED", pat.name());
 
             telemetry.update();
@@ -357,31 +368,24 @@ public class TeleOpMain extends LinearOpMode {
     private Double getVisionDistanceInches(Limelight3A limelight) {
         //Add limelight distances here
         LLResult result = limelight.getLatestResult();
+            if (result != null && result.isValid() && result.getStaleness() < 100) {
+                List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
 
-        double robotYaw = imu.getAngularOrientation().firstAngle;
-        limelight.updateRobotOrientation(robotYaw);
-        if (result != null && result.isValid()) {
-            Pose3D botpose = result.getBotpose_MT2();
-            if (botpose != null) {
-                double x = botpose.getPosition().x;
-                double y = botpose.getPosition().y;
-                double distance = Math.sqrt(Math.pow((-70-x), 2) + Math.pow((56-y), 2));
-                telemetry.addData("MTx", x);
-                telemetry.addData("MTy", y);
-                telemetry.addData("MTDistance", distance);
-                telemetry.update();
-                return distance;
+                for (LLResultTypes.FiducialResult fiducial : fiducials) {
+                    if (fiducial.getFiducialId() == 20)
+                        continue;
+                    Pose3D targetPose = fiducial.getRobotPoseFieldSpace();
+
+                    telemetry.addData("Pose X", targetPose.getPosition().x);
+                    telemetry.addData("Pose Y", targetPose.getPosition().y);
+                    telemetry.addData("Pose Z", targetPose.getPosition().z);
+                    telemetry.addData("Distance", Math.hypot(targetPose.getPosition().x, targetPose.getPosition().z));
+                    distance = Math.hypot(targetPose.getPosition().x, targetPose.getPosition().y);
+
+                    return distance;
+                }
             }
-            return null;
-        }else {
-            return null;
+            return (double) 0;
         }
 
-    /*    if (tagService == null) return null;
-        AprilTagService.Reading r = tagService.getLatest();
-        if (r == null || !r.hasTag) return null;
-        double d = r.smoothedDistanceIn;
-        if (!TagConfig.USE_RANGE && !Double.isNaN(d)) d = Math.abs(d);
-        return Double.isNaN(d) ? null : d;*/
-    }
 }
