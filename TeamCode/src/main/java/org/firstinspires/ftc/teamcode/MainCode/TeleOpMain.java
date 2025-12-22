@@ -37,34 +37,37 @@ public class TeleOpMain extends LinearOpMode {
     private MecanumDrive drive;
     private DcMotorEx intakeMotor;
     private DcMotorEx launchMotor;
-    private RevBlinkinLedDriver blinkin; // LED
+    private RevBlinkinLedDriver blinkin;
     private VoltageSensor battery;
 
     // --- Vision ---
-    private boolean visionEnabled = true; // allows camera to be toggled on/off
+    private boolean visionEnabled = true;
 
     // Auto shooter (closed-loop velocity) path
-    private boolean autoShooter = false;
+    private boolean autoShooter = true;
     private boolean prevDpadUp = false, prevDpadDown = false;
     private double shooterSetpointTPS = 0.0;
 
+    private double tps;
+
     // Vision debug values (meters + inches)
     double xM_dbg = 0, yM_dbg = 0, zM_dbg = 0;
-    double xIn_dbg = 0, yIn_dbg = 0, distIn_dbg = 0;
+    double xIn_dbg = 0, yIn_dbg = 0, zIn_dbg = 0;
+    double rangeZIn_dbg = 0;
     boolean hasGoalTag_dbg = false;
 
     // --- Config flags ---
-    private static final boolean LOG_ENABLED = true;  // turn CSV logging on/off
-    private TinyCsvLoggerFlex logger; // logging Data
-    private static final int GOAL_TAG_ID = 24;        // 20 = blue goal, 24 = red goal
+    private static final boolean LOG_ENABLED = true;
+    private TinyCsvLoggerFlex logger;
+    private static final int GOAL_TAG_ID = 24; // 20 = blue goal, 24 = red goal
 
     // require driver to arm auto-spin before controlling flywheel
-    private boolean autoSpinArmed = false;
+    private boolean autoSpinArmed = true;
     private boolean prevDpadRight = false;
 
     // flash window when Y pressed too soon
     private long yTooSoonFlashUntilNs = 0L;
-    private static final long FLASH_YELLOW_NS = 500_000_000L; // 500 ms
+    private static final long FLASH_YELLOW_NS = 500_000_000L;
 
     // --- Drive/settings ---
     private double speedFactor = 0.7;
@@ -79,7 +82,7 @@ public class TeleOpMain extends LinearOpMode {
 
     private boolean feedPulseActive = false;
     private long feedPulseStartNs = 0;
-    private static final long FEED_DWELL_NS = 150_000_000L; // 150 ms
+    private static final long FEED_DWELL_NS = 150_000_000L;
 
     //edge state for GP2 dpad-Left (vision toggle)
     private boolean prevG2DpadLeft = false;
@@ -189,7 +192,7 @@ public class TeleOpMain extends LinearOpMode {
             // --------------------------- MODE TOGGLES ---------------------------
             boolean upEdge   = gamepad2.dpad_up && !prevDpadUp;
             boolean downEdge = gamepad2.dpad_down && !prevDpadDown;
-            if (upEdge) {
+          /*  if (upEdge) {
                 autoShooter = true;
                 autoSpinArmed = false;
                 shooterSetpointTPS = 0.0;
@@ -200,7 +203,7 @@ public class TeleOpMain extends LinearOpMode {
                 autoSpinArmed = false;
                 shooterSetpointTPS = 0.0;
                 launchMotor.setPower(0.0);
-            }
+            }*/
             prevDpadUp = gamepad2.dpad_up;
             prevDpadDown = gamepad2.dpad_down;
 
@@ -211,7 +214,7 @@ public class TeleOpMain extends LinearOpMode {
             prevDpadRight = gamepad2.dpad_right;
 
             // --------------------------- MANUAL MODE ----------------------------
-            if (!autoShooter) {
+          /*  if (!autoShooter) {
                 if (gamepad2.a) launchVel = 1920;
                 if (gamepad2.b) launchVel = 1500;
                 if (gamepad2.left_bumper) launchVel = 1460;
@@ -219,22 +222,35 @@ public class TeleOpMain extends LinearOpMode {
 
                 launchVel = Math.max(0.0, launchVel);
                 launchMotor.setVelocity(launchVel);
-            }
+            }*/
 
             // --------------------------- AUTO MODE ------------------------------
             if (autoShooter) {
                 if (autoSpinArmed) {
                     Double dInches = visInches;
                     if (dInches != null && dInches >= ShooterConfig.MIN_RANGE_IN) {
-                        double tps = Calculations.computeTPSFromRangeInches(
-                                ShooterConfig.G, dInches,
-                                ShooterConfig.LAUNCH_DEG,
-                                ShooterConfig.SHOOTER_H_M,
-                                ShooterConfig.TARGET_H_M,
-                                ShooterConfig.WHEEL_RADIUS_M,
-                                ShooterConfig.EFFICIENCY,
-                                ShooterConfig.TICKS_PER_REV
-                        );
+                        if(dInches <= 95){
+                             tps = Calculations.computeTPSFromRangeInches(
+                                    ShooterConfig.G, dInches,
+                                    ShooterConfig.LAUNCH_DEG,
+                                    ShooterConfig.SHOOTER_H_M,
+                                    ShooterConfig.TARGET_H_M,
+                                    ShooterConfig.WHEEL_RADIUS_M,
+                                    ShooterConfig.CloseEFFICIENCY,
+                                    ShooterConfig.TICKS_PER_REV
+                            );
+                        } else {
+                             tps = Calculations.computeTPSFromRangeInches(
+                                    ShooterConfig.G, dInches,
+                                    ShooterConfig.LAUNCH_DEG,
+                                    ShooterConfig.SHOOTER_H_M,
+                                    ShooterConfig.TARGET_H_M,
+                                    ShooterConfig.WHEEL_RADIUS_M,
+                                    ShooterConfig.EFFICIENCY,
+                                    ShooterConfig.TICKS_PER_REV
+                            );
+
+                        }
 
                         if (Double.isFinite(tps) && !Double.isNaN(tps)) {
                             if (tps < ShooterConfig.TPS_MIN_AUTO) {
@@ -320,14 +336,7 @@ public class TeleOpMain extends LinearOpMode {
             }
 
             // --------------------------- TELEMETRY ------------------------------
-            telemetry.addLine("---- Vision Distance Debug ----");
-
-            // telemetry.addData("Mode", autoShooter ? "AUTO" : "MANUAL");
-            // telemetry.addData("Armed", autoSpinArmed);
-            // telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
-            // telemetry.addData("Manual TPS", "%.0f", launchVel);
-            // telemetry.addData("Actual TPS", "%.0f", launchMotor.getVelocity());
-            // telemetry.addData("Ready?", spunUpOk);
+            telemetry.addLine("---- Vision Distance Debug (using Z) ----");
 
             telemetry.addData("Vision Enabled", visionEnabled);
             telemetry.addData("Goal Tag Found", hasGoalTag_dbg);
@@ -340,8 +349,9 @@ public class TeleOpMain extends LinearOpMode {
 
             telemetry.addData("xIn", "%.2f in", xIn_dbg);
             telemetry.addData("yIn", "%.2f in", yIn_dbg);
+            telemetry.addData("zIn", "%.2f in", zIn_dbg);
 
-            telemetry.addData("hypot(xM,yM)*39.37", "%.2f in", distIn_dbg);
+            telemetry.addData("rangeZIn = abs(zM)*39.37", "%.2f in", rangeZIn_dbg);
 
             telemetry.update();
         }
@@ -355,16 +365,20 @@ public class TeleOpMain extends LinearOpMode {
         }
     }
 
+    /**
+     * Returns distance in inches using Limelight Z (tag->camera range), with abs().
+     */
     private Double getVisionDistanceInches(LLResult result) {
         hasGoalTag_dbg = false;
 
         xM_dbg = yM_dbg = zM_dbg = 0;
-        xIn_dbg = yIn_dbg = distIn_dbg = 0;
+        xIn_dbg = yIn_dbg = zIn_dbg = 0;
+        rangeZIn_dbg = 0;
 
         if (result == null || !result.isValid() || result.getStaleness() >= 100) return null;
 
         List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-        if (fiducials == null) return null;
+        if (fiducials == null ) return null;
 
         for (LLResultTypes.FiducialResult fiducial : fiducials) {
             if (fiducial == null) continue;
@@ -381,10 +395,12 @@ public class TeleOpMain extends LinearOpMode {
 
             xIn_dbg = xM_dbg * M_TO_IN;
             yIn_dbg = yM_dbg * M_TO_IN;
+            zIn_dbg = zM_dbg * M_TO_IN;
 
-            distIn_dbg = Math.hypot(xM_dbg, yM_dbg) * M_TO_IN;
+            // distance from tag to camera (your definition)
+            rangeZIn_dbg = Math.abs(zM_dbg) * M_TO_IN;
 
-            return distIn_dbg;
+            return rangeZIn_dbg;
         }
 
         return null;

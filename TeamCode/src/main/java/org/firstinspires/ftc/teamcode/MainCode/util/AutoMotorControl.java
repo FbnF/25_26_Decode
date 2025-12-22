@@ -14,19 +14,10 @@ import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 
 import java.util.List;
 
-/**
- * Reusable Road Runner Actions:
- *  - setMotorPower(...) : one-shot, non-blocking motor power setter
- *  - setMotorVel(...)   : one-shot, non-blocking velocity setter
- *  - timed/scheduled servo and shooter helpers
- *
- * IMPORTANT (your RR flavor): Action.run() returns TRUE to keep running, FALSE when finished.
- */
 public final class AutoMotorControl {
 
-    private AutoMotorControl() {} // no instances
+    private AutoMotorControl() {}
 
-    /** One-shot action that sets a motor's power and immediately completes (non-blocking). */
     public static Action setMotorPower(DcMotor m, double power) {
         return (TelemetryPacket pkt) -> {
             if (m != null) {
@@ -37,7 +28,6 @@ public final class AutoMotorControl {
         };
     }
 
-    /** One-shot action that sets a motor's velocity and immediately completes (non-blocking). */
     public static Action setMotorVel(DcMotorEx m, double tps) {
         return (TelemetryPacket pkt) -> {
             if (m != null) {
@@ -288,6 +278,7 @@ public final class AutoMotorControl {
         }
     }
 
+    // NOTE: Your Limelight-based auto shooter action (kept same, only distance changed)
     public static class ShooterAndFeederAction implements Action {
         private static final double M_TO_IN = 39.37007874015748;
 
@@ -317,7 +308,6 @@ public final class AutoMotorControl {
 
         private static final long MAX_ACTION_NS = 4_500_000_000L;
         private static final long HOLD_LAST_GOOD_NS = 250_000_000L;
-
         private static final long AT_SPEED_STABLE_NS = 150_000_000L;
 
         private double lastGoodTPS = 0.0;
@@ -363,10 +353,6 @@ public final class AutoMotorControl {
                 initialized = true;
             }
 
-            double tS = (now - t0Ns) / 1e9;
-            packet.put("autoShoot_t_s", String.format("%.2f", tS));
-            packet.put("autoShoot_shots", shotsFired);
-
             if ((now - t0Ns) > MAX_ACTION_NS) {
                 finish();
                 return false;
@@ -374,7 +360,7 @@ public final class AutoMotorControl {
 
             shooterSetpointTPS = 0.0;
 
-            Double rangeIn = getVisionDistanceInches();
+            Double rangeIn = getVisionDistanceInches(); // now uses abs(z)
             if (rangeIn != null && rangeIn >= ShooterConfig.MIN_RANGE_IN) {
 
                 double tps = Calculations.computeTPSFromRangeInches(
@@ -406,11 +392,8 @@ public final class AutoMotorControl {
             }
 
             if (shooter != null) {
-                if (shooterSetpointTPS > 0.0) {
-                    shooter.setVelocity(shooterSetpointTPS);
-                } else {
-                    shooter.setPower(0.0);
-                }
+                if (shooterSetpointTPS > 0.0) shooter.setVelocity(shooterSetpointTPS);
+                else shooter.setPower(0.0);
             }
 
             boolean atSpeed = false;
@@ -426,11 +409,6 @@ public final class AutoMotorControl {
             }
 
             boolean atSpeedStable = atSpeed && atSpeedSinceNs != 0L && (now - atSpeedSinceNs) >= AT_SPEED_STABLE_NS;
-
-            packet.put("autoShoot_range_in", (rangeIn == null) ? "N/A" : String.format("%.1f", rangeIn));
-            packet.put("autoShoot_setpoint_tps", String.format("%.0f", shooterSetpointTPS));
-            packet.put("autoShoot_atSpeed", atSpeed);
-            packet.put("autoShoot_atSpeedStable", atSpeedStable);
 
             if (feeding) {
                 long holdNs = (long) (feedHoldS * 1e9);
@@ -478,6 +456,9 @@ public final class AutoMotorControl {
             atSpeedSinceNs = 0L;
         }
 
+        /**
+         * distance = abs(z) in inches.
+         */
         private Double getVisionDistanceInches() {
             if (limelight == null) return null;
 
@@ -494,10 +475,8 @@ public final class AutoMotorControl {
                 Pose3D pose = f.getRobotPoseTargetSpace();
                 if (pose == null) continue;
 
-                double xM = pose.getPosition().x;
-                double yM = pose.getPosition().y;
-
-                return Math.hypot(xM, yM) * M_TO_IN;
+                double zM = pose.getPosition().z;
+                return Math.abs(zM) * M_TO_IN;
             }
 
             return null;

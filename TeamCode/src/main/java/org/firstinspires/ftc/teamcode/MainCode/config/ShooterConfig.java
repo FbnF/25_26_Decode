@@ -13,7 +13,8 @@ public final class ShooterConfig {
 
     // Hardware
     public static double WHEEL_RADIUS_M = 0.048; // shooter wheel radius (m)
-    public static double EFFICIENCY = 0.30;      // 0–1, tune on robot (slip/losses)
+    public static double EFFICIENCY = 0.3;      // 0–1, tune on robot (slip/losses)
+    public static double CloseEFFICIENCY = 0.3152;
     public static double TICKS_PER_REV = 28.0;   // encoder ticks per revolution
 
     // Controls
