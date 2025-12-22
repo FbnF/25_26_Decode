@@ -3,8 +3,11 @@ package org.firstinspires.ftc.teamcode.MainCode.util;
 /**
  * Shooter/ballistics and FTC-friendly unit helpers.
  *
- * Angles are in RADIANS unless otherwise noted.
- * Distances are in METERS unless otherwise noted.
+ * Unless otherwise noted:
+ * - Distances are in METERS
+ * - Angles are in RADIANS
+ *
+ * Note: computeTPSFromRangeInches() takes launch angle in DEGREES.
  */
 public final class Calculations {
 
@@ -21,7 +24,8 @@ public final class Calculations {
     /**
      * Required exit (linear) velocity to hit a target at horizontal distance x, given a fixed launch angle.
      *
-     * v^2 = (g x^2) / (2 cos^2θ * (x tanθ - Δh)x), where Δh = shooterH - targetH
+     * Let Δh = targetH - shooterH
+     * v^2 = (g x^2) / (2 cos^2θ * (x tanθ - Δh))
      *
      * @param g          gravity (m/s^2), e.g. 9.81
      * @param x          horizontal distance to target (m) (>= 0)

@@ -22,11 +22,11 @@ GAMEPAD 2  (OPERATOR)
 ------------------------------------------------------------
  D-Pad Up                           Switch to AUTO shooter mode
  D-Pad Down                         Switch to MANUAL shooter mode
- D-Pad Right                        Unused
+ D-Pad Right                        Arm/Disarm auto-spin (AUTO mode only)
  D-Pad Left                         Toggle Vision (on/off)
 
  A Button                           Long-range shooter preset (Manual)
- B Button                           Mid-range shooter preset  (Manual) / Arm/Disarm auto-spin (AUTO mode only)
+ B Button                           Mid-range shooter preset  (Manual)
  Left Bumper                        Short-range shooter preset (Manual)
  X Button                           Stop shooter (Manual)
  Y Button                           Feed ring (fires only when shooter ready)
@@ -41,10 +41,10 @@ AUTOMATIC LOGIC
  - Shooter only spins in AUTO mode if armed (D-Pad Right).
  - Servo feed (Y) works only when flywheel is at target velocity.
  - LED Status:
-       Off (BLACK)  -> Vision disabled
-       Red          -> No or incorrect tag detected
-       Yellow       -> Correct tag detected, not at speed / not armed
-       Green        -> Correct tag detected, flywheel ready
+       Off (BLACK)  -> Vision disabled OR not in AUTO mode
+       Red          -> AUTO mode: no or incorrect tag detected
+       Yellow       -> AUTO mode: correct tag detected, not at speed / not armed
+       Green        -> AUTO mode: correct tag detected, flywheel ready
        Flash Yellow -> Driver pressed Y too early
  - Alliance goal tag hardcoded via GOAL_TAG_ID (20 = blue, 24 = red)
  - Logging toggle via LOG_ENABLED boolean

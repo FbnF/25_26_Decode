@@ -6,7 +6,6 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 
 // --- FTC Libraries ---
-//import com.google.blocks.ftcrobotcontroller.runtime.Limelight3AAccess;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -18,12 +17,10 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 // -- Defined by us ---
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
-import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
@@ -44,27 +41,26 @@ public class TeleOpMain extends LinearOpMode {
     private VoltageSensor battery;
 
     // --- Vision ---
-    private AprilTagService tagService;
-    private boolean visionEnabled = false; // allows camera to be toggled on/off
+    private boolean visionEnabled = true; // allows camera to be toggled on/off
 
     // Auto shooter (closed-loop velocity) path
     private boolean autoShooter = false;
     private boolean prevDpadUp = false, prevDpadDown = false;
     private double shooterSetpointTPS = 0.0;
-    private static final double NO_SETPOINT = 0.0;
 
-    double x=0;
-    double y=0;
-    double distance= 0;
+    // Vision debug values (meters + inches)
+    double xM_dbg = 0, yM_dbg = 0, zM_dbg = 0;
+    double xIn_dbg = 0, yIn_dbg = 0, distIn_dbg = 0;
+    boolean hasGoalTag_dbg = false;
 
     // --- Config flags ---
     private static final boolean LOG_ENABLED = true;  // turn CSV logging on/off
     private TinyCsvLoggerFlex logger; // logging Data
-    private static final int GOAL_TAG_ID = 20;        // 20 = blue goal, 24 = red goal
+    private static final int GOAL_TAG_ID = 24;        // 20 = blue goal, 24 = red goal
 
     // require driver to arm auto-spin before controlling flywheel
     private boolean autoSpinArmed = false;
-    private boolean prevBpress = false;
+    private boolean prevDpadRight = false;
 
     // flash window when Y pressed too soon
     private long yTooSoonFlashUntilNs = 0L;
@@ -72,18 +68,11 @@ public class TeleOpMain extends LinearOpMode {
 
     // --- Drive/settings ---
     private double speedFactor = 0.7;
-    final double SPEED_MIN = 0.2;
-    final double SPEED_MAX = 1.0;
-    final double SPEED_STEP = 0.1;
-    boolean drivePrevRB = false, drivePrevLB = false;
     BNO055IMU imu;
 
     // --- Intake/servo state ---
     private double intakePower = 0.0;
     private static double launchVel;
-    private boolean isIntakeRunning = false;
-    private boolean isLaunchRunning = false;
-    private boolean isFeedServoDown = false;
 
     // --- Button edge detection ---
     private boolean prevRB = false;
@@ -94,7 +83,8 @@ public class TeleOpMain extends LinearOpMode {
 
     //edge state for GP2 dpad-Left (vision toggle)
     private boolean prevG2DpadLeft = false;
-    private double CompPower;
+
+    private static final double M_TO_IN = 39.37007874015748;
 
     @Override
     public void runOpMode() {
@@ -109,27 +99,20 @@ public class TeleOpMain extends LinearOpMode {
         blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
 
         Limelight3A limelight = hardwareMap.get(Limelight3A.class, "Limelight");
-        limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
+        limelight.setPollRateHz(100);
         limelight.start();
         limelight.pipelineSwitch(0);
-        // This tells Limelight to start looking!
 
         feedServo.setPosition(0.02);
-        isFeedServoDown = false;
 
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        // intake runs open-loop (no encoder feedback)
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        // Drive (verify your constructor signature)
+        // Drive
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
-
-        // Vision
-        tagService = new AprilTagService();
-        //tagService.start(hardwareMap);
 
         // LOG: create CSV logger
         if (LOG_ENABLED) {
@@ -153,92 +136,95 @@ public class TeleOpMain extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            // # # # Gamepad 1 (Driver) # # #
-
             // -------------------------------- Base Drive -----------------------------------------
-            if (gamepad1.a) speedFactor = 1.0;
+            if (gamepad1.a) speedFactor = 0.95;
             if (gamepad1.b) speedFactor = 0.4;
             if (gamepad1.x) speedFactor = 0.7;
 
-            double axial   = -gamepad1.right_stick_y * speedFactor; // up = forward (+x)
-            double lateral = -gamepad1.left_stick_x  * speedFactor; // right = strafe right (−y)
-            double heading = -gamepad1.right_stick_x * speedFactor; // right = turn right (−CCW = CW)
+            double axial   = -gamepad1.right_stick_y * speedFactor;
+            double lateral = -gamepad1.left_stick_x  * speedFactor;
+            double heading = -gamepad1.right_stick_x * speedFactor;
 
-            // Keep a single call
             drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), heading));
-
-            // Update odometry and read pose
             drive.updatePoseEstimate();
 
-            Pose2d pose = drive.localizer.getPose();
-
-            telemetry.addData("Speed Factor", "%.2f", speedFactor);
-
-            // \--- Vision toggle (edge-based, no sleep) ---
-            boolean g2LeftEdge = gamepad2.dpad_down && prevG2DpadLeft;
+            // --------------------------- Vision toggle ---------------------------
+            boolean g2LeftEdge = gamepad2.dpad_left && !prevG2DpadLeft;
             if (g2LeftEdge) {
-                if (visionEnabled) {
-                    tagService.stop();
-                    visionEnabled = false;
-                } else {
-                    tagService.start(hardwareMap);
-                    visionEnabled = true;
-                }
+                visionEnabled = !visionEnabled;
             }
             prevG2DpadLeft = gamepad2.dpad_left;
 
-            // # # # Gamepad 2 (Controls) # # #
-            // --------------------------- MODE TOGGLES -------------------------
+            // --------------------------- Vision Read ----------------------------
+            LLResult ll = null;
+            if (visionEnabled) {
+                LLResult tmp = limelight.getLatestResult();
+                if (tmp != null && tmp.isValid() && tmp.getStaleness() < 100) {
+                    ll = tmp;
+                }
+            }
+
+            Double visInches = getVisionDistanceInches(ll);
+
+            boolean correctTag = false;
+            int tagId = -1;
+            if (ll != null) {
+                List<LLResultTypes.FiducialResult> fiducials = ll.getFiducialResults();
+                if (fiducials != null && !fiducials.isEmpty()) {
+                    int firstId = -1;
+                    for (LLResultTypes.FiducialResult f : fiducials) {
+                        if (f == null) continue;
+                        if (firstId == -1) firstId = f.getFiducialId();
+
+                        if (f.getFiducialId() == GOAL_TAG_ID) {
+                            correctTag = true;
+                            tagId = GOAL_TAG_ID;
+                            break;
+                        }
+                    }
+                    if (!correctTag) tagId = firstId;
+                }
+            }
+
+            // --------------------------- MODE TOGGLES ---------------------------
             boolean upEdge   = gamepad2.dpad_up && !prevDpadUp;
             boolean downEdge = gamepad2.dpad_down && !prevDpadDown;
             if (upEdge) {
                 autoShooter = true;
                 autoSpinArmed = false;
+                shooterSetpointTPS = 0.0;
                 launchMotor.setPower(0.0);
             }
             if (downEdge) {
                 autoShooter = false;
                 autoSpinArmed = false;
+                shooterSetpointTPS = 0.0;
                 launchMotor.setPower(0.0);
             }
             prevDpadUp = gamepad2.dpad_up;
             prevDpadDown = gamepad2.dpad_down;
 
-            // Dpad-right → arm auto spin
-            boolean bEdge = gamepad2.b && !prevBpress;
-            if (bEdge && autoShooter) {
+            boolean rightEdge = gamepad2.dpad_right && !prevDpadRight;
+            if (rightEdge && autoShooter) {
                 autoSpinArmed = !autoSpinArmed;
             }
-            prevBpress = gamepad2.b;
+            prevDpadRight = gamepad2.dpad_right;
 
-            // --------------------------- MANUAL MODE --------------------------
+            // --------------------------- MANUAL MODE ----------------------------
             if (!autoShooter) {
                 if (gamepad2.a) launchVel = 1920;
                 if (gamepad2.b) launchVel = 1500;
                 if (gamepad2.left_bumper) launchVel = 1460;
                 if (gamepad2.x) launchVel = 0;
-                if(launchVel != 1){
-                    if (gamepad1.dpad_left)  launchVel += 50;
-                }
-                if (launchVel != 0) {
-                    if (gamepad1.dpad_right) launchVel -= 50;
-                }
 
-
-
-                // Battery compensation for open-loop power
-
-
+                launchVel = Math.max(0.0, launchVel);
                 launchMotor.setVelocity(launchVel);
             }
 
-
-
-            // --------------------------- AUTO MODE ----------------------------
-            LLResult result = limelight.getLatestResult();
+            // --------------------------- AUTO MODE ------------------------------
             if (autoShooter) {
                 if (autoSpinArmed) {
-                    Double dInches = getVisionDistanceInches(limelight);
+                    Double dInches = visInches;
                     if (dInches != null && dInches >= ShooterConfig.MIN_RANGE_IN) {
                         double tps = Calculations.computeTPSFromRangeInches(
                                 ShooterConfig.G, dInches,
@@ -249,13 +235,17 @@ public class TeleOpMain extends LinearOpMode {
                                 ShooterConfig.EFFICIENCY,
                                 ShooterConfig.TICKS_PER_REV
                         );
-                        if (!Double.isNaN(tps) && Double.isFinite(tps)) {
-                            if (ShooterConfig.TEST_TPS > 0){
-                                tps = ShooterConfig.TEST_TPS;
+
+                        if (Double.isFinite(tps) && !Double.isNaN(tps)) {
+                            if (tps < ShooterConfig.TPS_MIN_AUTO) {
+                                shooterSetpointTPS = 0.0;
+                                launchMotor.setPower(0.0);
+                            } else {
+                                tps = Math.min(tps, ShooterConfig.TPS_MAX_AUTO);
+                                tps = Math.min(tps, ShooterConfig.TPS_MAX_MECH);
+                                shooterSetpointTPS = tps;
+                                launchMotor.setVelocity(tps);
                             }
-                            tps = Math.min(tps, ShooterConfig.TPS_MAX);
-                            shooterSetpointTPS = tps;      // set after overrides/clamp
-                            launchMotor.setVelocity(tps);  // single call
                         } else {
                             shooterSetpointTPS = 0.0;
                             launchMotor.setPower(0.0);
@@ -270,17 +260,18 @@ public class TeleOpMain extends LinearOpMode {
                 }
             }
 
-            // --------------------------- FEED LOGIC ---------------------------
+            // --------------------------- FEED LOGIC -----------------------------
             boolean spunUpOk = false;
             if (autoShooter && shooterSetpointTPS > 0.0) {
                 double vel = launchMotor.getVelocity();
                 spunUpOk = Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
             } else if (!autoShooter) {
-                spunUpOk = (launchMotor.getPower() > 0.0);
+                spunUpOk = (launchVel > 0.0) && (Math.abs(launchMotor.getVelocity() - launchVel) <= ShooterConfig.TPS_TOL);
             }
-            if (gamepad2.y){
+
+            if (gamepad2.y) {
                 if (!feedPulseActive && spunUpOk) {
-                    feedServo.setPosition(0.12);//0.16
+                    feedServo.setPosition(0.12);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
                 } else if (!spunUpOk) {
@@ -293,7 +284,7 @@ public class TeleOpMain extends LinearOpMode {
                 feedPulseActive = false;
             }
 
-            // --------------------------- INTAKE -------------------------------
+            // --------------------------- INTAKE ---------------------------------
             boolean rbEdge = gamepad2.right_bumper && !prevRB;
             if (rbEdge) intakePower = -0.5;
             prevRB = gamepad2.right_bumper;
@@ -301,56 +292,56 @@ public class TeleOpMain extends LinearOpMode {
             if (gamepad2.left_trigger > 0) intakePower = 0.0;
             intakeMotor.setPower(intakePower);
 
-            // --------------------------- LED STATES ---------------------------
+            // --------------------------- LED STATES -----------------------------
             RevBlinkinLedDriver.BlinkinPattern pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
-            AprilTagService.Reading r = tagService.getLatest();
-            boolean hasTag = (r != null && r.hasTag);
-            boolean correctTag = hasTag && (r.id == GOAL_TAG_ID);
 
             if (!visionEnabled) {
                 pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
-            } else if (!correctTag) {
-                pat = RevBlinkinLedDriver.BlinkinPattern.RED;
+            } else if (autoShooter) {
+                if (!correctTag) {
+                    pat = RevBlinkinLedDriver.BlinkinPattern.RED;
+                } else {
+                    boolean atSpeed = spunUpOk && autoSpinArmed;
+                    pat = atSpeed ? RevBlinkinLedDriver.BlinkinPattern.GREEN
+                            : RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+                }
             } else {
-                boolean atSpeed = spunUpOk && autoSpinArmed && autoShooter;
-                pat = atSpeed ? RevBlinkinLedDriver.BlinkinPattern.GREEN
-                        : RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+                pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
             }
+
             if (System.nanoTime() < yTooSoonFlashUntilNs) {
                 pat = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
             }
             blinkin.setPattern(pat);
 
-            // --------------------------- LOGGING ------------------------------
+            // --------------------------- LOGGING --------------------------------
             if (LOG_ENABLED && logger != null) {
                 logger.record("run");
             }
 
-            // ------------- Telemetry data -------------------------------------------------
-            double tpsMeas = launchMotor.getVelocity();
-            double rpmMeas = (tpsMeas * 60.0) / ShooterConfig.TICKS_PER_REV;
-            Double visInches = getVisionDistanceInches(limelight);
-            int tagId = (r != null && r.hasTag) ? r.id : -1;
+            // --------------------------- TELEMETRY ------------------------------
+            telemetry.addLine("---- Vision Distance Debug ----");
 
-            telemetry.addLine("---- Shooter ----");
-            telemetry.addData("Mode", autoShooter ? "AUTO" : "MANUAL");
-            telemetry.addData("Armed", autoSpinArmed);
-            telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
-            telemetry.addData("Actual TPS", "%.0f", tpsMeas);
-            telemetry.addData("Actual RPM", "%.0f", rpmMeas);
-            if (!autoShooter) telemetry.addData("Manual Power", "%.2f", CompPower);
-            telemetry.addData("Ready?", spunUpOk);
+            // telemetry.addData("Mode", autoShooter ? "AUTO" : "MANUAL");
+            // telemetry.addData("Armed", autoSpinArmed);
+            // telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
+            // telemetry.addData("Manual TPS", "%.0f", launchVel);
+            // telemetry.addData("Actual TPS", "%.0f", launchMotor.getVelocity());
+            // telemetry.addData("Ready?", spunUpOk);
 
-            telemetry.addLine("---- Vision ----");
             telemetry.addData("Vision Enabled", visionEnabled);
-            telemetry.addData("Tag ID", tagId);
-            telemetry.addData("Goal Tag ID", GOAL_TAG_ID);
-            telemetry.addData("Correct Tag", correctTag);
-            telemetry.addData("Range (in)", (visInches == null) ? "N/A" : String.format("%.1f", visInches));
-            telemetry.addData("MTx", x);
-            telemetry.addData("MTy", y);
-            telemetry.addData("MTDistance", distance);
-            telemetry.addData("LED", pat.name());
+            telemetry.addData("Goal Tag Found", hasGoalTag_dbg);
+            telemetry.addData("Seen Tag ID", tagId);
+            telemetry.addData("GOAL_TAG_ID", GOAL_TAG_ID);
+
+            telemetry.addData("xM", "%.4f m", xM_dbg);
+            telemetry.addData("yM", "%.4f m", yM_dbg);
+            telemetry.addData("zM", "%.4f m", zM_dbg);
+
+            telemetry.addData("xIn", "%.2f in", xIn_dbg);
+            telemetry.addData("yIn", "%.2f in", yIn_dbg);
+
+            telemetry.addData("hypot(xM,yM)*39.37", "%.2f in", distIn_dbg);
 
             telemetry.update();
         }
@@ -360,32 +351,42 @@ public class TeleOpMain extends LinearOpMode {
             launchMotor.setPower(0.0);
             intakeMotor.setPower(0.0);
         } finally {
-            tagService.stop();
             if (LOG_ENABLED && logger != null) logger.close();
         }
     }
 
-    private Double getVisionDistanceInches(Limelight3A limelight) {
-        //Add limelight distances here
-        LLResult result = limelight.getLatestResult();
-            if (result != null && result.isValid() && result.getStaleness() < 100) {
-                List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+    private Double getVisionDistanceInches(LLResult result) {
+        hasGoalTag_dbg = false;
 
-                for (LLResultTypes.FiducialResult fiducial : fiducials) {
-                    if (fiducial.getFiducialId() == 20)
-                        continue;
-                    Pose3D targetPose = fiducial.getRobotPoseFieldSpace();
+        xM_dbg = yM_dbg = zM_dbg = 0;
+        xIn_dbg = yIn_dbg = distIn_dbg = 0;
 
-                    telemetry.addData("Pose X", targetPose.getPosition().x);
-                    telemetry.addData("Pose Y", targetPose.getPosition().y);
-                    telemetry.addData("Pose Z", targetPose.getPosition().z);
-                    telemetry.addData("Distance", Math.hypot(targetPose.getPosition().x, targetPose.getPosition().z));
-                    distance = Math.hypot(targetPose.getPosition().x, targetPose.getPosition().y);
+        if (result == null || !result.isValid() || result.getStaleness() >= 100) return null;
 
-                    return distance;
-                }
-            }
-            return (double) 0;
+        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+        if (fiducials == null) return null;
+
+        for (LLResultTypes.FiducialResult fiducial : fiducials) {
+            if (fiducial == null) continue;
+            if (fiducial.getFiducialId() != GOAL_TAG_ID) continue;
+
+            Pose3D targetPose = fiducial.getRobotPoseTargetSpace();
+            if (targetPose == null) continue;
+
+            hasGoalTag_dbg = true;
+
+            xM_dbg = targetPose.getPosition().x;
+            yM_dbg = targetPose.getPosition().y;
+            zM_dbg = targetPose.getPosition().z;
+
+            xIn_dbg = xM_dbg * M_TO_IN;
+            yIn_dbg = yM_dbg * M_TO_IN;
+
+            distIn_dbg = Math.hypot(xM_dbg, yM_dbg) * M_TO_IN;
+
+            return distIn_dbg;
         }
 
+        return null;
+    }
 }

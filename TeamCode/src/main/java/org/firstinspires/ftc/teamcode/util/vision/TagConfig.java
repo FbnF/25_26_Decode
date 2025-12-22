@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.MainCode.config;
+package org.firstinspires.ftc.teamcode.util.vision;
 
 import com.acmerobotics.dashboard.config.Config;
 

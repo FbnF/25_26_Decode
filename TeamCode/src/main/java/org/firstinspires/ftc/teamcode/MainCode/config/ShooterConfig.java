@@ -1,10 +1,10 @@
 package org.firstinspires.ftc.teamcode.MainCode.config;
 
 import com.acmerobotics.dashboard.config.Config;
+
 @Config
 public final class ShooterConfig {
     private ShooterConfig() {} // static-only
-
 
     public static double G = 9.81;             // m/s^2
     public static double LAUNCH_DEG = 46.0;    // deg above horizontal
@@ -18,8 +18,9 @@ public final class ShooterConfig {
 
     // Controls
     public static double MIN_RANGE_IN = 10.0;    // ignore ranges under this (inches)
+    public static double TPS_MIN_AUTO = 800.0;   // below this, AUTO stays off
     public static double TPS_TOL = 50.0;
 
-    public static double TPS_MAX = 2500.0; // placeholder, will measure
-    public static double TEST_TPS = 0.0;   // 0 disables; >0 forces that command
+    public static double TPS_MAX_MECH = 2800.0;  // absolute safety limit
+    public static double TPS_MAX_AUTO = 2400.0;  // clamp used by AUTO
 }
