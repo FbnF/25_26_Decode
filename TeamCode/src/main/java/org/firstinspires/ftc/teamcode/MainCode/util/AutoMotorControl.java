@@ -278,7 +278,7 @@ public final class AutoMotorControl {
         }
     }
 
-    // NOTE: Your Limelight-based auto shooter action (kept same, only distance changed)
+    // Limelight-based auto shooter action (distance->TPS table)
     public static class ShooterAndFeederAction implements Action {
         private static final double M_TO_IN = 39.37007874015748;
 
@@ -360,28 +360,18 @@ public final class AutoMotorControl {
 
             shooterSetpointTPS = 0.0;
 
-            Double rangeIn = getVisionDistanceInches(); // now uses abs(z)
+            Double rangeIn = getVisionDistanceInches(); // sqrt(x^2+z^2) using cameraPoseTargetSpace
             if (rangeIn != null && rangeIn >= ShooterConfig.MIN_RANGE_IN) {
 
-                double tps = Calculations.computeTPSFromRangeInches(
-                        ShooterConfig.G,
-                        rangeIn,
-                        ShooterConfig.LAUNCH_DEG,
-                        ShooterConfig.SHOOTER_H_M,
-                        ShooterConfig.TARGET_H_M,
-                        ShooterConfig.WHEEL_RADIUS_M,
-                        ShooterConfig.EFFICIENCY,
-                        ShooterConfig.TICKS_PER_REV
-                );
+                double desiredTps = ShooterConfig.lookupTpsFromDistanceIn(rangeIn);
 
-                if (Double.isFinite(tps) && !Double.isNaN(tps)) {
-                    if (tps >= ShooterConfig.TPS_MIN_AUTO) {
-                        tps = Math.min(tps, ShooterConfig.TPS_MAX_AUTO);
-                        tps = Math.min(tps, ShooterConfig.TPS_MAX_MECH);
-                        shooterSetpointTPS = tps;
-                        lastGoodTPS = tps;
-                        lastGoodNs = now;
-                    }
+                if (desiredTps >= ShooterConfig.TPS_MIN_AUTO) {
+                    desiredTps = Math.min(desiredTps, ShooterConfig.TPS_MAX_AUTO);
+                    desiredTps = Math.min(desiredTps, ShooterConfig.TPS_MAX_MECH);
+
+                    shooterSetpointTPS = desiredTps;
+                    lastGoodTPS = desiredTps;
+                    lastGoodNs = now;
                 }
             }
 
@@ -457,7 +447,7 @@ public final class AutoMotorControl {
         }
 
         /**
-         * distance = abs(z) in inches.
+         * distance = sqrt(x^2 + z^2) in inches, using cameraPoseTargetSpace
          */
         private Double getVisionDistanceInches() {
             if (limelight == null) return null;
@@ -472,11 +462,14 @@ public final class AutoMotorControl {
                 if (f == null) continue;
                 if (f.getFiducialId() != goalTagId) continue;
 
-                Pose3D pose = f.getRobotPoseTargetSpace();
+                Pose3D pose = f.getCameraPoseTargetSpace();
                 if (pose == null) continue;
 
+                double xM = pose.getPosition().x;
                 double zM = pose.getPosition().z;
-                return Math.abs(zM) * M_TO_IN;
+
+                double rangeM = Math.sqrt((xM * xM) + (zM * zM));
+                return rangeM * M_TO_IN;
             }
 
             return null;

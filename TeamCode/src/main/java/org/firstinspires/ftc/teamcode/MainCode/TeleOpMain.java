@@ -8,23 +8,23 @@ import com.acmerobotics.roadrunner.Vector2d;
 // --- FTC Libraries ---
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+
+// -- Limelight ---
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 // -- Defined by us ---
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-
-// --- Data Logging ---
+import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
 
 import java.util.List;
@@ -43,22 +43,28 @@ public class TeleOpMain extends LinearOpMode {
     // --- Vision ---
     private boolean visionEnabled = true;
 
-    // Auto shooter (closed-loop velocity) path
+    // Auto shooter (closed-loop velocity)
     private boolean autoShooter = true;
-    private boolean prevDpadUp = false, prevDpadDown = false;
     private double shooterSetpointTPS = 0.0;
 
-    private double tps;
-
-    // Vision debug values (meters + inches)
+    // Debug: distance + pose
     double xM_dbg = 0, yM_dbg = 0, zM_dbg = 0;
     double xIn_dbg = 0, yIn_dbg = 0, zIn_dbg = 0;
-    double rangeZIn_dbg = 0;
+    double rangeIn_dbg = 0;
     boolean hasGoalTag_dbg = false;
 
-    // --- Config flags ---
+    // Additional debug: base TPS values
+    private double distIn_raw_dbg = 0.0;
+    private double distIn_filt_dbg = 0.0;
+    private double physicsTps_dbg = 0.0;
+    private double tableTps_dbg = 0.0;
+    private double commandedBase_dbg = 0.0; // base TPS chosen BEFORE scale/offset (if any)
+    private double finalTps_dbg = 0.0;       // actual TPS commanded to motor
+
+    // --- Logging ---
     private static final boolean LOG_ENABLED = true;
     private TinyCsvLoggerFlex logger;
+
     private static final int GOAL_TAG_ID = 24; // 20 = blue goal, 24 = red goal
 
     // require driver to arm auto-spin before controlling flywheel
@@ -71,11 +77,11 @@ public class TeleOpMain extends LinearOpMode {
 
     // --- Drive/settings ---
     private double speedFactor = 0.7;
+    @SuppressWarnings("unused")
     BNO055IMU imu;
 
     // --- Intake/servo state ---
     private double intakePower = 0.0;
-    private static double launchVel;
 
     // --- Button edge detection ---
     private boolean prevRB = false;
@@ -84,7 +90,7 @@ public class TeleOpMain extends LinearOpMode {
     private long feedPulseStartNs = 0;
     private static final long FEED_DWELL_NS = 150_000_000L;
 
-    //edge state for GP2 dpad-Left (vision toggle)
+    // edge state for GP2 dpad-Left (vision toggle)
     private boolean prevG2DpadLeft = false;
 
     private static final double M_TO_IN = 39.37007874015748;
@@ -122,7 +128,13 @@ public class TeleOpMain extends LinearOpMode {
             logger = TinyCsvLoggerFlex.create(
                     hardwareMap,
                     "teleop_main",
-                    TinyCsvLoggerFlex.doubleCol("launch_cmd", () -> (autoShooter ? shooterSetpointTPS : launchVel)),
+                    TinyCsvLoggerFlex.doubleCol("dist_raw_in", () -> distIn_raw_dbg),
+                    TinyCsvLoggerFlex.doubleCol("dist_filt_in", () -> distIn_filt_dbg),
+                    TinyCsvLoggerFlex.doubleCol("tps_physics", () -> physicsTps_dbg),
+                    TinyCsvLoggerFlex.doubleCol("tps_table", () -> tableTps_dbg),
+                    TinyCsvLoggerFlex.doubleCol("tps_base_cmd", () -> commandedBase_dbg),
+                    TinyCsvLoggerFlex.doubleCol("tps_final_cmd", () -> finalTps_dbg),
+                    TinyCsvLoggerFlex.doubleCol("launch_cmd", () -> shooterSetpointTPS),
                     TinyCsvLoggerFlex.motorEx("launch", launchMotor),
                     TinyCsvLoggerFlex.doubleCol("intake_cmd", () -> intakePower),
                     TinyCsvLoggerFlex.motorEx("intake", intakeMotor),
@@ -133,13 +145,12 @@ public class TeleOpMain extends LinearOpMode {
 
         waitForStart();
 
-        // Safe startup
         intakeMotor.setPower(0.0);
         launchMotor.setPower(0.0);
 
         while (opModeIsActive()) {
 
-            // -------------------------------- Base Drive -----------------------------------------
+            // ---------------- Base Drive ----------------
             if (gamepad1.a) speedFactor = 0.95;
             if (gamepad1.b) speedFactor = 0.4;
             if (gamepad1.x) speedFactor = 0.7;
@@ -151,14 +162,12 @@ public class TeleOpMain extends LinearOpMode {
             drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), heading));
             drive.updatePoseEstimate();
 
-            // --------------------------- Vision toggle ---------------------------
+            // ---------------- Vision toggle ----------------
             boolean g2LeftEdge = gamepad2.dpad_left && !prevG2DpadLeft;
-            if (g2LeftEdge) {
-                visionEnabled = !visionEnabled;
-            }
+            if (g2LeftEdge) visionEnabled = !visionEnabled;
             prevG2DpadLeft = gamepad2.dpad_left;
 
-            // --------------------------- Vision Read ----------------------------
+            // ---------------- Vision Read ----------------
             LLResult ll = null;
             if (visionEnabled) {
                 LLResult tmp = limelight.getLatestResult();
@@ -169,6 +178,15 @@ public class TeleOpMain extends LinearOpMode {
 
             Double visInches = getVisionDistanceInches(ll);
 
+            // distance smoothing (optional)
+            distIn_raw_dbg = (visInches != null) ? visInches : 0.0;
+            if (visInches != null) {
+                if (distIn_filt_dbg <= 0.0) distIn_filt_dbg = visInches; // init
+                double a = ShooterConfig.DIST_SMOOTH_ALPHA;
+                distIn_filt_dbg = (1.0 - a) * distIn_filt_dbg + a * visInches;
+            }
+
+            // tag correctness / LED info
             boolean correctTag = false;
             int tagId = -1;
             if (ll != null) {
@@ -189,100 +207,80 @@ public class TeleOpMain extends LinearOpMode {
                 }
             }
 
-            // --------------------------- MODE TOGGLES ---------------------------
-            boolean upEdge   = gamepad2.dpad_up && !prevDpadUp;
-            boolean downEdge = gamepad2.dpad_down && !prevDpadDown;
-          /*  if (upEdge) {
-                autoShooter = true;
-                autoSpinArmed = false;
-                shooterSetpointTPS = 0.0;
-                launchMotor.setPower(0.0);
-            }
-            if (downEdge) {
-                autoShooter = false;
-                autoSpinArmed = false;
-                shooterSetpointTPS = 0.0;
-                launchMotor.setPower(0.0);
-            }*/
-            prevDpadUp = gamepad2.dpad_up;
-            prevDpadDown = gamepad2.dpad_down;
-
+            // ---------------- Arm toggle ----------------
             boolean rightEdge = gamepad2.dpad_right && !prevDpadRight;
-            if (rightEdge && autoShooter) {
-                autoSpinArmed = !autoSpinArmed;
-            }
+            if (rightEdge && autoShooter) autoSpinArmed = !autoSpinArmed;
             prevDpadRight = gamepad2.dpad_right;
 
-            // --------------------------- MANUAL MODE ----------------------------
-          /*  if (!autoShooter) {
-                if (gamepad2.a) launchVel = 1920;
-                if (gamepad2.b) launchVel = 1500;
-                if (gamepad2.left_bumper) launchVel = 1460;
-                if (gamepad2.x) launchVel = 0;
+            // ---------------- AUTO SHOOTER ----------------
+            physicsTps_dbg = 0.0;
+            tableTps_dbg = 0.0;
+            commandedBase_dbg = 0.0;
+            finalTps_dbg = 0.0;
 
-                launchVel = Math.max(0.0, launchVel);
-                launchMotor.setVelocity(launchVel);
-            }*/
+            if (autoShooter && autoSpinArmed) {
 
-            // --------------------------- AUTO MODE ------------------------------
-            if (autoShooter) {
-                if (autoSpinArmed) {
-                    Double dInches = visInches;
-                    if (dInches != null && dInches >= ShooterConfig.MIN_RANGE_IN) {
-                        if(dInches <= 95){
-                             tps = Calculations.computeTPSFromRangeInches(
-                                    ShooterConfig.G, dInches,
-                                    ShooterConfig.LAUNCH_DEG,
-                                    ShooterConfig.SHOOTER_H_M,
-                                    ShooterConfig.TARGET_H_M,
-                                    ShooterConfig.WHEEL_RADIUS_M,
-                                    ShooterConfig.CloseEFFICIENCY,
-                                    ShooterConfig.TICKS_PER_REV
-                            );
-                        } else {
-                             tps = Calculations.computeTPSFromRangeInches(
-                                    ShooterConfig.G, dInches,
-                                    ShooterConfig.LAUNCH_DEG,
-                                    ShooterConfig.SHOOTER_H_M,
-                                    ShooterConfig.TARGET_H_M,
-                                    ShooterConfig.WHEEL_RADIUS_M,
-                                    ShooterConfig.EFFICIENCY,
-                                    ShooterConfig.TICKS_PER_REV
-                            );
+                Double dIn = (visInches != null) ? distIn_filt_dbg : null;
 
-                        }
+                if (dIn != null && dIn >= ShooterConfig.MIN_RANGE_IN) {
 
-                        if (Double.isFinite(tps) && !Double.isNaN(tps)) {
-                            if (tps < ShooterConfig.TPS_MIN_AUTO) {
-                                shooterSetpointTPS = 0.0;
-                                launchMotor.setPower(0.0);
-                            } else {
-                                tps = Math.min(tps, ShooterConfig.TPS_MAX_AUTO);
-                                tps = Math.min(tps, ShooterConfig.TPS_MAX_MECH);
-                                shooterSetpointTPS = tps;
-                                launchMotor.setVelocity(tps);
-                            }
-                        } else {
-                            shooterSetpointTPS = 0.0;
-                            launchMotor.setPower(0.0);
-                        }
-                    } else {
+                    // 1) physics TPS (base)
+                    double physicsTps = Calculations.computeTPSFromRangeInches(
+                            ShooterConfig.G,
+                            dIn,
+                            ShooterConfig.LAUNCH_DEG,
+                            ShooterConfig.SHOOTER_H_M,
+                            ShooterConfig.TARGET_H_M,
+                            ShooterConfig.WHEEL_RADIUS_M,
+                            ShooterConfig.EFFICIENCY,
+                            ShooterConfig.TICKS_PER_REV
+                    );
+                    if (!Double.isFinite(physicsTps)) physicsTps = 0.0;
+                    physicsTps_dbg = physicsTps;
+
+                    // 2) table TPS (base)
+                    double tableTps = ShooterConfig.lookupTpsFromDistanceIn(dIn);
+                    tableTps_dbg = tableTps;
+
+                    // 3) choose base TPS (ONE SWITCH)
+                    // USE_TABLE = true  -> match mode -> base is table (no scale/offset)
+                    // USE_TABLE = false -> tuning mode -> base is physics (apply scale/offset)
+                    boolean useTable = ShooterConfig.USE_TABLE;
+                    double base = useTable ? tableTps_dbg : physicsTps_dbg;
+                    commandedBase_dbg = base;
+
+                    // 4) final TPS:
+                    // - if using table: clamp ONLY
+                    // - if using physics: apply scale/offset then clamp
+                    double desired = useTable
+                            ? ShooterConfig.clampTps(base)
+                            : ShooterConfig.applyTuningAndClamp(base);
+
+                    finalTps_dbg = desired;
+
+                    if (desired <= 0.0) {
                         shooterSetpointTPS = 0.0;
                         launchMotor.setPower(0.0);
+                    } else {
+                        shooterSetpointTPS = desired;
+                        launchMotor.setVelocity(shooterSetpointTPS);
                     }
+
                 } else {
                     shooterSetpointTPS = 0.0;
                     launchMotor.setPower(0.0);
                 }
+
+            } else {
+                shooterSetpointTPS = 0.0;
+                launchMotor.setPower(0.0);
             }
 
-            // --------------------------- FEED LOGIC -----------------------------
+            // ---------------- FEED LOGIC ----------------
             boolean spunUpOk = false;
             if (autoShooter && shooterSetpointTPS > 0.0) {
                 double vel = launchMotor.getVelocity();
                 spunUpOk = Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
-            } else if (!autoShooter) {
-                spunUpOk = (launchVel > 0.0) && (Math.abs(launchMotor.getVelocity() - launchVel) <= ShooterConfig.TPS_TOL);
             }
 
             if (gamepad2.y) {
@@ -300,15 +298,16 @@ public class TeleOpMain extends LinearOpMode {
                 feedPulseActive = false;
             }
 
-            // --------------------------- INTAKE ---------------------------------
+            // ---------------- INTAKE ----------------
             boolean rbEdge = gamepad2.right_bumper && !prevRB;
             if (rbEdge) intakePower = -0.5;
             prevRB = gamepad2.right_bumper;
+
             if (gamepad2.right_trigger > 0) intakePower = 0.73;
             if (gamepad2.left_trigger > 0) intakePower = 0.0;
             intakeMotor.setPower(intakePower);
 
-            // --------------------------- LED STATES -----------------------------
+            // ---------------- LEDs ----------------
             RevBlinkinLedDriver.BlinkinPattern pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
 
             if (!visionEnabled) {
@@ -321,8 +320,6 @@ public class TeleOpMain extends LinearOpMode {
                     pat = atSpeed ? RevBlinkinLedDriver.BlinkinPattern.GREEN
                             : RevBlinkinLedDriver.BlinkinPattern.YELLOW;
                 }
-            } else {
-                pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
             }
 
             if (System.nanoTime() < yTooSoonFlashUntilNs) {
@@ -330,33 +327,41 @@ public class TeleOpMain extends LinearOpMode {
             }
             blinkin.setPattern(pat);
 
-            // --------------------------- LOGGING --------------------------------
+            // ---------------- LOGGING ----------------
             if (LOG_ENABLED && logger != null) {
                 logger.record("run");
             }
 
-            // --------------------------- TELEMETRY ------------------------------
-            telemetry.addLine("---- Vision Distance Debug (using Z) ----");
-
+            // ---------------- TELEMETRY ----------------
+            telemetry.addLine("---- Vision Distance (cameraPoseTargetSpace) ----");
             telemetry.addData("Vision Enabled", visionEnabled);
             telemetry.addData("Goal Tag Found", hasGoalTag_dbg);
             telemetry.addData("Seen Tag ID", tagId);
             telemetry.addData("GOAL_TAG_ID", GOAL_TAG_ID);
+            telemetry.addData("rangeRawIn", "%.2f", distIn_raw_dbg);
+            telemetry.addData("rangeFiltIn", "%.2f", distIn_filt_dbg);
 
-            telemetry.addData("xM", "%.4f m", xM_dbg);
-            telemetry.addData("yM", "%.4f m", yM_dbg);
-            telemetry.addData("zM", "%.4f m", zM_dbg);
+            telemetry.addLine("---- Shooter Calc ----");
+            telemetry.addData("USE_TABLE (match)", ShooterConfig.USE_TABLE);
+            telemetry.addData("physicsTPS", "%.0f", physicsTps_dbg);
+            telemetry.addData("tableTPS", "%.0f", tableTps_dbg);
+            telemetry.addData("baseChosen", "%.0f", commandedBase_dbg);
 
-            telemetry.addData("xIn", "%.2f in", xIn_dbg);
-            telemetry.addData("yIn", "%.2f in", yIn_dbg);
-            telemetry.addData("zIn", "%.2f in", zIn_dbg);
+            telemetry.addData("scale (physics only)", "%.3f", ShooterConfig.TPS_SCALE);
+            telemetry.addData("offset (physics only)", "%.0f", ShooterConfig.TPS_OFFSET);
+            telemetry.addData("finalTPS", "%.0f", finalTps_dbg);
 
-            telemetry.addData("rangeZIn = abs(zM)*39.37", "%.2f in", rangeZIn_dbg);
+            telemetry.addLine("---- Shooter State ----");
+            telemetry.addData("Armed", autoSpinArmed);
+            telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
+            telemetry.addData("Actual TPS", "%.0f", launchMotor.getVelocity());
+            telemetry.addData("Err", "%.0f", (launchMotor.getVelocity() - shooterSetpointTPS));
+            telemetry.addData("Ready", spunUpOk);
 
+            telemetry.addLine("TIP: Tune in physics mode (USE_TABLE=false). When good, record (rangeFiltIn, finalTPS) into table.");
             telemetry.update();
         }
 
-        // cleanup
         try {
             launchMotor.setPower(0.0);
             intakeMotor.setPower(0.0);
@@ -366,25 +371,26 @@ public class TeleOpMain extends LinearOpMode {
     }
 
     /**
-     * Returns distance in inches using Limelight Z (tag->camera range), with abs().
+     * Returns distance in inches using Limelight cameraPoseTargetSpace:
+     * range = sqrt(x^2 + z^2)
      */
     private Double getVisionDistanceInches(LLResult result) {
         hasGoalTag_dbg = false;
 
         xM_dbg = yM_dbg = zM_dbg = 0;
         xIn_dbg = yIn_dbg = zIn_dbg = 0;
-        rangeZIn_dbg = 0;
+        rangeIn_dbg = 0;
 
         if (result == null || !result.isValid() || result.getStaleness() >= 100) return null;
 
         List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-        if (fiducials == null ) return null;
+        if (fiducials == null) return null;
 
         for (LLResultTypes.FiducialResult fiducial : fiducials) {
             if (fiducial == null) continue;
             if (fiducial.getFiducialId() != GOAL_TAG_ID) continue;
 
-            Pose3D targetPose = fiducial.getRobotPoseTargetSpace();
+            Pose3D targetPose = fiducial.getCameraPoseTargetSpace();
             if (targetPose == null) continue;
 
             hasGoalTag_dbg = true;
@@ -397,10 +403,10 @@ public class TeleOpMain extends LinearOpMode {
             yIn_dbg = yM_dbg * M_TO_IN;
             zIn_dbg = zM_dbg * M_TO_IN;
 
-            // distance from tag to camera (your definition)
-            rangeZIn_dbg = Math.abs(zM_dbg) * M_TO_IN;
+            double rangeM = Math.sqrt((xM_dbg * xM_dbg) + (zM_dbg * zM_dbg));
+            rangeIn_dbg = rangeM * M_TO_IN;
 
-            return rangeZIn_dbg;
+            return rangeIn_dbg;
         }
 
         return null;
