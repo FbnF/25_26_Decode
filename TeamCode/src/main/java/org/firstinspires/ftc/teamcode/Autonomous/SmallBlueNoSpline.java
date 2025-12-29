@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -17,7 +18,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-
+@Disabled
 @Autonomous(name="SmallTriBlueNoSpline", group="Auto")
 public class SmallBlueNoSpline extends LinearOpMode {
 
@@ -91,7 +92,7 @@ public class SmallBlueNoSpline extends LinearOpMode {
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(51, -10), Math.toRadians(199))
 
-               // .turn(Math.toRadians(-ANGLE_OF_TURN))
+                // .turn(Math.toRadians(-ANGLE_OF_TURN))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
@@ -112,7 +113,7 @@ public class SmallBlueNoSpline extends LinearOpMode {
                 .setTangent(Math.toRadians(90))
                 .lineToY(-48)
                 .lineToY(-52)
-               // .lineToY(-36)
+                // .lineToY(-36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .turn(Math.toRadians(-(90 + ANGLE_OF_TURN)))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))

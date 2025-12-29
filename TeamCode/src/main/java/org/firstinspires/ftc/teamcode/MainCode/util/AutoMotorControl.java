@@ -14,10 +14,29 @@ import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 
 import java.util.List;
 
+/**
+ * Reusable Road Runner Actions:
+ *  - setMotorPower(...) : one-shot, non-blocking motor power setter
+ *  - setMotorVel(...)   : one-shot, non-blocking motor velocity setter (TPS)
+ *  - setServoPosition(...) : one-shot, non-blocking servo setter
+ *
+ * Legacy Actions:
+ *  - TimedMotorPowerAction
+ *  - ServoPulseAction
+ *  - ServoScheduleAction
+ *  - ShooterAndFeederAction       : shooter POWER + scheduled feed windows (legacy)
+ *  - ShooterAndFeederActionVel    : shooter VELOCITY (TPS) + scheduled feed windows (legacy)
+ *
+ * Vision Action:
+ *  - ShooterAndFeederVisionAction : Limelight distance->TPS table + gated feeding
+ *
+ * IMPORTANT (your RR flavor): Action.run() returns TRUE to keep running, FALSE when finished.
+ */
 public final class AutoMotorControl {
 
     private AutoMotorControl() {}
 
+    /** One-shot action that sets a motor's power and immediately completes (non-blocking). */
     public static Action setMotorPower(DcMotor m, double power) {
         return (TelemetryPacket pkt) -> {
             if (m != null) {
@@ -28,6 +47,7 @@ public final class AutoMotorControl {
         };
     }
 
+    /** One-shot action that sets a motor's velocity (TPS) and immediately completes (non-blocking). */
     public static Action setMotorVel(DcMotorEx m, double tps) {
         return (TelemetryPacket pkt) -> {
             if (m != null) {
@@ -38,12 +58,17 @@ public final class AutoMotorControl {
         };
     }
 
+    /** One-shot action that sets a servo's position and immediately completes (non-blocking). */
     public static Action setServoPosition(Servo s, double pos) {
         return (TelemetryPacket pkt) -> {
             if (s != null) s.setPosition(pos);
             return false;
         };
     }
+
+    // -------------------------------------------------------------------------
+    // Legacy utility actions
+    // -------------------------------------------------------------------------
 
     public static class TimedMotorPowerAction implements Action {
         private final DcMotorEx motor;
@@ -211,6 +236,79 @@ public final class AutoMotorControl {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Legacy shooter actions (kept for existing autos)
+    // -------------------------------------------------------------------------
+
+    /** Legacy: shooter POWER + scheduled feed windows. */
+    public static class ShooterAndFeederAction implements Action {
+        private final DcMotorEx shooter;
+        private final Servo feeder;
+        private final double shooterPower;
+        private final double[] feedStartS;
+        private final double feedHoldS;
+        private final double endPaddingS;
+        private final double loadPos;
+        private final double feedPos;
+
+        private boolean initialized = false;
+        private long t0;
+
+        public ShooterAndFeederAction(
+                DcMotorEx shooter,
+                Servo feeder,
+                double shooterPower,
+                double[] feedStartS,
+                double feedHoldS,
+                double endPaddingS,
+                double loadPos,
+                double feedPos
+        ) {
+            this.shooter = shooter;
+            this.feeder = feeder;
+            this.shooterPower = shooterPower;
+            this.feedStartS = (feedStartS != null) ? feedStartS : new double[0];
+            this.feedHoldS = Math.max(0.0, feedHoldS);
+            this.endPaddingS = Math.max(0.0, endPaddingS);
+            this.loadPos = loadPos;
+            this.feedPos = feedPos;
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            if (!initialized) {
+                t0 = System.nanoTime();
+                if (shooter != null) {
+                    shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    shooter.setPower(shooterPower);
+                }
+                if (feeder != null) feeder.setPosition(loadPos);
+                initialized = true;
+            }
+
+            double t = (System.nanoTime() - t0) / 1e9;
+
+            boolean feeding = false;
+            for (double s : feedStartS) {
+                if (t >= s && t < s + feedHoldS) { feeding = true; break; }
+            }
+            if (feeder != null) feeder.setPosition(feeding ? feedPos : loadPos);
+
+            packet.put("t_s", String.format("%.2f", t));
+            packet.put("feeding", feeding);
+
+            double lastEnd = (feedStartS.length > 0 ? feedStartS[feedStartS.length - 1] : 0.0)
+                    + feedHoldS + endPaddingS;
+
+            if (t < lastEnd) return true;
+
+            if (feeder != null) feeder.setPosition(loadPos);
+            if (shooter != null) shooter.setPower(0.0);
+            return false;
+        }
+    }
+
+    /** Legacy: shooter VELOCITY (TPS) + scheduled feed windows. */
     public static class ShooterAndFeederActionVel implements Action {
         private final DcMotorEx shooter;
         private final Servo feeder;
@@ -238,8 +336,8 @@ public final class AutoMotorControl {
             this.feeder = feeder;
             this.shooterVel = shooterVel;
             this.feedStartS = (feedStartS != null) ? feedStartS : new double[0];
-            this.feedHoldS = Math.max(0, feedHoldS);
-            this.endPaddingS = Math.max(0, endPaddingS);
+            this.feedHoldS = Math.max(0.0, feedHoldS);
+            this.endPaddingS = Math.max(0.0, endPaddingS);
             this.loadPos = loadPos;
             this.feedPos = feedPos;
         }
@@ -278,8 +376,17 @@ public final class AutoMotorControl {
         }
     }
 
-    // Limelight-based auto shooter action (distance->TPS table)
-    public static class ShooterAndFeederAction implements Action {
+    // -------------------------------------------------------------------------
+    // Vision shooter action (renamed to avoid colliding with legacy ShooterAndFeederAction)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Limelight-based auto shooter action (distance->TPS table), gated firing:
+     * - Reads AprilTag range from Limelight
+     * - Uses ShooterConfig.lookupTpsFromDistanceIn(rangeIn)
+     * - Waits until at-speed is stable, then pulses feeder for each shot
+     */
+    public static class ShooterAndFeederVisionAction implements Action {
         private static final double M_TO_IN = 39.37007874015748;
 
         private final DcMotorEx shooter;
@@ -315,7 +422,7 @@ public final class AutoMotorControl {
 
         private long atSpeedSinceNs = 0L;
 
-        public ShooterAndFeederAction(
+        public ShooterAndFeederVisionAction(
                 DcMotorEx shooter,
                 Servo feeder,
                 Limelight3A limelight,
@@ -353,6 +460,7 @@ public final class AutoMotorControl {
                 initialized = true;
             }
 
+            // Hard timeout so we don't hang auto forever if vision fails
             if ((now - t0Ns) > MAX_ACTION_NS) {
                 finish();
                 return false;
@@ -360,6 +468,7 @@ public final class AutoMotorControl {
 
             shooterSetpointTPS = 0.0;
 
+            // Get range (in) from Limelight
             Double rangeIn = getVisionDistanceInches(); // sqrt(x^2+z^2) using cameraPoseTargetSpace
             if (rangeIn != null && rangeIn >= ShooterConfig.MIN_RANGE_IN) {
 
@@ -375,20 +484,24 @@ public final class AutoMotorControl {
                 }
             }
 
+            // Hold last good for a short window if tag drops
             if (shooterSetpointTPS <= 0.0) {
                 if (lastGoodTPS > 0.0 && (now - lastGoodNs) <= HOLD_LAST_GOOD_NS) {
                     shooterSetpointTPS = lastGoodTPS;
                 }
             }
 
+            // Command shooter
             if (shooter != null) {
                 if (shooterSetpointTPS > 0.0) shooter.setVelocity(shooterSetpointTPS);
                 else shooter.setPower(0.0);
             }
 
+            // At-speed check
             boolean atSpeed = false;
+            double actual = 0.0;
             if (shooter != null && shooterSetpointTPS > 0.0) {
-                double actual = shooter.getVelocity();
+                actual = shooter.getVelocity();
                 atSpeed = Math.abs(actual - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
             }
 
@@ -400,6 +513,15 @@ public final class AutoMotorControl {
 
             boolean atSpeedStable = atSpeed && atSpeedSinceNs != 0L && (now - atSpeedSinceNs) >= AT_SPEED_STABLE_NS;
 
+            // Telemetry for debugging
+            packet.put("vision_range_in", rangeIn == null ? "null" : String.format("%.1f", rangeIn));
+            packet.put("shooter_set_tps", String.format("%.0f", shooterSetpointTPS));
+            packet.put("shooter_actual_tps", String.format("%.0f", actual));
+            packet.put("atSpeed", atSpeed);
+            packet.put("atSpeedStable", atSpeedStable);
+            packet.put("shotsFired", shotsFired);
+
+            // If currently feeding, wait out the hold time
             if (feeding) {
                 long holdNs = (long) (feedHoldS * 1e9);
                 if ((now - feedStartNs) >= holdNs) {
@@ -407,11 +529,12 @@ public final class AutoMotorControl {
                     feeding = false;
                     lastShotEndNs = now;
                     shotsFired++;
-                    atSpeedSinceNs = 0L;
+                    atSpeedSinceNs = 0L; // re-stabilize after a shot
                 }
                 return true;
             }
 
+            // Done firing?
             if (shotsFired >= shots) {
                 if (lastShotEndNs != 0L) {
                     long endPadNs = (long) (endPaddingS * 1e9);
@@ -426,6 +549,7 @@ public final class AutoMotorControl {
                 }
             }
 
+            // Spacing + gating
             boolean spacingOk = (lastShotEndNs == 0L) || ((now - lastShotEndNs) >= BETWEEN_SHOTS_NS);
             boolean canFire = atSpeedStable && spacingOk && shooterSetpointTPS > 0.0;
 
