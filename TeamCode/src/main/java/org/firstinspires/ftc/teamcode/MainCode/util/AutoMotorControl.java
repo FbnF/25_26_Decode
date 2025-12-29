@@ -341,7 +341,7 @@ public final class AutoMotorControl {
                 t0 = System.nanoTime();
                 if (shooter != null) {
 
-                    shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                   // shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
                     //  Vcurrent = battery.getVoltage();
                     //      double shooterPowerAdapted = Math.min(1.0, shooterPower + (Vcurrent - VMax) * 0.05);
                     //  double shooterPowerAdapted = shooterPower * VMax/Vcurrent;
