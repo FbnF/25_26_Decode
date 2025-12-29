@@ -18,7 +18,6 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-@Disabled
 @Autonomous(name="SmallTriBlueNoSpline", group="Auto")
 public class SmallBlueNoSpline extends LinearOpMode {
 

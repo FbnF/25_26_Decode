@@ -21,7 +21,6 @@ import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndF
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Disabled
 @Autonomous(name="SmallTriRedNoSpline", group="Auto")
 public class SmallRedNoSpline extends LinearOpMode {
 
