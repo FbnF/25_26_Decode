@@ -1,11 +1,9 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
-// --- Roadrunner Libraries ---
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 
-// --- FTC Libraries ---
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
@@ -16,11 +14,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-// -- Limelight ---
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
-// -- Defined by us ---
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
@@ -60,6 +56,7 @@ public class TeleOpMain extends LinearOpMode {
     private double tableTps_dbg = 0.0;
     private double commandedBase_dbg = 0.0; // base TPS chosen BEFORE scale/offset (if any)
     private double finalTps_dbg = 0.0;       // actual TPS commanded to motor
+    private boolean noShotZone_dbg = false;
 
     // --- Logging ---
     private static final boolean LOG_ENABLED = true;
@@ -71,7 +68,7 @@ public class TeleOpMain extends LinearOpMode {
     private boolean autoSpinArmed = true;
     private boolean prevDpadRight = false;
 
-    // flash window when Y pressed too soon
+    // flash window when Y pressed too soon OR no-shot zone
     private long yTooSoonFlashUntilNs = 0L;
     private static final long FLASH_YELLOW_NS = 500_000_000L;
 
@@ -99,9 +96,9 @@ public class TeleOpMain extends LinearOpMode {
     public void runOpMode() {
 
         // Map hardware
-        feedServo   = hardwareMap.get(Servo.class,    "feedServo");
-        intakeMotor = hardwareMap.get(DcMotorEx.class,"IntakeMotor");
-        launchMotor = hardwareMap.get(DcMotorEx.class,"LaunchMotor");
+        feedServo   = hardwareMap.get(Servo.class,     "feedServo");
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
+        launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
         battery     = hardwareMap.voltageSensor.iterator().next();
 
         blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
@@ -186,6 +183,14 @@ public class TeleOpMain extends LinearOpMode {
                 distIn_filt_dbg = (1.0 - a) * distIn_filt_dbg + a * visInches;
             }
 
+            // NO-SHOT ZONE (measured "too close" distance where shot is impossible)
+            Double dInForLogic = (visInches != null) ? distIn_filt_dbg : null;
+            boolean noShotZone =
+                    (dInForLogic != null)
+                            && ShooterConfig.NO_SHOT_UNDER_IN > 0.0
+                            && dInForLogic < ShooterConfig.NO_SHOT_UNDER_IN;
+            noShotZone_dbg = noShotZone;
+
             // tag correctness / LED info
             boolean correctTag = false;
             int tagId = -1;
@@ -222,7 +227,8 @@ public class TeleOpMain extends LinearOpMode {
 
                 Double dIn = (visInches != null) ? distIn_filt_dbg : null;
 
-                if (dIn != null && dIn >= ShooterConfig.MIN_RANGE_IN) {
+                // Require: valid distance, above ignore floor, AND not in no-shot zone
+                if (dIn != null && dIn >= ShooterConfig.MIN_RANGE_IN && !noShotZone) {
 
                     // 1) physics TPS (base)
                     double physicsTps = Calculations.computeTPSFromRangeInches(
@@ -243,15 +249,11 @@ public class TeleOpMain extends LinearOpMode {
                     tableTps_dbg = tableTps;
 
                     // 3) choose base TPS (ONE SWITCH)
-                    // USE_TABLE = true  -> match mode -> base is table (no scale/offset)
-                    // USE_TABLE = false -> tuning mode -> base is physics (apply scale/offset)
                     boolean useTable = ShooterConfig.USE_TABLE;
                     double base = useTable ? tableTps_dbg : physicsTps_dbg;
                     commandedBase_dbg = base;
 
                     // 4) final TPS:
-                    // - if using table: clamp ONLY
-                    // - if using physics: apply scale/offset then clamp
                     double desired = useTable
                             ? ShooterConfig.clampTps(base)
                             : ShooterConfig.applyTuningAndClamp(base);
@@ -283,12 +285,15 @@ public class TeleOpMain extends LinearOpMode {
                 spunUpOk = Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
             }
 
+            // Block feeding if in no-shot zone, even if spun up
+            boolean feedAllowed = spunUpOk && !noShotZone;
+
             if (gamepad2.y) {
-                if (!feedPulseActive && spunUpOk) {
+                if (!feedPulseActive && feedAllowed) {
                     feedServo.setPosition(0.12);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
-                } else if (!spunUpOk) {
+                } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
             }
@@ -315,6 +320,9 @@ public class TeleOpMain extends LinearOpMode {
             } else if (autoShooter) {
                 if (!correctTag) {
                     pat = RevBlinkinLedDriver.BlinkinPattern.RED;
+                } else if (noShotZone) {
+                    // Too close to make the shot: force yellow even if at speed
+                    pat = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
                 } else {
                     boolean atSpeed = spunUpOk && autoSpinArmed;
                     pat = atSpeed ? RevBlinkinLedDriver.BlinkinPattern.GREEN
@@ -322,6 +330,7 @@ public class TeleOpMain extends LinearOpMode {
                 }
             }
 
+            // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold
             if (System.nanoTime() < yTooSoonFlashUntilNs) {
                 pat = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
             }
@@ -341,6 +350,10 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("rangeRawIn", "%.2f", distIn_raw_dbg);
             telemetry.addData("rangeFiltIn", "%.2f", distIn_filt_dbg);
 
+            telemetry.addLine("---- No-Shot Zone ----");
+            telemetry.addData("NO_SHOT_UNDER_IN", "%.2f", ShooterConfig.NO_SHOT_UNDER_IN);
+            telemetry.addData("noShotZone", noShotZone_dbg);
+
             telemetry.addLine("---- Shooter Calc ----");
             telemetry.addData("USE_TABLE (match)", ShooterConfig.USE_TABLE);
             telemetry.addData("physicsTPS", "%.0f", physicsTps_dbg);
@@ -357,8 +370,9 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("Actual TPS", "%.0f", launchMotor.getVelocity());
             telemetry.addData("Err", "%.0f", (launchMotor.getVelocity() - shooterSetpointTPS));
             telemetry.addData("Ready", spunUpOk);
+            telemetry.addData("FeedAllowed", feedAllowed);
 
-            telemetry.addLine("TIP: Tune in physics mode (USE_TABLE=false). When good, record (rangeFiltIn, finalTPS) into table.");
+            telemetry.addLine("TIP: Set NO_SHOT_UNDER_IN to your measured 'too close' distance.");
             telemetry.update();
         }
 

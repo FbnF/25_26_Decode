@@ -24,6 +24,9 @@ public final class ShooterConfig {
     public static double TPS_SCALE = 1.0;
     public static double TPS_OFFSET = 0.0;
 
+    // --- No-shot zone (robot physically can't make it) ---
+    public static double NO_SHOT_UNDER_IN = 0.0; // set this once you measure
+
     // Optional: smooth distance to reduce jitter (0 = no smoothing, 1 = heavy smoothing)
     public static double DIST_SMOOTH_ALPHA = 0.20;
 
@@ -42,11 +45,14 @@ public final class ShooterConfig {
     // Replace with measured points over time.
     // Must be same length and DIST_IN strictly increasing.
     public static double[] DIST_IN = new double[] {
-            58.82,83.71,85,86.46,98.69,131.18,
+            45.5, 56.9, 84.5, 102.1, 123.5, 130.1, 134.5, 144.2,
+            //58.82,83.71,85,86.46,98.69,131.18,
     };
 
     public static double[] TPS_AT_DIST = new double[] {
-            1511,1615,1674,1683,1824,1933,
+            1440.12, 1423.18, 1526.44, 1618.7, 1697.36, 1754.1, 1780.68, 1829.85,
+            //1676, 1635, 1738, 1830, 1947, 1990, 2012, 2065,
+            //1511,1615,1674,1683,1824,1933,
     };
 
     /** Linear interpolation lookup. */
