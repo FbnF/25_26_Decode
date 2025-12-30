@@ -1,9 +1,8 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
-// --- Roadrunner Libraries ---
-
-import android.bluetooth.BluetoothGattCharacteristic;
-
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -13,7 +12,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -27,8 +25,30 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 @Disabled
 @TeleOp(name = "TeleOp: Tune", group = "TeleOp")
-
 public class TeleOpMainPIDFTunner extends LinearOpMode {
+
+    // ---------------- Dashboard Tunables ----------------
+    @Config
+    public static class DashTuning {
+        // PIDF for RUN_USING_ENCODER velocity loop
+        public static double P = 0.0;
+        public static double I = 0.0;
+        public static double D = 0.0;
+        public static double F = 0.0;
+
+        // Manual mode velocity command (ticks/sec)
+        public static double manualTargetTPS = 0.0;
+
+        // Clamp
+        public static double manualMaxTPS = 2800.0;
+
+        // Apply PIDF every loop (safe + simple)
+        public static boolean applyPidfContinuously = true;
+
+        // Manual "ready" tolerance (ticks/sec)
+        public static double manualTolTPS = 80.0;
+    }
+
     // --- Hardware ---
     private Servo feedServo;
     private MecanumDrive drive;
@@ -85,9 +105,15 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
     private boolean prevG1DpadDown = false;
     private double CompPower;
 
-    @Override
+    // local tracking for "only apply when changed"
+    private PIDFCoefficients lastAppliedPidf = null;
 
+    @Override
     public void runOpMode() {
+
+        // Dashboard telemetry
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         // Map hardware
         feedServo = hardwareMap.get(Servo.class, "feedServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
@@ -112,7 +138,14 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
 
         // Vision
         tagService = new AprilTagService();
-        //tagService.start(hardwareMap);
+        // tagService.start(hardwareMap);
+
+        // Seed dashboard values with current motor PIDF so you see "real" starting numbers
+        PIDFCoefficients pidf_cur = launchMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+        DashTuning.P = pidf_cur.p;
+        DashTuning.I = pidf_cur.i;
+        DashTuning.D = pidf_cur.d;
+        DashTuning.F = pidf_cur.f;
 
         // LOG: create CSV logger
         if (LOG_ENABLED) {
@@ -128,59 +161,55 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
             );
         }
 
+        telemetry.addLine("Dashboard PIDF tuning enabled.");
+        telemetry.addLine("Open FTC Dashboard -> Config -> TeleOpMainPIDFTunner -> DashTuning");
+        telemetry.update();
+
         waitForStart();
 
         // Safe startup
         intakeMotor.setPower(0.0);
         launchMotor.setPower(0.0);
-        // PIDF tuning setup
 
-        double[] stepSizes = {10.0, 1.0, 0.1, 0.01, 0.001, 0.0001};
-
-        int stepIndex = 1;
-        PIDFCoefficients pidf_cur = launchMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
-        double P = pidf_cur.p;
-        double F = pidf_cur.f;
-        double vel_error=0;
+        double vel_error = 0.0;
 
         while (opModeIsActive()) {
-            if (gamepad1.bWasPressed()) {
-                stepIndex = (stepIndex + 1) % stepSizes.length;
-            }
-            if (gamepad1.dpadLeftWasPressed()) {
-                F -= stepSizes[stepIndex];
-            }
-            if (gamepad1.dpadRightWasPressed()) {
-                F += stepSizes[stepIndex];
-            }
-            if (gamepad1.dpadUpWasPressed()) {
-                P += stepSizes[stepIndex];
-            }
-            if (gamepad1.left_bumper) {
-                P -= stepSizes[stepIndex];
+
+            // ---------------- Apply PIDF from Dashboard ----------------
+            PIDFCoefficients cur = new PIDFCoefficients(
+                    DashTuning.P,
+                    DashTuning.I,
+                    DashTuning.D,
+                    DashTuning.F
+            );
+
+            if (DashTuning.applyPidfContinuously) {
+                launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, cur);
+            } else {
+                if (lastAppliedPidf == null ||
+                        lastAppliedPidf.p != cur.p ||
+                        lastAppliedPidf.i != cur.i ||
+                        lastAppliedPidf.d != cur.d ||
+                        lastAppliedPidf.f != cur.f) {
+                    launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, cur);
+                    lastAppliedPidf = cur;
+                }
             }
 
-            pidf_cur = new PIDFCoefficients(P, 0, 0, F);
-            launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
             // # # # Gamepad 1 (Driver) # # #
-
             // -------------------------------- Base Drive -----------------------------------------
             if (gamepad1.a) speedFactor = 1.0;
             if (gamepad1.b) speedFactor = 0.4;
             if (gamepad1.x) speedFactor = 0.7;
 
-            double axial = -gamepad1.right_stick_y * speedFactor; // up = forward (+x)
-            double lateral = -gamepad1.left_stick_x * speedFactor; // right = strafe right (−y)
-            double heading = -gamepad1.right_stick_x * speedFactor; // right = turn right (−CCW = CW)
+            double axial = -gamepad1.right_stick_y * speedFactor;
+            double lateral = -gamepad1.left_stick_x * speedFactor;
+            double heading = -gamepad1.right_stick_x * speedFactor;
 
-            // Keep a single call
             drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), heading));
-
-            // Update odometry and read pose
             drive.updatePoseEstimate();
 
             Pose2d pose = drive.localizer.getPose();
-
             telemetry.addData("Speed Factor", "%.2f", speedFactor);
 
             // \--- Vision toggle (edge-based, no sleep) ---
@@ -222,33 +251,21 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
 
             // --------------------------- MANUAL MODE --------------------------
             if (!autoShooter) {
-                /*
-                if (gamepad2.a) launchPowerVel = 0.75;
-                if (gamepad2.b) launchPowerVel = 0.6;
-                if (gamepad2.left_bumper) launchPowerVel = 0.55;
+                // Manual command is now driven by Dashboard
+                double cmd = DashTuning.manualTargetTPS;
+                cmd = Math.max(0.0, Math.min(cmd, DashTuning.manualMaxTPS));
 
-                 */
-                if (gamepad2.x) launchPowerVel = 0;
-                if (gamepad2.left_bumper) launchPowerVel = 1500;
-                if (launchPowerVel != 2800) {
-                    if (gamepad2.b) launchPowerVel += 50;
-                }
-                if (launchPowerVel != 0) {
-                    if (gamepad2.a) launchPowerVel -= 50;
-                }
-
-                launchPowerVel = Math.min(2800, launchPowerVel);
-
-
-                // Battery compensation for open-loop power
-
-
+                launchPowerVel = cmd;
                 launchMotor.setVelocity(launchPowerVel);
-                vel_error = launchPowerVel-launchMotor.getVelocity();
+                vel_error = launchPowerVel - launchMotor.getVelocity();
 
-
+                // Optional quick kill on X
+                if (gamepad2.x) {
+                    launchPowerVel = 0.0;
+                    launchMotor.setPower(0.0);
+                    vel_error = 0.0;
+                }
             }
-
 
             // --------------------------- AUTO MODE ----------------------------
             if (autoShooter) {
@@ -269,8 +286,8 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
                                 tps = ShooterConfig.TEST_TPS;
                             }
                             tps = Math.min(tps, ShooterConfig.TPS_MAX);
-                            shooterSetpointTPS = tps;      // set after overrides/clamp
-                            launchMotor.setVelocity(tps);  // single call
+                            shooterSetpointTPS = tps;
+                            launchMotor.setVelocity(tps);
                         } else {
                             shooterSetpointTPS = 0.0;
                             launchMotor.setPower(0.0);
@@ -292,7 +309,11 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
                 spunUpOk = Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
             } else if (!autoShooter) {
                 spunUpOk = (launchMotor.getPower() > 0.0);
+                // FIXED: manual uses velocity control, so compare velocity error not getPower()
+                spunUpOk = (launchPowerVel > 0.0) &&
+                        (Math.abs(launchMotor.getVelocity() - launchPowerVel) <= DashTuning.manualTolTPS);
             }
+
             if (gamepad2.y) {
                 if (!feedPulseActive && spunUpOk) {
                     feedServo.setPosition(0.12);//0.16
@@ -312,8 +333,10 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
             boolean rbEdge = gamepad2.right_bumper && !prevRB;
             if (rbEdge) intakePower = -0.5;
             prevRB = gamepad2.right_bumper;
+
             if (gamepad2.right_trigger > 0) intakePower = 0.73;
             if (gamepad2.left_trigger > 0) intakePower = 0.0;
+
             intakeMotor.setPower(intakePower);
 
             // --------------------------- LED STATES ---------------------------
@@ -351,7 +374,18 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
             telemetry.addData("Mode", autoShooter ? "AUTO" : "MANUAL");
             telemetry.addData("Armed", autoSpinArmed);
             telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
+
+            telemetry.addData("Dash PIDF", "P=%.4f I=%.4f D=%.4f F=%.4f",
+                    DashTuning.P, DashTuning.I, DashTuning.D, DashTuning.F);
+
+            if (autoShooter) {
+                telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
+            } else {
+                telemetry.addData("Manual TPS Cmd (Dash)", "%.0f", launchPowerVel);
+            }
+
             telemetry.addData("Actual TPS", "%.0f", tpsMeas);
+            telemetry.addData("Measured RPM", "%.0f", rpmMeas);
             telemetry.addData("Velocity Error", "%.0f", vel_error);
             if (!autoShooter) telemetry.addData("Manual Power", "%.2f", CompPower);
             telemetry.addData("Ready?", spunUpOk);
