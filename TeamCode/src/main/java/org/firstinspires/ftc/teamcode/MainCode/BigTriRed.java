@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederActionVel;
@@ -28,8 +29,8 @@ public class BigTriRed extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1490;
-    private static final double SHOOTER_Vel2 = 1460;
+    private static final double SHOOTER_Vel = 1380;
+    private static final double SHOOTER_Vel2 = 1380;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.00;
@@ -62,9 +63,11 @@ public class BigTriRed extends LinearOpMode {
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intake.setPower(0.0);
         shooter.setPower(0.0);
+        PIDFCoefficients pidf_cur =new PIDFCoefficients(500, 3, 0, 4);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
         feed.setPosition(SERVO_LOAD_POS);
 
         waitForStart();
