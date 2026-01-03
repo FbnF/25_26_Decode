@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
@@ -144,7 +145,8 @@ public class TeleOpMain extends LinearOpMode {
 
         intakeMotor.setPower(0.0);
         launchMotor.setPower(0.0);
-
+        PIDFCoefficients pidf_cur =new PIDFCoefficients(500, 3, 0, 4);
+        launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
         while (opModeIsActive()) {
 
             // ---------------- Base Drive ----------------
