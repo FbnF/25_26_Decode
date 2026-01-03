@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
@@ -34,9 +35,9 @@ public class SmallTriRed extends LinearOpMode {
     private static final double INTAKE_POWER  = 0.73;
 
     private static double SHOOTER_POWER = 0.78;
-    private static double SHOOTER_VEL = 1910;
+    private static double SHOOTER_VEL = 1780;
 
-    private static double SHOOTER_VEL_SEC = 1850;
+    private static double SHOOTER_VEL_SEC = 1780;
 
 
     // Servo positions (use what worked in your tests)
@@ -71,6 +72,8 @@ public class SmallTriRed extends LinearOpMode {
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
         intake.setPower(0.0);
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
