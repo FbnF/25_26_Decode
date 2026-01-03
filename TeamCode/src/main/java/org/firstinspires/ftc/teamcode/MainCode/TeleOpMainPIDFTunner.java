@@ -23,8 +23,8 @@ import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Disabled
-@TeleOp(name = "TeleOp: Tune", group = "TeleOp")
+//@Disabled
+@TeleOp(name = "TeleOp: PIDFTune", group = "TeleOp")
 public class TeleOpMainPIDFTunner extends LinearOpMode {
 
     // ---------------- Dashboard Tunables ----------------
