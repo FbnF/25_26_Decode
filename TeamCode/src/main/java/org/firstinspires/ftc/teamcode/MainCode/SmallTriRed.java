@@ -35,9 +35,9 @@ public class SmallTriRed extends LinearOpMode {
     private static final double INTAKE_POWER  = 0.73;
 
     private static double SHOOTER_POWER = 0.78;
-    private static double SHOOTER_VEL = 1780;
+    private static double SHOOTER_VEL = 1770;
 
-    private static double SHOOTER_VEL_SEC = 1780;
+    private static double SHOOTER_VEL_SEC = 1770.0;
 
 
     // Servo positions (use what worked in your tests)
@@ -47,8 +47,8 @@ public class SmallTriRed extends LinearOpMode {
     private static final double ANGLE_OF_TURN = 27.5;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = {2.5, 4.5};
-    private static final double[] FEED_START_S_FIRST = {2.7};
+    private static final double[] FEED_START_S = {2, 4};
+    private static final double[] FEED_START_S_FIRST = {1.7};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
@@ -96,7 +96,8 @@ public class SmallTriRed extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .turn(Math.toRadians(ANGLE_OF_TURN * -1))
+             //   .turn(Math.toRadians(ANGLE_OF_TURN * -1))
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5) )
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
@@ -108,17 +109,17 @@ public class SmallTriRed extends LinearOpMode {
                         SHOOTER_VEL_SEC,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                .turn(Math.toRadians(ANGLE_OF_TURN))
-                .setTangent(Math.toRadians(180))
+                //.turn(Math.toRadians(ANGLE_OF_TURN))
+                .setTangent(Math.toRadians(152.5))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .splineTo(new Vector2d(34, 36), Math.toRadians(90))
+                .splineTo(new Vector2d(32, 31), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
                 .lineToY(48)
                 .lineToY(52)
                 // .lineToY(36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .turn(Math.toRadians(90-ANGLE_OF_TURN))
-                .strafeTo(new Vector2d(58, 16))
+                .strafeTo(new Vector2d(51, 10))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 //  .turn(Math.toRadians(ANGLE_OF_TURN * -1))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
