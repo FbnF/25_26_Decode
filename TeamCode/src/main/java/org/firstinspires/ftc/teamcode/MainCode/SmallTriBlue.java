@@ -109,18 +109,17 @@ public class SmallTriBlue extends LinearOpMode {
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
 
-                .strafeToLinearHeading(new Vector2d(60, -16), Math.toRadians(180))
-                .setTangent(Math.toRadians(180))
+                //.strafeToLinearHeading(new Vector2d(60, -16), Math.toRadians(180))
+                .setTangent(Math.toRadians(204))
                 //.splineTo(new Vector2d(32, -36), Math.toRadians(270))
                 .strafeToLinearHeading(new Vector2d(31, -26), Math.toRadians(270))
-                .setTangent(Math.toRadians(90))
+                .setTangent(Math.toRadians(270))
                 .lineToY(-48)
                 .lineToY(-52)
                 // .lineToY(-36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .turn(Math.toRadians(-(90 + ANGLE_OF_TURN)))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeTo(new Vector2d(52, -10))
+                .strafeToLinearHeading(new Vector2d(52, -10), Math.toRadians(204))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,

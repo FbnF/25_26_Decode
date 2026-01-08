@@ -118,8 +118,7 @@ public class SmallTriRed extends LinearOpMode {
                 .lineToY(52)
                 // .lineToY(36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .turn(Math.toRadians(90-ANGLE_OF_TURN))
-                .strafeTo(new Vector2d(51, 10))
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 //  .turn(Math.toRadians(ANGLE_OF_TURN * -1))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
