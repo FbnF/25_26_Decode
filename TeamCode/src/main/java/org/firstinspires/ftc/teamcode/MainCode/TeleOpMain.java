@@ -1,3 +1,7 @@
+// TeleOpMain.java
+// Full file with Option A implemented AND feed gating always includes "wrong angle".
+// Removed all REQUIRE_ALIGNED_TO_FEED references (does not exist anymore).
+
 package org.firstinspires.ftc.teamcode.MainCode;
 
 import com.acmerobotics.roadrunner.Pose2d;
@@ -45,8 +49,6 @@ public class TeleOpMain extends LinearOpMode {
     private double shooterSetpointTPS = 0.0;
     double Tx;
     double Ty;
-
-
 
     // Debug: distance + pose
     double xM_dbg = 0, yM_dbg = 0, zM_dbg = 0;
@@ -96,6 +98,17 @@ public class TeleOpMain extends LinearOpMode {
     private boolean prevG2DpadLeft = false;
 
     private static final double M_TO_IN = 39.37007874015748;
+
+    // ---------------- Auto-align state (added) ----------------
+    private double prevAlignErr = 0.0;
+    private long prevAlignNs = 0L;
+
+    // Debug values for telemetry (added)
+    private double txMin_dbg = 0.0;
+    private double txMax_dbg = 0.0;
+    private double txTarget_dbg = 0.0;
+    private double alignErr_dbg = 0.0;
+    private boolean alignActive_dbg = false;
 
     @Override
     public void runOpMode() {
@@ -149,8 +162,9 @@ public class TeleOpMain extends LinearOpMode {
 
         intakeMotor.setPower(0.0);
         launchMotor.setPower(0.0);
-        PIDFCoefficients pidf_cur =new PIDFCoefficients(500, 3, 0, 4);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
         launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+
         while (opModeIsActive()) {
 
             // ---------------- Base Drive ----------------
@@ -160,10 +174,7 @@ public class TeleOpMain extends LinearOpMode {
 
             double axial   = -gamepad1.right_stick_y * speedFactor;
             double lateral = -gamepad1.left_stick_x  * speedFactor;
-            double heading = -gamepad1.right_stick_x * speedFactor;
-
-            drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), heading));
-            drive.updatePoseEstimate();
+            double headingManual = -gamepad1.right_stick_x * speedFactor;
 
             // ---------------- Vision toggle ----------------
             boolean g2LeftEdge = gamepad2.dpad_left && !prevG2DpadLeft;
@@ -177,6 +188,12 @@ public class TeleOpMain extends LinearOpMode {
                 if (tmp != null && tmp.isValid() && tmp.getStaleness() < 100) {
                     ll = tmp;
                 }
+            }
+
+            // Update Tx/Ty ASAP so anything below doesn't use stale values
+            if (ll != null) {
+                Tx = ll.getTx();
+                Ty = ll.getTy();
             }
 
             Double visInches = getVisionDistanceInches(ll);
@@ -218,6 +235,66 @@ public class TeleOpMain extends LinearOpMode {
                 }
             }
 
+            // ---------------- Auto Align ----------------
+            // Hold to auto-align yaw into distance-based Tx window.
+            // Button choice: gamepad1.left_bumper (change if you want)
+            alignActive_dbg = false;
+            txMin_dbg = 0.0;
+            txMax_dbg = 0.0;
+            txTarget_dbg = 0.0;
+            alignErr_dbg = 0.0;
+
+            double headingCmd = headingManual;
+
+            boolean alignBtn = gamepad1.left_bumper;
+            boolean fresh = (ll != null && ll.isValid() && ll.getStaleness() < ShooterConfig.ALIGN_MAX_STALE_MS);
+
+            if (ShooterConfig.AUTO_ALIGN_ENABLED
+                    && alignBtn
+                    && visionEnabled
+                    && fresh
+                    && hasGoalTag_dbg) {
+
+                double tx = Tx;
+
+                // Use same distance you already use for shooter logic (filtered)
+                double dIn = (visInches != null) ? distIn_filt_dbg : Double.NaN;
+                double[] win = ShooterConfig.lookupTxWindowFromDistanceIn(dIn);
+                double txMin = win[0];
+                double txMax = win[1];
+
+                txMin_dbg = txMin;
+                txMax_dbg = txMax;
+
+                // Choose nearest boundary only if outside window; if inside, don't rotate.
+                if (tx < txMin) {
+                    txTarget_dbg = txMin;
+                } else if (tx > txMax) {
+                    txTarget_dbg = txMax;
+                } else {
+                    txTarget_dbg = tx; // already within range
+                }
+
+                double err = tx - txTarget_dbg;   // want err -> 0
+                alignErr_dbg = err;
+
+                if (Math.abs(err) <= ShooterConfig.ALIGN_ERR_DEADBAND_DEG) {
+                    headingCmd = 0.0;
+                } else {
+                    headingCmd = computeAlignTurnFromErr(err);
+                }
+
+                alignActive_dbg = true;
+            } else {
+                // reset derivative timing when not aligning
+                prevAlignNs = 0L;
+                prevAlignErr = 0.0;
+            }
+
+            // Apply drive AFTER align logic
+            drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), headingCmd));
+            drive.updatePoseEstimate();
+
             // ---------------- Arm toggle ----------------
             boolean rightEdge = gamepad2.dpad_right && !prevDpadRight;
             if (rightEdge && autoShooter) autoSpinArmed = !autoSpinArmed;
@@ -228,11 +305,6 @@ public class TeleOpMain extends LinearOpMode {
             tableTps_dbg = 0.0;
             commandedBase_dbg = 0.0;
             finalTps_dbg = 0.0;
-            if(Tx < 0){
-                //turn right
-            } else if (Tx > 0){
-                //Turn left
-            }
 
             if (autoShooter && autoSpinArmed) {
 
@@ -296,8 +368,17 @@ public class TeleOpMain extends LinearOpMode {
                 spunUpOk = Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
             }
 
-            // Block feeding if in no-shot zone, even if spun up
-            boolean feedAllowed = spunUpOk && !noShotZone;
+            // Angle gate: only allow feed if tag is found AND Tx is within the distance-based window.
+            boolean angleOk = false;
+            if (visionEnabled && hasGoalTag_dbg && ll != null && ll.isValid() && ll.getStaleness() < 100) {
+                double[] win = ShooterConfig.lookupTxWindowFromDistanceIn(distIn_filt_dbg);
+                double txMin = win[0];
+                double txMax = win[1];
+                angleOk = (Tx >= txMin && Tx <= txMax);
+            }
+
+            // Block feeding if not spun up OR in no-shot zone OR not within angle window
+            boolean feedAllowed = spunUpOk && !noShotZone && angleOk;
 
             if (gamepad2.y) {
                 if (!feedPulseActive && feedAllowed) {
@@ -352,9 +433,6 @@ public class TeleOpMain extends LinearOpMode {
                 logger.record("run");
             }
 
-            if (ll != null) Tx = ll.getTx();
-            if (ll != null) Ty = ll.getTy();
-
             // ---------------- TELEMETRY ----------------
             telemetry.addLine("---- Vision Distance (cameraPoseTargetSpace) ----");
             telemetry.addData("Vision Enabled", visionEnabled);
@@ -365,6 +443,13 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("rangeFiltIn", "%.2f", distIn_filt_dbg);
             telemetry.addData("Tx",  Tx);
             telemetry.addData("Ty", Ty);
+
+            telemetry.addLine("---- Align Window (Tx) ----");
+            telemetry.addData("AlignActive", alignActive_dbg);
+            telemetry.addData("txMin", "%.2f", txMin_dbg);
+            telemetry.addData("txMax", "%.2f", txMax_dbg);
+            telemetry.addData("txTarget", "%.2f", txTarget_dbg);
+            telemetry.addData("alignErr", "%.2f", alignErr_dbg);
 
             telemetry.addLine("---- No-Shot Zone ----");
             telemetry.addData("NO_SHOT_UNDER_IN", "%.2f", ShooterConfig.NO_SHOT_UNDER_IN);
@@ -398,6 +483,28 @@ public class TeleOpMain extends LinearOpMode {
         } finally {
             if (LOG_ENABLED && logger != null) logger.close();
         }
+    }
+
+    // ---------------- Align helper (added) ----------------
+    private double computeAlignTurnFromErr(double errDeg) {
+        long now = System.nanoTime();
+        double dt = (prevAlignNs == 0L) ? 0.0 : (now - prevAlignNs) / 1e9;
+        prevAlignNs = now;
+
+        double derr = 0.0;
+        if (dt > 1e-4) derr = (errDeg - prevAlignErr) / dt;
+        prevAlignErr = errDeg;
+
+        double u = ShooterConfig.ALIGN_KP * errDeg + ShooterConfig.ALIGN_KD * derr;
+
+        if (u > ShooterConfig.ALIGN_MAX_TURN) u = ShooterConfig.ALIGN_MAX_TURN;
+        if (u < -ShooterConfig.ALIGN_MAX_TURN) u = -ShooterConfig.ALIGN_MAX_TURN;
+
+        if (Math.abs(u) > 0.0 && Math.abs(u) < ShooterConfig.ALIGN_MIN_TURN) {
+            u = Math.copySign(ShooterConfig.ALIGN_MIN_TURN, u);
+        }
+
+        return u;
     }
 
     /**

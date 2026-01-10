@@ -1,3 +1,7 @@
+// ShooterConfig.java
+// Full file with Option A (distance -> [TxMin, TxMax]) included.
+// No REQUIRE_ALIGNED_TO_FEED flag.
+
 package org.firstinspires.ftc.teamcode.MainCode.config;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -54,6 +58,48 @@ public final class ShooterConfig {
             //1676, 1635, 1738, 1830, 1947, 1990, 2012, 2065,
             //1511,1615,1674,1683,1824,1933,
     };
+
+    // ---------------- Distance -> Tx window table (Option A) ----------------
+    // Same idea as TPS table: measured points, strictly increasing distance.
+    // Fill these over time.
+    public static boolean AUTO_ALIGN_ENABLED = true;
+
+    // Controller knobs (dashboard-tunable)
+    public static double ALIGN_KP = 0.035;
+    public static double ALIGN_KD = 0.002;
+    public static double ALIGN_MAX_TURN = 0.7;
+    public static double ALIGN_MIN_TURN = 0.08;
+    public static double ALIGN_ERR_DEADBAND_DEG = 0.25;
+    public static double ALIGN_MAX_STALE_MS = 100;
+
+    // Distance -> allowed Tx window (degrees)
+    public static double[] TX_DIST_IN = new double[] { 45, 60, 80, 110, 130 };
+    public static double[] TX_MIN_AT_DIST = new double[] { -4.0, -3.0, -2.0, -1.2, -1.0 };
+    public static double[] TX_MAX_AT_DIST = new double[] {  6.0,  5.0,  3.0,  2.0,  1.5 };
+
+    /** Linear interpolation lookup for allowed Tx window. Returns [min, max]. */
+    public static double[] lookupTxWindowFromDistanceIn(double distIn) {
+        if (!Double.isFinite(distIn)) return new double[]{-999.0, 999.0};
+        if (TX_DIST_IN == null || TX_MIN_AT_DIST == null || TX_MAX_AT_DIST == null) return new double[]{-999.0, 999.0};
+        int n = TX_DIST_IN.length;
+        if (n < 2 || TX_MIN_AT_DIST.length != n || TX_MAX_AT_DIST.length != n) return new double[]{-999.0, 999.0};
+
+        if (distIn <= TX_DIST_IN[0]) return new double[]{TX_MIN_AT_DIST[0], TX_MAX_AT_DIST[0]};
+        if (distIn >= TX_DIST_IN[n - 1]) return new double[]{TX_MIN_AT_DIST[n - 1], TX_MAX_AT_DIST[n - 1]};
+
+        int i = 0;
+        while (i < n - 1 && distIn > TX_DIST_IN[i + 1]) i++;
+
+        double x0 = TX_DIST_IN[i];
+        double x1 = TX_DIST_IN[i + 1];
+        if (x1 <= x0) return new double[]{TX_MIN_AT_DIST[i], TX_MAX_AT_DIST[i]};
+
+        double t = (distIn - x0) / (x1 - x0);
+
+        double min = TX_MIN_AT_DIST[i] + t * (TX_MIN_AT_DIST[i + 1] - TX_MIN_AT_DIST[i]);
+        double max = TX_MAX_AT_DIST[i] + t * (TX_MAX_AT_DIST[i + 1] - TX_MAX_AT_DIST[i]);
+        return new double[]{min, max};
+    }
 
     /** Linear interpolation lookup. */
     public static double lookupTpsFromDistanceIn(double distIn) {
