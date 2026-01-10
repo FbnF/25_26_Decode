@@ -43,6 +43,10 @@ public class TeleOpMain extends LinearOpMode {
     // Auto shooter (closed-loop velocity)
     private boolean autoShooter = true;
     private double shooterSetpointTPS = 0.0;
+    double Tx;
+    double Ty;
+
+
 
     // Debug: distance + pose
     double xM_dbg = 0, yM_dbg = 0, zM_dbg = 0;
@@ -63,7 +67,7 @@ public class TeleOpMain extends LinearOpMode {
     private static final boolean LOG_ENABLED = true;
     private TinyCsvLoggerFlex logger;
 
-    private static final int GOAL_TAG_ID = 24; // 20 = blue goal, 24 = red goal
+    private static final int GOAL_TAG_ID = 20; // 20 = blue goal, 24 = red goal
 
     // require driver to arm auto-spin before controlling flywheel
     private boolean autoSpinArmed = true;
@@ -224,6 +228,11 @@ public class TeleOpMain extends LinearOpMode {
             tableTps_dbg = 0.0;
             commandedBase_dbg = 0.0;
             finalTps_dbg = 0.0;
+            if(Tx < 0){
+                //turn right
+            } else if (Tx > 0){
+                //Turn left
+            }
 
             if (autoShooter && autoSpinArmed) {
 
@@ -343,6 +352,9 @@ public class TeleOpMain extends LinearOpMode {
                 logger.record("run");
             }
 
+            if (ll != null) Tx = ll.getTx();
+            if (ll != null) Ty = ll.getTy();
+
             // ---------------- TELEMETRY ----------------
             telemetry.addLine("---- Vision Distance (cameraPoseTargetSpace) ----");
             telemetry.addData("Vision Enabled", visionEnabled);
@@ -351,6 +363,8 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("GOAL_TAG_ID", GOAL_TAG_ID);
             telemetry.addData("rangeRawIn", "%.2f", distIn_raw_dbg);
             telemetry.addData("rangeFiltIn", "%.2f", distIn_filt_dbg);
+            telemetry.addData("Tx",  Tx);
+            telemetry.addData("Ty", Ty);
 
             telemetry.addLine("---- No-Shot Zone ----");
             telemetry.addData("NO_SHOT_UNDER_IN", "%.2f", ShooterConfig.NO_SHOT_UNDER_IN);

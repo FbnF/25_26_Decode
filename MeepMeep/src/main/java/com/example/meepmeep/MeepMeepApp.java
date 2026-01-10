@@ -16,7 +16,7 @@ public class MeepMeepApp {
         MeepMeep meepMeep = new MeepMeep(800);
 
         // FTC autonomous start pose
-        Pose2d startPose = new Pose2d(60, -16, Math.toRadians(180));
+        Pose2d startPose = new Pose2d(32, 31, Math.toRadians(90));
         // Old code: always spline to (0, 0, 225)
         Pose2d splineTarget = new Pose2d(0, 0, Math.toRadians(225));
 
@@ -27,32 +27,8 @@ public class MeepMeepApp {
         myBot.runAction(
                 myBot.getDrive().actionBuilder(startPose)
                         // First spline and shoot
-                        .splineToLinearHeading(splineTarget, Math.PI / 2)
-                        .turn(Math.toRadians(45))
-                        // First artifact round
-                        .setTangent(0)
-                        .lineToX(-10)
-                        .setTangent(Math.PI / 2)
-                        .strafeTo(new Vector2d(-10, -52))
-                        // Second spline and shoot
-                        .setTangent(0)
-                        .splineToLinearHeading(splineTarget, Math.PI / 2)
-                        .turn(Math.toRadians(45))
-                        .setTangent(0)
-                        .lineToX(10)
-                        .setTangent(Math.PI / 2)
-                        .strafeTo(new Vector2d(10, -52))
-                        // Third spline and shoot
-                        .setTangent(0)
-                        .splineToLinearHeading(splineTarget, Math.PI / 2)
-                        .turn(Math.toRadians(45))
-                        .setTangent(0)
-                        .lineToX(34)
-                        .setTangent(Math.PI / 2)
-                        .strafeTo(new Vector2d(34, -52))
-                        // Fourth/final spline and shoot
-                        .setTangent(0)
-                        .splineToLinearHeading(splineTarget, Math.PI / 2)
+
+                        .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5))
                         .build()
         );
 
