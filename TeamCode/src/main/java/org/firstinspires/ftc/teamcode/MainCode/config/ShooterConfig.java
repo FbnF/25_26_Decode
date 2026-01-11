@@ -65,17 +65,17 @@ public final class ShooterConfig {
     public static boolean AUTO_ALIGN_ENABLED = true;
 
     // Controller knobs (dashboard-tunable)
-    public static double ALIGN_KP = 0.035;
-    public static double ALIGN_KD = 0.002;
+    public static double ALIGN_KP = 0.02;
+    public static double ALIGN_KD = 0.00045;
     public static double ALIGN_MAX_TURN = 0.7;
     public static double ALIGN_MIN_TURN = 0.08;
     public static double ALIGN_ERR_DEADBAND_DEG = 0.25;
     public static double ALIGN_MAX_STALE_MS = 100;
 
     // Distance -> allowed Tx window (degrees)
-    public static double[] TX_DIST_IN = new double[] { 45, 60, 80, 110, 130 };
-    public static double[] TX_MIN_AT_DIST = new double[] { -4.0, -3.0, -2.0, -1.2, -1.0 };
-    public static double[] TX_MAX_AT_DIST = new double[] {  6.0,  5.0,  3.0,  2.0,  1.5 };
+    public static double[] TX_DIST_IN = new double[] { 58.23, 78.02, 131.3};
+    public static double[] TX_MIN_AT_DIST = new double[] { -8.36,-6.25,-6.39};
+    public static double[] TX_MAX_AT_DIST = new double[] {  0.4,  0.91,  1.27 };
 
     /** Linear interpolation lookup for allowed Tx window. Returns [min, max]. */
     public static double[] lookupTxWindowFromDistanceIn(double distIn) {

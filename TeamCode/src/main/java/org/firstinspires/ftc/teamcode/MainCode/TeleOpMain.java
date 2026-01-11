@@ -275,7 +275,7 @@ public class TeleOpMain extends LinearOpMode {
                     txTarget_dbg = tx; // already within range
                 }
 
-                double err = tx - txTarget_dbg;   // want err -> 0
+                double err =  txTarget_dbg- tx;   // want err -> 0
                 alignErr_dbg = err;
 
                 if (Math.abs(err) <= ShooterConfig.ALIGN_ERR_DEADBAND_DEG) {
