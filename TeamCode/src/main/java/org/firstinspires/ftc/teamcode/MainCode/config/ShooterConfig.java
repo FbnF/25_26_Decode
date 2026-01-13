@@ -49,12 +49,14 @@ public final class ShooterConfig {
     // Replace with measured points over time.
     // Must be same length and DIST_IN strictly increasing.
     public static double[] DIST_IN = new double[] {
-            42.51,45.5,48.1, 56.9,58.25, 78.9, 84.5, 102.1, 123.5,128.13, 130.1, 134.5,136.5, 144.2,
+            54.7, 58.23, 59.7, 78.02, 78.03, 86.52, 90.51, 114.22,129.81,131.3,136.24,152.44
+            //42.51,45.5,48.1, 56.9,58.25, 78.9, 84.5, 102.1, 123.5,128.13, 130.1, 134.5,136.5, 144.2,
             //58.82,83.71,85,86.46,98.69,131.18,
     };
 
     public static double[] TPS_AT_DIST = new double[] {
-            1425.92,1440.12,1421.64 ,1423.18, 1417.68,1507.04, 1526.44, 1618.7,1742.12, 1697.36, 1754.1, 1780.68,1787, 1829.85,
+            1366 ,1429 ,1367 ,1488 ,1455 ,1538 ,1559 ,1681 ,1733 ,1736 ,1794 ,1888
+            //1425.92,1440.12,1421.64 ,1423.18, 1417.68,1507.04, 1526.44, 1618.7,1742.12, 1697.36, 1754.1, 1780.68,1787, 1829.85,
             //1676, 1635, 1738, 1830, 1947, 1990, 2012, 2065,
             //1511,1615,1674,1683,1824,1933,
     };
@@ -73,9 +75,9 @@ public final class ShooterConfig {
     public static double ALIGN_MAX_STALE_MS = 100;
 
     // Distance -> allowed Tx window (degrees)
-    public static double[] TX_DIST_IN = new double[] { 58.23, 78.02, 131.3};
-    public static double[] TX_MIN_AT_DIST = new double[] { -8.36,-6.25,-6.39};
-    public static double[] TX_MAX_AT_DIST = new double[] {  0.4,  0.91,  1.27 };
+    public static double[] TX_DIST_IN = new double[] { 54.7, 58.23, 59.7, 78.02, 78.03, 86.52, 90.51, 114.22,129.81,131.3,136.24,152.44};
+    public static double[] TX_MIN_AT_DIST = new double[] {-11.1 ,-8.36 ,-9.81 ,-6.25,4.64,-10.65 ,-8.7 ,-8.8 ,-5.4 ,-6.39 ,-0.21 ,-5.72};
+    public static double[] TX_MAX_AT_DIST = new double[] {0.801,0.4,3.45,0.91,-8.02 ,-1.45 ,-2.69 ,-2.6,1.14,1.27,0.08,-1.68};
 
     /** Linear interpolation lookup for allowed Tx window. Returns [min, max]. */
     public static double[] lookupTxWindowFromDistanceIn(double distIn) {
