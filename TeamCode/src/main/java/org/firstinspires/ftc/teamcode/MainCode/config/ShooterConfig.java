@@ -76,8 +76,9 @@ public final class ShooterConfig {
 
     // Distance -> allowed Tx window (degrees)
     public static double[] TX_DIST_IN = new double[] { 54.7, 58.23, 59.7, 78.02, 78.03, 86.52, 90.51, 114.22,129.81,131.3,136.24,152.44};
-    public static double[] TX_MIN_AT_DIST = new double[] {-11.1 ,-8.36 ,-9.81 ,-6.25,4.64,-10.65 ,-8.7 ,-8.8 ,-5.4 ,-6.39 ,-0.21 ,-5.72};
-    public static double[] TX_MAX_AT_DIST = new double[] {0.801,0.4,3.45,0.91,-8.02 ,-1.45 ,-2.69 ,-2.6,1.14,1.27,0.08,-1.68};
+    //added 3 to all the mins
+    public static double[] TX_MIN_AT_DIST = new double[] {-11.1 ,-8.36 ,-9.81 ,-6.25,-8.02,-10.65 ,-8.7 ,-8.8 ,-5.4 ,-6.39 ,-0.21 ,-5.72};
+    public static double[] TX_MAX_AT_DIST = new double[] {0.801,0.4,3.45,0.91,4.64 ,-1.45 ,-2.69 ,-2.6,1.14,1.27,0.08,-1.68};
 
     /** Linear interpolation lookup for allowed Tx window. Returns [min, max]. */
     public static double[] lookupTxWindowFromDistanceIn(double distIn) {
