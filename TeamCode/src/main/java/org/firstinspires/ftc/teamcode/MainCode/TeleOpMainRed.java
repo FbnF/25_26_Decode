@@ -1,4 +1,4 @@
-// TeleOpMain.java
+// TeleOpMainBlue.java
 // Full file with Option A implemented AND feed gating always includes "wrong angle".
 // Removed all REQUIRE_ALIGNED_TO_FEED references (does not exist anymore).
 
@@ -7,9 +7,10 @@ package org.firstinspires.ftc.teamcode.MainCode;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -19,19 +20,16 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.List;
 
-@TeleOp(name = "TeleOp: Main", group = "TeleOp")
-public class TeleOpMain extends LinearOpMode {
+@TeleOp(name = "TeleOpRed: Main", group = "TeleOp")
+public class TeleOpMainRed extends LinearOpMode {
 
     // --- Hardware ---
     private Servo feedServo;
@@ -69,7 +67,7 @@ public class TeleOpMain extends LinearOpMode {
     private static final boolean LOG_ENABLED = true;
     private TinyCsvLoggerFlex logger;
 
-    private static final int GOAL_TAG_ID = 20; // 20 = blue goal, 24 = red goal
+    private static final int GOAL_TAG_ID = 24; // 20 = blue goal, 24 = red goal
 
     // require driver to arm auto-spin before controlling flywheel
     private boolean autoSpinArmed = true;
@@ -80,7 +78,7 @@ public class TeleOpMain extends LinearOpMode {
     private static final long FLASH_YELLOW_NS = 500_000_000L;
 
     // --- Drive/settings ---
-    private double speedFactor = 0.7;
+    private double speedFactor = 1.2;
     @SuppressWarnings("unused")
     BNO055IMU imu;
 
@@ -91,8 +89,11 @@ public class TeleOpMain extends LinearOpMode {
     private boolean prevRB = false;
 
     private boolean feedPulseActive = false;
+    private boolean intakeMotorPulseActive = false;
     private long feedPulseStartNs = 0;
+    private double intakePulseStartNs = 0;
     private static final long FEED_DWELL_NS = 150_000_000L;
+    private static final double INTAKE_DWELL_NS = 1000000000;
 
     // edge state for GP2 dpad-Left (vision toggle)
     private boolean prevG2DpadLeft = false;
@@ -168,7 +169,7 @@ public class TeleOpMain extends LinearOpMode {
         while (opModeIsActive()) {
 
             // ---------------- Base Drive ----------------
-            if (gamepad1.a) speedFactor = 0.95;
+            if (gamepad1.a) speedFactor = 1.2;
             if (gamepad1.b) speedFactor = 0.4;
             if (gamepad1.x) speedFactor = 0.7;
 
@@ -385,6 +386,10 @@ public class TeleOpMain extends LinearOpMode {
                     feedServo.setPosition(0.12);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
+                    intakeMotor.setPower(1.0);
+                    intakeMotorPulseActive = true;
+                    intakePulseStartNs = System.nanoTime();
+
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
@@ -393,6 +398,11 @@ public class TeleOpMain extends LinearOpMode {
             if (feedPulseActive && System.nanoTime() - feedPulseStartNs >= FEED_DWELL_NS) {
                 feedServo.setPosition(0.02);
                 feedPulseActive = false;
+            }
+
+            if(intakeMotorPulseActive && System.nanoTime() - intakePulseStartNs >= INTAKE_DWELL_NS){
+                intakeMotor.setPower(0.0);
+                intakeMotorPulseActive = false;
             }
 
             // ---------------- INTAKE ----------------
