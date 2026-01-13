@@ -96,7 +96,7 @@ public class TeleOpMainBlue extends LinearOpMode {
     private boolean intakeMotorPulseActive = false;
     private long feedPulseStartNs = 0;
     private static final long FEED_DWELL_NS = 150_000_000L;
-    private static final double INTAKE_DWELL_NS = 1000000000;
+    private static final double INTAKE_DWELL_NS = 1500000000;
 
     // edge state for GP2 dpad-Left (vision toggle)
     private boolean prevG2DpadLeft = false;
@@ -271,10 +271,16 @@ public class TeleOpMainBlue extends LinearOpMode {
                 txMax_dbg = txMax;
 
                 // Choose nearest boundary only if outside window; if inside, don't rotate.
-                if (tx < txMin) {
+              /*  if (tx < txMin) {
                     txTarget_dbg = txMin;
                 } else if (tx > txMax) {
                     txTarget_dbg = txMax;
+                } else {
+                    txTarget_dbg = tx; // already within range
+                }*/
+
+                if(tx < txMin || tx > txMax){
+                    txTarget_dbg = (txMin + txMax)/2;
                 } else {
                     txTarget_dbg = tx; // already within range
                 }

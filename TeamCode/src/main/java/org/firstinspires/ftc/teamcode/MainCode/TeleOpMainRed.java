@@ -91,9 +91,10 @@ public class TeleOpMainRed extends LinearOpMode {
     private boolean feedPulseActive = false;
     private boolean intakeMotorPulseActive = false;
     private long feedPulseStartNs = 0;
+
     private double intakePulseStartNs = 0;
     private static final long FEED_DWELL_NS = 150_000_000L;
-    private static final double INTAKE_DWELL_NS = 1000000000;
+    private static final double INTAKE_DWELL_NS = 1500000000;
 
     // edge state for GP2 dpad-Left (vision toggle)
     private boolean prevG2DpadLeft = false;
