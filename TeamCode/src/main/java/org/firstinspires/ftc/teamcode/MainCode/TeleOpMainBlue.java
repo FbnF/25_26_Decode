@@ -382,7 +382,7 @@ public class TeleOpMainBlue extends LinearOpMode {
             }
 
             // Block feeding if not spun up OR in no-shot zone OR not within angle window
-            boolean feedAllowed = spunUpOk && !noShotZone && angleOk;
+            boolean feedAllowed = spunUpOk && !noShotZone;
 
             if (gamepad2.y) {
                 if (!feedPulseActive && feedAllowed) {
