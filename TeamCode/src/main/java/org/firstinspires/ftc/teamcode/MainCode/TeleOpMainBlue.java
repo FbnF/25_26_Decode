@@ -389,9 +389,11 @@ public class TeleOpMainBlue extends LinearOpMode {
                     feedServo.setPosition(0.12);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
-                    intakeMotorPulseActive = true;
-                    intakePulseStartNs = System.nanoTime();
-                    intakeMotor.setPower(1.0);
+                    if(!intakeMotorPulseActive) {
+                        intakeMotorPulseActive = true;
+                        intakePulseStartNs = System.nanoTime();
+                        intakeMotor.setPower(1.0);
+                    }
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }

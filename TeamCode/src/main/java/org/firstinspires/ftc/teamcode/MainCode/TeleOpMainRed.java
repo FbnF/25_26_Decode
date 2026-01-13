@@ -268,10 +268,12 @@ public class TeleOpMainRed extends LinearOpMode {
                 txMax_dbg = txMax;
 
                 // Choose nearest boundary only if outside window; if inside, don't rotate.
-                if (tx < txMin) {
+               /* if (tx < txMin) {
                     txTarget_dbg = txMin;
                 } else if (tx > txMax) {
-                    txTarget_dbg = txMax;
+                    txTarget_dbg = txMax;*/
+                if(tx < txMin || tx > txMax){
+                    txTarget_dbg = (txMin + txMax)/2;
                 } else {
                     txTarget_dbg = tx; // already within range
                 }
@@ -386,9 +388,11 @@ public class TeleOpMainRed extends LinearOpMode {
                     feedServo.setPosition(0.12);
                     feedPulseActive = true;
                     feedPulseStartNs = System.nanoTime();
-                    intakeMotor.setPower(1.0);
-                    intakeMotorPulseActive = true;
-                    intakePulseStartNs = System.nanoTime();
+                    if(!intakeMotorPulseActive) {
+                        intakeMotorPulseActive = true;
+                        intakePulseStartNs = System.nanoTime();
+                        intakeMotor.setPower(1.0);
+                    }
 
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
