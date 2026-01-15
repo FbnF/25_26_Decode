@@ -29,17 +29,17 @@ public class BigTriBlue extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1380;
-    private static final double SHOOTER_Vel2 = 1380;
+    private static final double SHOOTER_Vel = 1340;
+    private static final double SHOOTER_Vel2 = 1340;
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.0;
     private static final double SERVO_FEED_POS = 0.12;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = {2};//2.5
-    private static final double[] FEED_CON_S = {1.5, 3.5}; //1.0,3.0
+    private static final double[] FEED_START_S = {0.5};//2.5
+    private static final double[] FEED_CON_S = {0.5, 2}; //1.0,3.0
     private static final double   FEED_HOLD_S  = 0.7;
-    private static final double   END_PADDING_S = 1.0;
+    private static final double   END_PADDING_S = 0.4;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -120,13 +120,13 @@ public class BigTriBlue extends LinearOpMode {
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .splineToLinearHeading(new Pose2d(14, -24,Math.toRadians(270)),Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(15.5, -24,Math.toRadians(270)),Math.toRadians(270))
                 .lineToY(-52)
                 .lineToY(-45)
 
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
-                /*
+
                 .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(225))
 
                 // Shooter runs
@@ -139,35 +139,38 @@ public class BigTriBlue extends LinearOpMode {
                 .stopAndAdd(new ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
-                        FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
-
-                .splineToLinearHeading(new Pose2d(36, -24,Math.toRadians(270)),Math.toRadians(270))
-
-
-                .lineToY(-50)
-                .lineToY(-45)
-                .lineToY(-50)
-                .stopAndAdd(setMotorPower(intake, 0.0))
-
-
-                .splineToLinearHeading(new Pose2d(-20, -20,Math.toRadians(225)),Math.toRadians(225))
-
-                //shooter runs
-                .stopAndAdd(new ShooterAndFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_Vel,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                .stopAndAdd(setMotorPower(intake, 0.73))
-                .stopAndAdd(new ShooterAndFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_Vel,
-                        FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                .strafeTo(new Vector2d(-48, -24))
 
-                .strafeTo(new Vector2d(-48, -16))
-*/
+                /*
+                               .splineToLinearHeading(new Pose2d(36, -24,Math.toRadians(270)),Math.toRadians(270))
+
+
+                               .lineToY(-50)
+                               .lineToY(-45)
+                               .lineToY(-50)
+                               .stopAndAdd(setMotorPower(intake, 0.0))
+
+
+
+                               .splineToLinearHeading(new Pose2d(-20, -20,Math.toRadians(225)),Math.toRadians(225))
+
+                               //shooter runs
+                               .stopAndAdd(new ShooterAndFeederActionVel(
+                                       shooter, feed,
+                                       SHOOTER_Vel,
+                                       FEED_START_S, FEED_HOLD_S, END_PADDING_S,
+                                       SERVO_LOAD_POS, SERVO_FEED_POS))
+                               .stopAndAdd(setMotorPower(intake, 0.73))
+                               .stopAndAdd(new ShooterAndFeederActionVel(
+                                       shooter, feed,
+                                       SHOOTER_Vel,
+                                       FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
+                                       SERVO_LOAD_POS, SERVO_FEED_POS))
+
+                               .strafeTo(new Vector2d(-48, -16))
+               */
                 .build();
 
         // ADDED: wrap the action with per-tick logging
