@@ -100,7 +100,6 @@ public class SmallTriRed extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-             //   .turn(Math.toRadians(ANGLE_OF_TURN * -1))
                 .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(155.5) )
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
@@ -113,18 +112,15 @@ public class SmallTriRed extends LinearOpMode {
                         SHOOTER_VEL_SEC,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(155.5))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .strafeToLinearHeading(new Vector2d(32, 27), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(32, 23), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
                 .lineToY(48)
                 .lineToY(52)
-                // .lineToY(36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(155.5))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                //  .turn(Math.toRadians(ANGLE_OF_TURN * -1))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL_SEC,
@@ -136,14 +132,10 @@ public class SmallTriRed extends LinearOpMode {
                         SHOOTER_VEL_SEC,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                // .turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(155.5))
-                //   .splineTo(new Vector2d(16, 18), Math.
-                //   toRadians(90))
-            //    .strafeToLinearHeading(new Vector2d(38, 25), Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(12, 15), Math.toRadians(85))
-                .setTangent(Math.toRadians(85))
-                .lineToY(55)
+                .strafeToLinearHeading(new Vector2d(8, 15), Math.toRadians(90))
+                .setTangent(Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(8, 54), Math.toRadians(90))
                 .build();
 
         Actions.runBlocking(all);
