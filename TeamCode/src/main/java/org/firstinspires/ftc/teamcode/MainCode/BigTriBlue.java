@@ -121,7 +121,7 @@ public class BigTriBlue extends LinearOpMode {
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .splineToLinearHeading(new Pose2d(15.5, -24,Math.toRadians(270)),Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(13.5, -24,Math.toRadians(270)),Math.toRadians(270))
                 .lineToY(-52)
                 .lineToY(-45)
 

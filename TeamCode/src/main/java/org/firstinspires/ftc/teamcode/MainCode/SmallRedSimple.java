@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Autonomous;
+package org.firstinspires.ftc.teamcode.MainCode;
 
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
@@ -8,10 +8,10 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
@@ -21,8 +21,8 @@ import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndF
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="SmallTriRedNoSpline", group="Auto")
-public class SmallRedNoSpline extends LinearOpMode {
+@Autonomous(name="SmallTriRed", group="Auto")
+public class SmallRedSimple extends LinearOpMode {
 
     // RC config names
     private static final String FEED_SERVO   = "feedServo";
@@ -35,9 +35,12 @@ public class SmallRedNoSpline extends LinearOpMode {
     private static final double INTAKE_POWER  = 0.73;
 
     private static double SHOOTER_POWER = 0.78;
-    private static double SHOOTER_VEL = 1910;
+    private static double SHOOTER_VEL = 1750;
 
-    private static double SHOOTER_VEL_SEC = 1850;
+    private static double SHOOTER_VEL_R2 = 1770;
+
+
+    private static double SHOOTER_VEL_SEC = 1755.0;
 
 
     // Servo positions (use what worked in your tests)
@@ -47,8 +50,9 @@ public class SmallRedNoSpline extends LinearOpMode {
     private static final double ANGLE_OF_TURN = 27.5;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = {2.5, 4.5};
-    private static final double[] FEED_START_S_FIRST = {2.7};
+    private static final double[] FEED_START_S = {2, 4};
+    private static final double[] FEED_START_S_FIRST = {1.5};
+    private static final double[] FEED_START_S_FIRST_2 = {2};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
@@ -72,6 +76,8 @@ public class SmallRedNoSpline extends LinearOpMode {
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
         intake.setPower(0.0);
         shooter.setPower(0.0);
         feed.setPosition(SERVO_LOAD_POS);
@@ -94,7 +100,7 @@ public class SmallRedNoSpline extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .turn(Math.toRadians(ANGLE_OF_TURN * -1))
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(155.5) )
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
@@ -106,35 +112,8 @@ public class SmallRedNoSpline extends LinearOpMode {
                         SHOOTER_VEL_SEC,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                .turn(Math.toRadians(ANGLE_OF_TURN))
-                .setTangent(Math.toRadians(180))
-                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .splineTo(new Vector2d(34, 36), Math.toRadians(90))
-                .setTangent(Math.toRadians(90))
-                .lineToY(48)
-                .lineToY(52)
-                // .lineToY(36)
-                .stopAndAdd(setMotorPower(intake, 0.0))
-                .turn(Math.toRadians(90-ANGLE_OF_TURN))
-                .strafeTo(new Vector2d(58, 16))
-                .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                //  .turn(Math.toRadians(ANGLE_OF_TURN * -1))
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_VEL,
-                        FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
-                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_VEL_SEC,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
-                // .turn(Math.toRadians(ANGLE_OF_TURN))
-                .setTangent(Math.toRadians(180))
-                //   .splineTo(new Vector2d(16, 18), Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(38, 25), Math.toRadians(90))
-
+                .setTangent(Math.toRadians(155.5))
+                .strafeToLinearHeading(new Vector2d(51, 14), Math.toRadians(155.5))
                 .build();
 
         Actions.runBlocking(all);

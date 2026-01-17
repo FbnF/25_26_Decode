@@ -172,7 +172,7 @@ public class TeleOpMainBlue extends LinearOpMode {
         while (opModeIsActive()) {
 
             // ---------------- Base Drive ----------------
-            if (gamepad1.a) speedFactor = 0.95;
+            if (gamepad1.a) speedFactor = 1.35;
             if (gamepad1.b) speedFactor = 0.4;
             if (gamepad1.x) speedFactor = 0.7;
 
