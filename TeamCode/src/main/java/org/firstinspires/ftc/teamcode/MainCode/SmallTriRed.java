@@ -119,7 +119,7 @@ public class SmallTriRed extends LinearOpMode {
                 .lineToY(48)
                 .lineToY(52)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(155.5))
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
@@ -132,10 +132,10 @@ public class SmallTriRed extends LinearOpMode {
                         SHOOTER_VEL_SEC,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                .setTangent(Math.toRadians(155.5))
-                .strafeToLinearHeading(new Vector2d(8, 15), Math.toRadians(90))
+                .setTangent(Math.toRadians(152.5))
+                .strafeToLinearHeading(new Vector2d(12, 15), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(8, 54), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(12, 54), Math.toRadians(90))
                 .build();
 
         Actions.runBlocking(all);
