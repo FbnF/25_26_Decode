@@ -35,9 +35,12 @@ public class SmallTriRed extends LinearOpMode {
     private static final double INTAKE_POWER  = 0.73;
 
     private static double SHOOTER_POWER = 0.78;
-    private static double SHOOTER_VEL = 1770;
+    private static double SHOOTER_VEL = 1750;
 
-    private static double SHOOTER_VEL_SEC = 1770.0;
+    private static double SHOOTER_VEL_R2 = 1770;
+
+
+    private static double SHOOTER_VEL_SEC = 1755.0;
 
 
     // Servo positions (use what worked in your tests)
@@ -48,7 +51,8 @@ public class SmallTriRed extends LinearOpMode {
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double[] FEED_START_S = {2, 4};
-    private static final double[] FEED_START_S_FIRST = {1.7};
+    private static final double[] FEED_START_S_FIRST = {1.5};
+    private static final double[] FEED_START_S_FIRST_2 = {2};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
 
@@ -97,7 +101,7 @@ public class SmallTriRed extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
              //   .turn(Math.toRadians(ANGLE_OF_TURN * -1))
-                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5) )
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(155.5) )
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
@@ -110,21 +114,21 @@ public class SmallTriRed extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
-                .setTangent(Math.toRadians(152.5))
+                .setTangent(Math.toRadians(155.5))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .splineTo(new Vector2d(32, 31), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(32, 27), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
                 .lineToY(48)
                 .lineToY(52)
                 // .lineToY(36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5))
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(155.5))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 //  .turn(Math.toRadians(ANGLE_OF_TURN * -1))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_VEL,
-                        FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
+                        SHOOTER_VEL_SEC,
+                        FEED_START_S_FIRST_2, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
@@ -133,10 +137,13 @@ public class SmallTriRed extends LinearOpMode {
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 // .turn(Math.toRadians(ANGLE_OF_TURN))
-                .setTangent(Math.toRadians(180))
-                //   .splineTo(new Vector2d(16, 18), Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(38, 25), Math.toRadians(90))
-
+                .setTangent(Math.toRadians(155.5))
+                //   .splineTo(new Vector2d(16, 18), Math.
+                //   toRadians(90))
+            //    .strafeToLinearHeading(new Vector2d(38, 25), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(12, 15), Math.toRadians(85))
+                .setTangent(Math.toRadians(85))
+                .lineToY(55)
                 .build();
 
         Actions.runBlocking(all);

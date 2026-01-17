@@ -33,7 +33,8 @@ public class SmallTriBlue extends LinearOpMode {
     private static final double INTAKE_POWER  = 0.73;
     private static double SHOOTER_POWER = 0.74;
 
-    private static double SHOOTER_VEL = 1750;
+    private static double SHOOTER_VEL = 1760;
+    private static double SHOOTER_VEL_R2 = 1770;
 
     private static double SHOOTER_VEL_SEC = 1760;
 
@@ -45,7 +46,7 @@ public class SmallTriBlue extends LinearOpMode {
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double[] FEED_START_S = { 2, 4};
-    private static final double[] FEED_START_S_FIRST = {1.75};
+    private static final double[] FEED_START_S_FIRST = {1};
 
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 1.0;
@@ -122,20 +123,20 @@ public class SmallTriBlue extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(52, -12), Math.toRadians(200))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_VEL,
+                        SHOOTER_VEL_SEC,
                         FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
-                        SHOOTER_VEL_SEC,
+                        SHOOTER_VEL_R2,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(200))
-                .strafeToLinearHeading(new Vector2d(12.5, -19), Math.toRadians(273))
-                .setTangent(Math.toRadians(270))
-                .lineToY(-54)
+                .strafeToLinearHeading(new Vector2d(11, -19), Math.toRadians(275))
+                .setTangent(Math.toRadians(275))
+                .lineToY(-55)
                 .build();
 
         Actions.runBlocking(all);
