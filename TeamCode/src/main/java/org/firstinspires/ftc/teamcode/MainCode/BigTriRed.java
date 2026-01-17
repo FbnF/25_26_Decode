@@ -99,7 +99,7 @@ public class BigTriRed extends LinearOpMode {
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
 
-                .splineToLinearHeading(new Pose2d(-6, 24,Math.toRadians(90)),Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
 
                 .lineToY(48)
                 .lineToY(45)
@@ -127,7 +127,7 @@ public class BigTriRed extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
 
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
+                .strafeToLinearHeading(new Vector2d(-36, 12), Math.toRadians(120))
 
                 // Shooter runs
                 .stopAndAdd(new ShooterAndFeederActionVel(
@@ -139,10 +139,8 @@ public class BigTriRed extends LinearOpMode {
                 .stopAndAdd(new ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
+                        FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-
-                .splineToLinearHeading(new Pose2d(-48, 24,Math.toRadians(90)),Math.toRadians(90))
 /*
 
                 .lineToY(50)

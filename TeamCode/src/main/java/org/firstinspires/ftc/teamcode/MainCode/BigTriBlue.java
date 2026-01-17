@@ -38,6 +38,7 @@ public class BigTriBlue extends LinearOpMode {
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double[] FEED_START_S = {0.5};//2.5
     private static final double[] FEED_CON_S = {0.5, 2}; //1.0,3.0
+    private static final double[] FEED_LAST_S = {0.7};
     private static final double   FEED_HOLD_S  = 0.7;
     private static final double   END_PADDING_S = 0.4;
 
@@ -127,7 +128,7 @@ public class BigTriBlue extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
 
-                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(225))
+                .strafeToLinearHeading(new Vector2d(-36, -12), Math.toRadians(240))
 
                 // Shooter runs
                 .stopAndAdd(new ShooterAndFeederActionVel(
@@ -139,9 +140,8 @@ public class BigTriBlue extends LinearOpMode {
                 .stopAndAdd(new ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
+                        FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                .strafeTo(new Vector2d(-48, -24))
 
                 /*
                                .splineToLinearHeading(new Pose2d(36, -24,Math.toRadians(270)),Math.toRadians(270))
