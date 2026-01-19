@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -375,6 +376,67 @@ public final class AutoMotorControl {
             return false;
         }
     }
+
+
+    public static class ShooterAndCRFeederActionVel implements Action {
+        private final DcMotorEx shooter;
+        private final CRServo feeder;
+        private final double shooterVel;
+        private final double[] feedStartS;
+        private final double feedHoldS;
+        private final double endPaddingS;
+        private final double loadPos;
+        private final double feedPos;
+
+        private boolean initialized = false;
+        private long t0;
+
+
+        public ShooterAndCRFeederActionVel(DcMotorEx shooter, CRServo feeder, double shooterVel, double[] feedStartS, double feedHoldS, double endPaddingS, double loadPos, double feedPos) {
+            this.shooter = shooter;
+            this.feeder = feeder;
+            this.shooterVel = shooterVel;
+            this.feedStartS = feedStartS;
+            this.feedHoldS = feedHoldS;
+            this.endPaddingS = endPaddingS;
+            this.loadPos = loadPos;
+            this.feedPos = feedPos;
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            if (!initialized) {
+                t0 = System.nanoTime();
+                if (shooter != null) {
+                    shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                    shooter.setVelocity(shooterVel);
+                }
+                if (feeder != null) feeder.setPower(-1);
+                initialized = true;
+            }
+
+            double t = (System.nanoTime() - t0) / 1e9;
+
+            boolean feeding = false;
+            for (double s : feedStartS) {
+                if (t >= s && t < s + feedHoldS) { feeding = true; break; }
+            }
+            if (feeder != null) feeder.setPower(-1);
+
+            packet.put("t_s", String.format("%.2f", t));
+            packet.put("feeding", feeding);
+
+            double lastEnd = (feedStartS.length > 0 ? feedStartS[feedStartS.length - 1] : 0.0)
+                    + feedHoldS + endPaddingS;
+
+            if (t < lastEnd) return true;
+
+            if (feeder != null) feeder.setPower(0);
+            if (shooter != null) shooter.setVelocity(0.0);
+            return false;
+        }
+    }
+
 
     // -------------------------------------------------------------------------
     // Vision shooter action (renamed to avoid colliding with legacy ShooterAndFeederAction)

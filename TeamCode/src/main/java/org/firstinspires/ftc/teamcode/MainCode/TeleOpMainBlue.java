@@ -13,6 +13,7 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
@@ -34,7 +35,7 @@ import java.util.List;
 public class TeleOpMainBlue extends LinearOpMode {
 
     // --- Hardware ---
-    private Servo feedServo;
+    private CRServo feedServo;
     private MecanumDrive drive;
     private DcMotorEx intakeMotor;
     private DcMotorEx launchMotor;
@@ -118,7 +119,7 @@ public class TeleOpMainBlue extends LinearOpMode {
     public void runOpMode() {
 
         // Map hardware
-        feedServo   = hardwareMap.get(Servo.class,     "feedServo");
+        feedServo   = hardwareMap.get(CRServo.class,     "feedServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
         launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
         battery     = hardwareMap.voltageSensor.iterator().next();
@@ -131,7 +132,7 @@ public class TeleOpMainBlue extends LinearOpMode {
         limelight.start();
         limelight.pipelineSwitch(0);
 
-        feedServo.setPosition(0.02);
+        feedServo.setPower(0.0);
 
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -157,7 +158,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                     TinyCsvLoggerFlex.motorEx("launch", launchMotor),
                     TinyCsvLoggerFlex.doubleCol("intake_cmd", () -> intakePower),
                     TinyCsvLoggerFlex.motorEx("intake", intakeMotor),
-                    TinyCsvLoggerFlex.servoPos("feed_pos", feedServo),
+                //    TinyCsvLoggerFlex.servoPos("feed_pos", feedServo),
                     TinyCsvLoggerFlex.pose2d("pose", () -> drive.localizer.getPose())
             );
         }
@@ -391,24 +392,21 @@ public class TeleOpMainBlue extends LinearOpMode {
             boolean feedAllowed = spunUpOk && !noShotZone;
 
             if (gamepad2.y) {
-                if (!feedPulseActive && feedAllowed) {
-                    feedServo.setPosition(0.12);
-                    feedPulseActive = true;
-                    feedPulseStartNs = System.nanoTime();
-                    if(!intakeMotorPulseActive) {
-                        intakeMotorPulseActive = true;
-                        intakePulseStartNs = System.nanoTime();
-                        intakeMotor.setPower(1.0);
-                    }
+                if (feedAllowed) {
+                    feedServo.setPower(-1);
+
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
             }
-
-            if (feedPulseActive && System.nanoTime() - feedPulseStartNs >= FEED_DWELL_NS) {
-                feedServo.setPosition(0.02);
-                feedPulseActive = false;
+            if(gamepad2.x){
+                feedServo.setPower(0);
             }
+
+       /*     if (feedPulseActive && System.nanoTime() - feedPulseStartNs >= FEED_DWELL_NS) {
+                feedServo.setPower(0.0);
+                feedPulseActive = false;
+            }*/
             if(intakeMotorPulseActive && System.nanoTime() - intakePulseStartNs >= INTAKE_DWELL_NS){
                 intakeMotor.setPower(0.0);
                 intakeMotorPulseActive = false;

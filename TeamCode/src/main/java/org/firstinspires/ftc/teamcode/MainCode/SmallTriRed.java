@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
@@ -67,7 +68,7 @@ public class SmallTriRed extends LinearOpMode {
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
-        Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
+        CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
         VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
         // VoltageSensor battery = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR); // read battery
 
@@ -80,7 +81,7 @@ public class SmallTriRed extends LinearOpMode {
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
         intake.setPower(0.0);
         shooter.setPower(0.0);
-        feed.setPosition(SERVO_LOAD_POS);
+        feed.setPower(0);
 
 
         // proportional compensation: keep motor voltage constant
@@ -100,19 +101,19 @@ public class SmallTriRed extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(155.5) )
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(154.5) )
+                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
                         FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
+                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL_SEC,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                .setTangent(Math.toRadians(155.5))
+                .setTangent(Math.toRadians(154.5))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .strafeToLinearHeading(new Vector2d(32, 23), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
@@ -121,13 +122,13 @@ public class SmallTriRed extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
+                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL_SEC,
                         FEED_START_S_FIRST_2, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
+                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL_SEC,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
@@ -141,7 +142,7 @@ public class SmallTriRed extends LinearOpMode {
         Actions.runBlocking(all);
 
         // Safety park
-        feed.setPosition(SERVO_LOAD_POS);
+        feed.setPower(0);
         shooter.setPower(0.0);
         intake.setPower(0.0);
     }

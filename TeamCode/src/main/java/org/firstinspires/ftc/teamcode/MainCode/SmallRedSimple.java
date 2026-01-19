@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndF
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="SmallTriRed", group="Auto")
+@Autonomous(name="SmallRedSimple", group="Auto")
 public class SmallRedSimple extends LinearOpMode {
 
     // RC config names
@@ -35,7 +35,7 @@ public class SmallRedSimple extends LinearOpMode {
     private static final double INTAKE_POWER  = 0.73;
 
     private static double SHOOTER_POWER = 0.78;
-    private static double SHOOTER_VEL = 1750;
+    private static double SHOOTER_VEL = 1740;
 
     private static double SHOOTER_VEL_R2 = 1770;
 
@@ -100,7 +100,7 @@ public class SmallRedSimple extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(155.5) )
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(154.5) )
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
@@ -112,8 +112,8 @@ public class SmallRedSimple extends LinearOpMode {
                         SHOOTER_VEL_SEC,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                .setTangent(Math.toRadians(155.5))
-                .strafeToLinearHeading(new Vector2d(51, 14), Math.toRadians(155.5))
+                .setTangent(Math.toRadians(154.5))
+                .strafeToLinearHeading(new Vector2d(49, 25), Math.toRadians(155.5))
                 .build();
 
         Actions.runBlocking(all);

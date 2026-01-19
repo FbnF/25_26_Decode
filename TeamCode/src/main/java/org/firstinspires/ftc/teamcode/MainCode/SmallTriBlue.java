@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
@@ -62,7 +63,7 @@ public class SmallTriBlue extends LinearOpMode {
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
-        Servo feed            = hardwareMap.get(Servo.class, FEED_SERVO);
+        CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
         VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
         // VoltageSensor battery = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR); // read battery
 
@@ -75,7 +76,7 @@ public class SmallTriBlue extends LinearOpMode {
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
         intake.setPower(0.0);
         shooter.setPower(0.0);
-        feed.setPosition(SERVO_LOAD_POS);
+        feed.setPower(0);
 
         // proportional compensation: keep motor voltage constant
        /* double vbat = (battery != null) ? battery.getVoltage() : 12.0;
@@ -97,13 +98,13 @@ public class SmallTriBlue extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(52, -8), Math.toRadians(202))
 
                 // .turn(Math.toRadians(-ANGLE_OF_TURN))
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
+                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
                         FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
+                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL_SEC,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
@@ -121,13 +122,13 @@ public class SmallTriBlue extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(52, -12), Math.toRadians(200))
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
+                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL_SEC,
                         FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .stopAndAdd(new AutoMotorControl.ShooterAndFeederActionVel(
+                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL_R2,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
@@ -142,7 +143,7 @@ public class SmallTriBlue extends LinearOpMode {
         Actions.runBlocking(all);
 
         // Safety park
-        feed.setPosition(SERVO_LOAD_POS);
+        feed.setPower(0);
         shooter.setPower(0.0);
         intake.setPower(0.0);
     }

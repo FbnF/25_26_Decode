@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="SmallTriBlue", group="Auto")
+@Autonomous(name="SmallBlueSimple", group="Auto")
 public class SmallBlueSimple extends LinearOpMode {
 
     // RC config names
@@ -113,7 +113,7 @@ public class SmallBlueSimple extends LinearOpMode {
                 //.strafeToLinearHeading(new Vector2d(60, -16), Math.toRadians(180))
                 .setTangent(Math.toRadians(204))
                 //.splineTo(new Vector2d(32, -36), Math.toRadians(270))
-                .strafeToLinearHeading(new Vector2d(52, -12), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(49, -25), Math.toRadians(270))
                 .build();
 
         Actions.runBlocking(all);
