@@ -145,7 +145,7 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .strafeToLinearHeading(new Vector2d(20, -60), Math.toRadians(270))
-
+                .strafeToLinearHeading(new Vector2d(-36, -12), Math.toRadians(250))
                 // Shooter runs
                 .stopAndAdd(new ShooterAndCRFeederActionVel(
                         shooter, feed,
@@ -158,7 +158,6 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                         SHOOTER_Vel,
                         FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
                         SERVO_LOAD_POS, SERVO_FEED_POS))
-                .strafeToLinearHeading(new Vector2d(-36, -12), Math.toRadians(250))
 
                 .build();
 
