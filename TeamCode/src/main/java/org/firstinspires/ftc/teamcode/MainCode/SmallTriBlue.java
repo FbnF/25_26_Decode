@@ -101,14 +101,15 @@ public class SmallTriBlue extends LinearOpMode {
                 .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
-                        FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        1.5,
+                        3))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+
                 .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
-                        SHOOTER_VEL_SEC,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        SHOOTER_VEL,
+                        1.5,
+                        3))
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
 
                 //.strafeToLinearHeading(new Vector2d(60, -16), Math.toRadians(180))
@@ -122,17 +123,19 @@ public class SmallTriBlue extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(52, -12), Math.toRadians(200))
+
                 .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
-                        SHOOTER_VEL_SEC,
-                        FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        SHOOTER_VEL,
+                        1.5,
+                        3))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+
                 .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
-                        SHOOTER_VEL_R2,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        SHOOTER_VEL,
+                        1.5,
+                        3))
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(200))
                 .strafeToLinearHeading(new Vector2d(11, -19), Math.toRadians(275))

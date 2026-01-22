@@ -102,17 +102,19 @@ public class SmallTriRed extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(154.5) )
+
                 .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
-                        FEED_START_S_FIRST, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        1.5,
+                        3))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+
                 .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
-                        SHOOTER_VEL_SEC,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        SHOOTER_VEL,
+                        1.5,
+                        3))
                 .setTangent(Math.toRadians(154.5))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .strafeToLinearHeading(new Vector2d(32, 23), Math.toRadians(90))
@@ -122,17 +124,19 @@ public class SmallTriRed extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
+
                 .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
-                        SHOOTER_VEL_SEC,
-                        FEED_START_S_FIRST_2, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        SHOOTER_VEL,
+                        1.5,
+                        3))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+
                 .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
-                        SHOOTER_VEL_SEC,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        SHOOTER_VEL,
+                        1.5,
+                        3))
                 .setTangent(Math.toRadians(152.5))
                 .strafeToLinearHeading(new Vector2d(12, 15), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
