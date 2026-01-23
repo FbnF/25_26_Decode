@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.MainCode.util;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.MM;
+
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -8,8 +10,10 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 
@@ -424,6 +428,70 @@ public final class AutoMotorControl {
             return true;
         }
     }
+    public static class ShooterAndFeederCombined implements Action {
+        private final DcMotorEx shooter;
+        private final DcMotor intake;
+        private final CRServo feedServo;
+        private final CRServo sideServo;
+        private final DistanceSensor rangeSensor;
+        private final double shooterVel;
+        private final double sidePower;
+        private final double waitTime;
+        private long t0;
+        private final double timeToShoot;
+        private boolean init;
+
+
+
+        public ShooterAndFeederCombined(DcMotorEx shooter, DcMotor intake, CRServo feedServo, CRServo sideServo,
+                                                   DistanceSensor rangeSensor,
+                                                   double shooterVel,double sidePower, double waitTime,
+                                                   double timeToShoot) {
+            this.shooter = shooter;
+            this.intake = intake;
+            this.feedServo = feedServo;
+            this.sideServo = sideServo;
+            this.rangeSensor =rangeSensor;
+            this.shooterVel = shooterVel;
+            this.sidePower =sidePower;
+            this.waitTime = waitTime;
+            this.timeToShoot = timeToShoot;
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            if (!init) {
+                init = true;
+                t0 = System.nanoTime();
+                if (shooter != null) {
+                    shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                    shooter.setVelocity(shooterVel);
+                }
+
+                if (feedServo != null) feedServo.setPower(0);
+            }
+
+            double t = (System.nanoTime() - t0) / 1e9;
+            if(t >= waitTime){
+                feedServo.setPower(-1);
+            }
+            double distance = rangeSensor.getDistance(DistanceUnit.MM);
+            if(distance > 127){
+                sideServo.setPower(sidePower);
+                intake.setPower(0.75);
+            }
+            if(t >= timeToShoot){
+                if(feedServo != null) feedServo.setPower(0);
+                if(shooter != null) shooter.setVelocity(0.0);
+                if(intake != null) intake.setPower(0.0);
+                if(sideServo != null) sideServo.setPower(sidePower);
+                return false;
+            }
+            return true;
+        }
+    }
+
+
 
 
     // -------------------------------------------------------------------------
