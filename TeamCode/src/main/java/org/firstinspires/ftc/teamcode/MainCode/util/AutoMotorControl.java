@@ -475,10 +475,15 @@ public final class AutoMotorControl {
             if(t >= waitTime){
                 feedServo.setPower(-1);
             }
-            double distance = rangeSensor.getDistance(DistanceUnit.MM);
-            if(distance > 127){
-                sideServo.setPower(sidePower);
-                intake.setPower(0.75);
+            boolean nofirstball = false;
+            while (!nofirstball){
+                double distance = rangeSensor.getDistance(DistanceUnit.MM);
+                if(distance > 127) {
+                    sideServo.setPower(sidePower);
+                    intake.setPower(0.75);
+                    nofirstball = true; 
+                }
+
             }
             if(t >= timeToShoot){
                 if(feedServo != null) feedServo.setPower(0);
