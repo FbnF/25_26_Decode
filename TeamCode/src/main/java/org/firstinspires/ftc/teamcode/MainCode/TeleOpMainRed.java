@@ -7,25 +7,31 @@ package org.firstinspires.ftc.teamcode.MainCode;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.List;
 
@@ -39,6 +45,9 @@ public class TeleOpMainRed extends LinearOpMode {
     private DcMotorEx launchMotor;
     private RevBlinkinLedDriver blinkin;
     private VoltageSensor battery;
+    private Servo puckLight;
+
+    private DistanceSensor RangeSensor;
 
     // --- Vision ---
     private boolean visionEnabled = true;
@@ -78,6 +87,7 @@ public class TeleOpMainRed extends LinearOpMode {
     private long yTooSoonFlashUntilNs = 0L;
     private static final long FLASH_YELLOW_NS = 500_000_000L;
 
+
     // --- Drive/settings ---
     private double speedFactor = 1.2;
     @SuppressWarnings("unused")
@@ -90,10 +100,9 @@ public class TeleOpMainRed extends LinearOpMode {
     private boolean prevRB = false;
 
     private boolean feedPulseActive = false;
+    private double intakePulseStartNs = 0;
     private boolean intakeMotorPulseActive = false;
     private long feedPulseStartNs = 0;
-
-    private double intakePulseStartNs = 0;
     private static final long FEED_DWELL_NS = 150_000_000L;
     private static final double INTAKE_DWELL_NS = 1500000000;
 
@@ -101,6 +110,19 @@ public class TeleOpMainRed extends LinearOpMode {
     private boolean prevG2DpadLeft = false;
 
     private static final double M_TO_IN = 39.37007874015748;
+
+    //-----------------Puck Light-------------------------------
+
+    // Blink control variables
+    private final ElapsedTime blinkTimer = new ElapsedTime();
+    private boolean blinking = false;
+    private boolean blinkState = false;
+    private int blinkCount = 0;
+
+    // Tunables
+    private static final int FLASH_AMOUNT = 10;
+    private static final long BLINK_INTERVAL_MS = 200;
+
 
     // ---------------- Auto-align state (added) ----------------
     private double prevAlignErr = 0.0;
@@ -124,6 +146,9 @@ public class TeleOpMainRed extends LinearOpMode {
 
         blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+        puckLight = hardwareMap.get(Servo.class, "PuckLight");
+        puckLight.setPosition(0.0);
+        RangeSensor = hardwareMap.get(DistanceSensor.class, "RangeSensor");
 
         Limelight3A limelight = hardwareMap.get(Limelight3A.class, "Limelight");
         limelight.setPollRateHz(100);
@@ -156,7 +181,7 @@ public class TeleOpMainRed extends LinearOpMode {
                     TinyCsvLoggerFlex.motorEx("launch", launchMotor),
                     TinyCsvLoggerFlex.doubleCol("intake_cmd", () -> intakePower),
                     TinyCsvLoggerFlex.motorEx("intake", intakeMotor),
-                   // TinyCsvLoggerFlex.servoPos("feed_pos", feedServo),
+                    //    TinyCsvLoggerFlex.servoPos("feed_pos", feedServo),
                     TinyCsvLoggerFlex.pose2d("pose", () -> drive.localizer.getPose())
             );
         }
@@ -270,10 +295,14 @@ public class TeleOpMainRed extends LinearOpMode {
                 txMax_dbg = txMax;
 
                 // Choose nearest boundary only if outside window; if inside, don't rotate.
-               /* if (tx < txMin) {
+              /*  if (tx < txMin) {
                     txTarget_dbg = txMin;
                 } else if (tx > txMax) {
-                    txTarget_dbg = txMax;*/
+                    txTarget_dbg = txMax;
+                } else {
+                    txTarget_dbg = tx; // already within range
+                }*/
+
                 if(tx < txMin || tx > txMax){
                     txTarget_dbg = (txMin + txMax)/2;
                 } else {
@@ -397,11 +426,15 @@ public class TeleOpMainRed extends LinearOpMode {
                 feedServo.setPower(0);
             }
 
-
+       /*     if (feedPulseActive && System.nanoTime() - feedPulseStartNs >= FEED_DWELL_NS) {
+                feedServo.setPower(0.0);
+                feedPulseActive = false;
+            }*/
             if(intakeMotorPulseActive && System.nanoTime() - intakePulseStartNs >= INTAKE_DWELL_NS){
                 intakeMotor.setPower(0.0);
                 intakeMotorPulseActive = false;
             }
+
 
             // ---------------- INTAKE ----------------
             boolean rbEdge = gamepad2.right_bumper && !prevRB;
@@ -416,25 +449,51 @@ public class TeleOpMainRed extends LinearOpMode {
             RevBlinkinLedDriver.BlinkinPattern pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
 
             if (!visionEnabled) {
-                pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
+                puckLight.setPosition(0.0);
             } else if (autoShooter) {
                 if (!correctTag) {
-                    pat = RevBlinkinLedDriver.BlinkinPattern.RED;
+                    puckLight.setPosition(0.287);
                 } else if (noShotZone) {
                     // Too close to make the shot: force yellow even if at speed
-                    pat = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+                    puckLight.setPosition(0.368);
                 } else {
                     boolean atSpeed = spunUpOk && autoSpinArmed;
-                    pat = atSpeed ? RevBlinkinLedDriver.BlinkinPattern.GREEN
-                            : RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+                    if(atSpeed){
+                        puckLight.setPosition(0.444);
+                    } else {
+                        puckLight.setPosition(0.368);
+                    }
                 }
             }
 
             // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold
             if (System.nanoTime() < yTooSoonFlashUntilNs) {
-                pat = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
+                //     pat = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
+                if (blinking) {
+                    if (blinkTimer.milliseconds() >= BLINK_INTERVAL_MS) {
+                        blinkTimer.reset();
+
+                        blinkState = !blinkState;
+
+                        if (blinkState) {
+                            puckLight.setPosition(0.368);
+                        } else {
+                            puckLight.setPosition(0.0);
+                            blinkCount++;
+                        }
+
+                        if (blinkCount >= FLASH_AMOUNT) {
+                            blinking = false;
+                            puckLight.setPosition(0.0);
+                        }
+                    }
+                }
             }
-            blinkin.setPattern(pat);
+            if(RangeSensor.getDistance(DistanceUnit.CM) < 20){
+                blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE);
+            } else {
+                blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+            }
 
             // ---------------- LOGGING ----------------
             if (LOG_ENABLED && logger != null) {

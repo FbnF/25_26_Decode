@@ -59,7 +59,7 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .strafeTo(new Vector2d(-20, -20))
 
                 // Shooter runs
-                .stopAndAdd(new ShooterAndCRFeederActionVel(
+              /* .stopAndAdd(new ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
                         FEED_START_S, FEED_HOLD_S, END_PADDING_S,
@@ -108,14 +108,12 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .stopAndAdd(new ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        1.5,3))
                 .stopAndAdd(setMotorPower(intake, 0.73))// get last ball out of the intake
                 .stopAndAdd(new ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
-                        FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        1.5,3))
 
                 //Collect
                 .splineToLinearHeading(new Pose2d(20, -50,Math.toRadians(270)), Math.toRadians(270))
@@ -127,14 +125,12 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .stopAndAdd(new ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        1.5, 3))
                 .stopAndAdd(setMotorPower(intake, 0.73))// get last ball out of the intake
                 .stopAndAdd(new ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
-                        FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                        1.5,3))
                 //Clear
                 .strafeToLinearHeading(new Vector2d(-20,-20), Math.toRadians(225))
                 .strafeToLinearHeading(new Vector2d(0, -40), Math.toRadians(180))
@@ -150,14 +146,12 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .stopAndAdd(new ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
-                        FEED_START_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                       1.5, 3))
                 .stopAndAdd(setMotorPower(intake, 0.73))// get last ball out of the intake
                 .stopAndAdd(new ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_Vel,
-                        FEED_CON_S, FEED_HOLD_S, END_PADDING_S,
-                        SERVO_LOAD_POS, SERVO_FEED_POS))
+                       1.5,3))*/
 
                 .build();
 

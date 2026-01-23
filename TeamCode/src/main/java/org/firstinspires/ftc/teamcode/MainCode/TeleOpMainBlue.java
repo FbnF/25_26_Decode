@@ -16,13 +16,17 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
@@ -41,6 +45,9 @@ public class TeleOpMainBlue extends LinearOpMode {
     private DcMotorEx launchMotor;
     private RevBlinkinLedDriver blinkin;
     private VoltageSensor battery;
+    private Servo puckLight;
+
+    private DistanceSensor RangeSensor;
 
     // --- Vision ---
     private boolean visionEnabled = true;
@@ -104,6 +111,19 @@ public class TeleOpMainBlue extends LinearOpMode {
 
     private static final double M_TO_IN = 39.37007874015748;
 
+    //-----------------Puck Light-------------------------------
+
+    // Blink control variables
+    private final ElapsedTime blinkTimer = new ElapsedTime();
+    private boolean blinking = false;
+    private boolean blinkState = false;
+    private int blinkCount = 0;
+
+    // Tunables
+    private static final int FLASH_AMOUNT = 10;
+    private static final long BLINK_INTERVAL_MS = 200;
+
+
     // ---------------- Auto-align state (added) ----------------
     private double prevAlignErr = 0.0;
     private long prevAlignNs = 0L;
@@ -126,6 +146,9 @@ public class TeleOpMainBlue extends LinearOpMode {
 
         blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+        puckLight = hardwareMap.get(Servo.class, "PuckLight");
+        puckLight.setPosition(0.0);
+        RangeSensor = hardwareMap.get(DistanceSensor.class, "RangeSensor");
 
         Limelight3A limelight = hardwareMap.get(Limelight3A.class, "Limelight");
         limelight.setPollRateHz(100);
@@ -423,28 +446,53 @@ public class TeleOpMainBlue extends LinearOpMode {
             intakeMotor.setPower(intakePower);
 
             // ---------------- LEDs ----------------
-            RevBlinkinLedDriver.BlinkinPattern pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
 
             if (!visionEnabled) {
-                pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
+                puckLight.setPosition(0.0);
             } else if (autoShooter) {
                 if (!correctTag) {
-                    pat = RevBlinkinLedDriver.BlinkinPattern.RED;
+                    puckLight.setPosition(0.287);
                 } else if (noShotZone) {
                     // Too close to make the shot: force yellow even if at speed
-                    pat = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+                    puckLight.setPosition(0.368);
                 } else {
                     boolean atSpeed = spunUpOk && autoSpinArmed;
-                    pat = atSpeed ? RevBlinkinLedDriver.BlinkinPattern.GREEN
-                            : RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+                    if(atSpeed){
+                        puckLight.setPosition(0.444);
+                    } else {
+                        puckLight.setPosition(0.368);
+                    }
                 }
             }
 
             // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold
             if (System.nanoTime() < yTooSoonFlashUntilNs) {
-                pat = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
+           //     pat = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
+                if (blinking) {
+                    if (blinkTimer.milliseconds() >= BLINK_INTERVAL_MS) {
+                        blinkTimer.reset();
+
+                        blinkState = !blinkState;
+
+                        if (blinkState) {
+                            puckLight.setPosition(0.368);
+                        } else {
+                            puckLight.setPosition(0.0);
+                            blinkCount++;
+                        }
+
+                        if (blinkCount >= FLASH_AMOUNT) {
+                            blinking = false;
+                            puckLight.setPosition(0.0);
+                        }
+                    }
+                }
             }
-            blinkin.setPattern(pat);
+            if(RangeSensor.getDistance(DistanceUnit.CM) < 20){
+                blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE);
+            } else {
+                blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+            }
 
             // ---------------- LOGGING ----------------
             if (LOG_ENABLED && logger != null) {

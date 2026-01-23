@@ -35,6 +35,9 @@ public class SmallTriBlue extends LinearOpMode {
     private static double SHOOTER_POWER = 0.74;
 
     private static double SHOOTER_VEL = 1760;
+
+    private static double WaitTime = 6;
+    private static double StartWaitTime = 2;
     private static double SHOOTER_VEL_R2 = 1770;
 
     private static double SHOOTER_VEL_SEC = 1760;
@@ -97,19 +100,12 @@ public class SmallTriBlue extends LinearOpMode {
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(52, -8), Math.toRadians(202))
 
-                // .turn(Math.toRadians(-ANGLE_OF_TURN))
-                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
+                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
-                        1.5,
-                        3))
-                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+                        StartWaitTime,
+                        WaitTime))
 
-                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_VEL,
-                        1.5,
-                        3))
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
 
                 //.strafeToLinearHeading(new Vector2d(60, -16), Math.toRadians(180))
@@ -122,20 +118,15 @@ public class SmallTriBlue extends LinearOpMode {
                 // .lineToY(-36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(52, -12), Math.toRadians(200))
+                .strafeToLinearHeading(new Vector2d(52, -12), Math.toRadians(215))
 
-                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_VEL,
-                        1.5,
-                        3))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
                         shooter, feed,
                         SHOOTER_VEL,
-                        1.5,
-                        3))
+                        StartWaitTime,
+                        WaitTime))
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(200))
                 .strafeToLinearHeading(new Vector2d(11, -19), Math.toRadians(275))
