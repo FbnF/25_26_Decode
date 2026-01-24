@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -29,6 +30,7 @@ public class SmallTriRed extends LinearOpMode {
     private static final String FEED_SERVO   = "feedServo";
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
+    private static final String SIDE_SERVO = "SideServo";
 
     //private static final String VOLTAGE_SENSOR = "VoltageSensor";
 
@@ -43,6 +45,9 @@ public class SmallTriRed extends LinearOpMode {
 
     private static double SHOOTER_VEL_SEC = 1755.0;
 
+
+    private static double WaitTime = 6;
+    private static double StartWaitTime = 2;
 
     // Servo positions (use what worked in your tests)
     private static final double SERVO_LOAD_POS = 0.0;
@@ -69,7 +74,9 @@ public class SmallTriRed extends LinearOpMode {
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
         CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
+        CRServo SideServo = hardwareMap.get(CRServo.class, SIDE_SERVO);
         VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
+        DistanceSensor RangeSensor = hardwareMap.get(DistanceSensor.class, "RangeSensor");
         // VoltageSensor battery = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR); // read battery
 
         // Safe defaults
@@ -98,23 +105,18 @@ public class SmallTriRed extends LinearOpMode {
         telemetry.update();
         if (isStopRequested()) return;
 
+
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(154.5) )
 
-                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_VEL,
-                        1.5,
-                        3))
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
+                        shooter, intake,feed ,SideServo
+                        ,RangeSensor,SHOOTER_VEL,1.0,StartWaitTime,
+                        WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
-                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_VEL,
-                        1.5,
-                        3))
                 .setTangent(Math.toRadians(154.5))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .strafeToLinearHeading(new Vector2d(32, 23), Math.toRadians(90))
@@ -125,18 +127,11 @@ public class SmallTriRed extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
 
-                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_VEL,
-                        1.5,
-                        3))
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
+                        shooter, intake,feed ,SideServo
+                        ,RangeSensor,SHOOTER_VEL,1.0,StartWaitTime,
+                        WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-
-                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederActionVel(
-                        shooter, feed,
-                        SHOOTER_VEL,
-                        1.5,
-                        3))
                 .setTangent(Math.toRadians(152.5))
                 .strafeToLinearHeading(new Vector2d(12, 15), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
