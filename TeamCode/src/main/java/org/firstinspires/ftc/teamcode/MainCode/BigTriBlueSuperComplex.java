@@ -30,7 +30,7 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
     private static final String SIDE_SERVO = "sideServo";
-    private static final String DISTANCE_SENSOR = "rangeSensor";
+    private static final String DISTANCE_SENSOR = "RangeSensor";
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
@@ -39,6 +39,7 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.5;
     private static final double SHOOT_TIME = 2.0;
+    private static final double sidePower = 0.5;
 
 
 
@@ -65,10 +66,10 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, 1.0,
+                        SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
 
-
+                .stopAndAdd(setMotorPower(intake, 1.0))
                 // collect first spike line
                 .splineToLinearHeading(new Pose2d(-10, -24,Math.toRadians(270)),Math.toRadians(270))
                 .lineToY(-48)
@@ -81,8 +82,9 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, 1.0,
+                        SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
+                .stopAndAdd(setMotorPower(intake, 1.0))
                 //Clear
                 .strafeToLinearHeading(new Vector2d(0, -40), Math.toRadians(180))
                 .strafeToLinearHeading(new Vector2d(0, -54), Math.toRadians(180))
@@ -100,9 +102,9 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, 1.0,
+                        SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
-
+                .stopAndAdd(setMotorPower(intake, 1.0))
                 //Collect
                 .splineToLinearHeading(new Pose2d(20, -50,Math.toRadians(270)), Math.toRadians(270))
                 .stopAndAdd(setMotorPower(intake, 0.0))
@@ -113,8 +115,9 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, 1.0,
+                        SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
+                .stopAndAdd(setMotorPower(intake, 1.0))
                 //Clear
                 .strafeToLinearHeading(new Vector2d(-20,-20), Math.toRadians(225))
                 .strafeToLinearHeading(new Vector2d(0, -40), Math.toRadians(180))
@@ -130,8 +133,9 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, 1.0,
+                        SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
+                .stopAndAdd(setMotorPower(intake, 1.0))
 
                 .build();
 
