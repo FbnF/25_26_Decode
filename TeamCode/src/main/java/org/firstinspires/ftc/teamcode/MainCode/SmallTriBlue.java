@@ -28,7 +28,7 @@ public class SmallTriBlue extends LinearOpMode {
     private static final String FEED_SERVO   = "feedServo";
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
-    private static final String SIDE_SERVO = "SideServo";
+    private static final String SIDE_SERVO = "sideServo";
 
     //private static final String VOLTAGE_SENSOR = "VoltageSensor";
 
@@ -109,12 +109,7 @@ public class SmallTriBlue extends LinearOpMode {
                         ,RangeSensor,SHOOTER_VEL,1.0,StartWaitTime,
                         WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-
-                //.turn(Math.toRadians(ANGLE_OF_TURN))
-
-                //.strafeToLinearHeading(new Vector2d(60, -16), Math.toRadians(180))
                 .setTangent(Math.toRadians(204))
-                //.splineTo(new Vector2d(32, -36), Math.toRadians(270))
                 .strafeToLinearHeading(new Vector2d(30, -26), Math.toRadians(270))
                 .setTangent(Math.toRadians(270))
                 .lineToY(-48)
@@ -124,12 +119,13 @@ public class SmallTriBlue extends LinearOpMode {
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(52, -12), Math.toRadians(215))
 
-                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
                         shooter, intake,feed ,SideServo
                         ,RangeSensor,SHOOTER_VEL,1.0,StartWaitTime,
                         WaitTime))
+                .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
+
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(200))
                 .strafeToLinearHeading(new Vector2d(11, -19), Math.toRadians(275))

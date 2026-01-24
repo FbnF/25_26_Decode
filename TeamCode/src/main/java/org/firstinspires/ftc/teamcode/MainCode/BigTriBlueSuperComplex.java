@@ -38,7 +38,7 @@ public class BigTriBlueSuperComplex extends LinearOpMode {
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.5;
-    private static final double SHOOT_TIME = 2.0;
+    private static final double SHOOT_TIME = 5.5;
     private static final double sidePower = 0.5;
 
 

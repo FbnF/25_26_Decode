@@ -30,7 +30,7 @@ public class SmallTriRed extends LinearOpMode {
     private static final String FEED_SERVO   = "feedServo";
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
-    private static final String SIDE_SERVO = "SideServo";
+    private static final String SIDE_SERVO = "sideServo";
 
     //private static final String VOLTAGE_SENSOR = "VoltageSensor";
 

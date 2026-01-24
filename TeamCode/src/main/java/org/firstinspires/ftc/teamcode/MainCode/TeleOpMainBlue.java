@@ -44,7 +44,7 @@ public class TeleOpMainBlue extends LinearOpMode {
     private MecanumDrive drive;
     private DcMotorEx intakeMotor;
     private DcMotorEx launchMotor;
-    private RevBlinkinLedDriver blinkin;
+   // private RevBlinkinLedDriver blinkin;
     private VoltageSensor battery;
     private Servo puckLight;
 
@@ -146,8 +146,8 @@ public class TeleOpMainBlue extends LinearOpMode {
         launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
         battery     = hardwareMap.voltageSensor.iterator().next();
 
-        blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-        blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+      //  blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+        //blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
         puckLight = hardwareMap.get(Servo.class, "PuckLight");
         puckLight.setPosition(0.0);
         RangeSensor = hardwareMap.get(DistanceSensor.class, "RangeSensor");
@@ -421,7 +421,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                 if (feedAllowed) {
                     feedServo.setPower(-1);
                     sideServo.setPower(0.7);
-                    intakeMotor.setPower(0.75);
+                    intakePower = 0.75;
 
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
@@ -490,11 +490,11 @@ public class TeleOpMainBlue extends LinearOpMode {
                     }
                 }
             }
-            if(RangeSensor.getDistance(DistanceUnit.CM) < 20){
+        /*    if(RangeSensor.getDistance(DistanceUnit.CM) < 20){
                 blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE);
             } else {
                 blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
-            }
+            }*/
 
             // ---------------- LOGGING ----------------
             if (LOG_ENABLED && logger != null) {
