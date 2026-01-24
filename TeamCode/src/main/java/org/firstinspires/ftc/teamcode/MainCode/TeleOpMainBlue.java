@@ -40,6 +40,7 @@ public class TeleOpMainBlue extends LinearOpMode {
 
     // --- Hardware ---
     private CRServo feedServo;
+    private CRServo sideServo;
     private MecanumDrive drive;
     private DcMotorEx intakeMotor;
     private DcMotorEx launchMotor;
@@ -140,6 +141,7 @@ public class TeleOpMainBlue extends LinearOpMode {
 
         // Map hardware
         feedServo   = hardwareMap.get(CRServo.class,     "feedServo");
+        sideServo   = hardwareMap.get(CRServo.class,     "sideServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
         launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
         battery     = hardwareMap.voltageSensor.iterator().next();
@@ -156,6 +158,7 @@ public class TeleOpMainBlue extends LinearOpMode {
         limelight.pipelineSwitch(0);
 
         feedServo.setPower(0.0);
+        sideServo.setPower(0.0);
 
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -417,6 +420,8 @@ public class TeleOpMainBlue extends LinearOpMode {
             if (gamepad2.y) {
                 if (feedAllowed) {
                     feedServo.setPower(-1);
+                    sideServo.setPower(0.7);
+                    intakeMotor.setPower(0.75);
 
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
@@ -424,19 +429,16 @@ public class TeleOpMainBlue extends LinearOpMode {
             }
             if(gamepad2.x){
                 feedServo.setPower(0);
-            }
+                sideServo.setPower(0);
+                intakeMotor.setPower(0);
 
-       /*     if (feedPulseActive && System.nanoTime() - feedPulseStartNs >= FEED_DWELL_NS) {
-                feedServo.setPower(0.0);
-                feedPulseActive = false;
-            }*/
-            if(intakeMotorPulseActive && System.nanoTime() - intakePulseStartNs >= INTAKE_DWELL_NS){
-                intakeMotor.setPower(0.0);
-                intakeMotorPulseActive = false;
             }
 
 
             // ---------------- INTAKE ----------------
+
+
+
             boolean rbEdge = gamepad2.right_bumper && !prevRB;
             if (rbEdge) intakePower = -0.5;
             prevRB = gamepad2.right_bumper;
