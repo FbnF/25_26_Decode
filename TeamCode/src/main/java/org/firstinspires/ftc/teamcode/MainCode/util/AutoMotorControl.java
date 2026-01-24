@@ -513,7 +513,7 @@ public final class AutoMotorControl {
         private static final double M_TO_IN = 39.37007874015748;
 
         private final DcMotorEx shooter;
-        private final Servo feeder;
+        private final CRServo feeder;
         private final Limelight3A limelight;
 
         private final int goalTagId;
@@ -547,7 +547,7 @@ public final class AutoMotorControl {
 
         public ShooterAndFeederVisionAction(
                 DcMotorEx shooter,
-                Servo feeder,
+                CRServo feeder,
                 Limelight3A limelight,
                 int goalTagId,
                 int shots,
@@ -578,7 +578,7 @@ public final class AutoMotorControl {
                     shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     shooter.setPower(0.0);
                 }
-                if (feeder != null) feeder.setPosition(loadPos);
+                if (feeder != null) feeder.setPower(0.0);
 
                 initialized = true;
             }
@@ -648,7 +648,7 @@ public final class AutoMotorControl {
             if (feeding) {
                 long holdNs = (long) (feedHoldS * 1e9);
                 if ((now - feedStartNs) >= holdNs) {
-                    if (feeder != null) feeder.setPosition(loadPos);
+                    if (feeder != null) feeder.setPower(0.0);
                     feeding = false;
                     lastShotEndNs = now;
                     shotsFired++;
@@ -677,7 +677,7 @@ public final class AutoMotorControl {
             boolean canFire = atSpeedStable && spacingOk && shooterSetpointTPS > 0.0;
 
             if (canFire) {
-                if (feeder != null) feeder.setPosition(feedPos);
+                if (feeder != null) feeder.setPower(-1);
                 feeding = true;
                 feedStartNs = now;
             }
@@ -686,7 +686,7 @@ public final class AutoMotorControl {
         }
 
         private void finish() {
-            if (feeder != null) feeder.setPosition(loadPos);
+            if (feeder != null) feeder.setPower(0.0);
             if (shooter != null) shooter.setPower(0.0);
             shooterSetpointTPS = 0.0;
             feeding = false;

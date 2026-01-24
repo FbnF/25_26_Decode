@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-@Disabled
 @TeleOp(name = "Sensor: Distance Sensor", group = "Sensor")
 public class distanceSensorTest extends LinearOpMode{
 
@@ -16,7 +15,7 @@ public class distanceSensorTest extends LinearOpMode{
 
     @Override
     public void runOpMode() {
-        sensor_distance = hardwareMap.get(DistanceSensor.class, "sensor_distance");
+        sensor_distance = hardwareMap.get(DistanceSensor.class, "RangeSensor");
 
         waitForStart();
 

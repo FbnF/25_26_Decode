@@ -15,7 +15,8 @@ GAMEPAD 1  (DRIVER)
  D-Pad Down                         Unused
  D-Pad (Up, Left, Right)            Unused
  Right Trigger/Bumper               Unused
- Left Trigger/Bumper                Unused
+ Left Trigger                       Unused
+ Left Bumper                        Auto Align
 
 ------------------------------------------------------------
 GAMEPAD 2  (OPERATOR)

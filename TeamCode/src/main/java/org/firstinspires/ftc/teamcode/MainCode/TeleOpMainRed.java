@@ -49,6 +49,8 @@ public class TeleOpMainRed extends LinearOpMode {
 
     private DistanceSensor RangeSensor;
 
+    private CRServo SideServo;
+
     // --- Vision ---
     private boolean visionEnabled = true;
 
@@ -151,6 +153,7 @@ public class TeleOpMainRed extends LinearOpMode {
         RangeSensor = hardwareMap.get(DistanceSensor.class, "RangeSensor");
 
         Limelight3A limelight = hardwareMap.get(Limelight3A.class, "Limelight");
+        SideServo = hardwareMap.get(CRServo.class, "SideServo");
         limelight.setPollRateHz(100);
         limelight.start();
         limelight.pipelineSwitch(0);
@@ -190,6 +193,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
         intakeMotor.setPower(0.0);
         launchMotor.setPower(0.0);
+        SideServo.setPower(0.0);
         PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
         launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
 
@@ -380,6 +384,7 @@ public class TeleOpMainRed extends LinearOpMode {
                     if (desired <= 0.0) {
                         shooterSetpointTPS = 0.0;
                         launchMotor.setPower(0.0);
+
                     } else {
                         shooterSetpointTPS = desired;
                         launchMotor.setVelocity(shooterSetpointTPS);
@@ -417,31 +422,31 @@ public class TeleOpMainRed extends LinearOpMode {
             if (gamepad2.y) {
                 if (feedAllowed) {
                     feedServo.setPower(-1);
-
+                    SideServo.setPower(0.7);
+                    intakeMotor.setPower(0.75);
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
             }
             if(gamepad2.x){
                 feedServo.setPower(0);
-            }
-
-       /*     if (feedPulseActive && System.nanoTime() - feedPulseStartNs >= FEED_DWELL_NS) {
-                feedServo.setPower(0.0);
-                feedPulseActive = false;
-            }*/
-            if(intakeMotorPulseActive && System.nanoTime() - intakePulseStartNs >= INTAKE_DWELL_NS){
-                intakeMotor.setPower(0.0);
-                intakeMotorPulseActive = false;
+                SideServo.setPower(0);
+                intakeMotor.setPower(0);
             }
 
 
             // ---------------- INTAKE ----------------
+
+
             boolean rbEdge = gamepad2.right_bumper && !prevRB;
             if (rbEdge) intakePower = -0.5;
             prevRB = gamepad2.right_bumper;
 
-            if (gamepad2.right_trigger > 0) intakePower = 0.73;
+            if (gamepad2.right_trigger > 0){
+                intakePower = 0.73;
+
+
+            }
             if (gamepad2.left_trigger > 0) intakePower = 0.0;
             intakeMotor.setPower(intakePower);
 

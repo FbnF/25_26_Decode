@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-@Disabled
 @TeleOp(name = "Sensor: Color sensor", group = "Sensor")
 public class SensorColor extends LinearOpMode {
 
@@ -13,7 +12,7 @@ public class SensorColor extends LinearOpMode {
 
   @Override
   public void runOpMode() {
-    myColorSens = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
+    myColorSens = hardwareMap.get(NormalizedColorSensor.class, "ColorSensor");
 
     waitForStart();
 
