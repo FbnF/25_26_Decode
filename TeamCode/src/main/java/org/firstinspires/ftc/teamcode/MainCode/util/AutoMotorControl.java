@@ -453,7 +453,7 @@ public final class AutoMotorControl {
             this.sideServo = sideServo;
             this.rangeSensor =rangeSensor;
             this.shooterVel = shooterVel;
-            this.sidePower =sidePower;
+            this.sidePower = sidePower;
             this.waitTime = waitTime;
             this.timeToShoot = timeToShoot;
         }
@@ -473,12 +473,12 @@ public final class AutoMotorControl {
 
             double t = (System.nanoTime() - t0) / 1e9;
             if(t >= waitTime){
-                feedServo.setPower(-1);
+                feedServo.setPower(sidePower);
             }
             boolean nofirstball = false;
             double distance = rangeSensor.getDistance(DistanceUnit.MM);
             if (!nofirstball && distance > 127){
-                 sideServo.setPower(sidePower);
+                 sideServo.setPower(1);
                     intake.setPower(0.75);
                     nofirstball = true;
             }
@@ -486,7 +486,7 @@ public final class AutoMotorControl {
                 if(feedServo != null) feedServo.setPower(0);
                 if(shooter != null) shooter.setVelocity(0.0);
                 if(intake != null) intake.setPower(0.0);
-                if(sideServo != null) sideServo.setPower(sidePower);
+                if(sideServo != null) sideServo.setPower(0);
                 return false;
             }
             return true;
