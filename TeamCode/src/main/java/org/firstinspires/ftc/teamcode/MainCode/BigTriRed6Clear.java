@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
-import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -9,18 +9,17 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.CRServo;
 
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederCombined;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
-
-@Autonomous(name = "BigTriBlue9NoClear", group = "BigTriBlue")
-public class BigTriBlue9noClear extends LinearOpMode {
+@Autonomous(name = "BigTriRed6Clear", group = "BigTriRed")
+public class BigTriRed6Clear extends LinearOpMode {
 
     private static final String FEED_SERVO   = "feedServo";
     private static final String INTAKE_MOTOR = "IntakeMotor";
@@ -43,7 +42,7 @@ public class BigTriBlue9noClear extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-48, -48, Math.toRadians(225));
+        Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -55,9 +54,9 @@ public class BigTriBlue9noClear extends LinearOpMode {
         // Build one continuous action so pose/tangent carry correctly between segments.
         Action all = drive.actionBuilder(startPose)
                 // First strafe and shoot
-                .setTangent(Math.toRadians(225))
+                .setTangent(Math.toRadians(135))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeTo(new Vector2d(-20, -20))
+                .strafeTo(new Vector2d(-20, 20))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
@@ -68,13 +67,15 @@ public class BigTriBlue9noClear extends LinearOpMode {
 
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 // collect first spike line
-                .splineToLinearHeading(new Pose2d(-10, -24,Math.toRadians(270)),Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
-                .lineToY(-48)
-                .lineToY(-45)
+                .lineToY(48)
+                .lineToY(45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-
-                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(225))
+                .strafeToLinearHeading(new Vector2d(3, 40), Math.toRadians(180))
+                .strafeToLinearHeading(new Vector2d(3, 52), Math.toRadians(180))
+                .waitSeconds(0.15)
+                .strafeToLinearHeading(new Vector2d(-36, 12), Math.toRadians(120))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
@@ -82,25 +83,6 @@ public class BigTriBlue9noClear extends LinearOpMode {
                         feed, side, distance,
                         SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
-                .stopAndAdd(setMotorPower(intake, 1.0))
-
-
-                // collect second spike line
-
-                .splineToLinearHeading(new Pose2d(15.5, -24,Math.toRadians(270)),Math.toRadians(270))
-                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
-                .lineToY(-52)
-                .lineToY(-45)
-                .stopAndAdd(setMotorPower(intake, 0.0))
-
-                .strafeToLinearHeading(new Vector2d(-36, -12), Math.toRadians(240))
-                // Shooter runs
-                .stopAndAdd(new  ShooterAndFeederCombined(
-                        shooter, intake,
-                        feed, side, distance,
-                        SHOOTER_Vel, sidePower,
-                        WAIT_TIME,SHOOT_TIME))
-
                 .build();
 
         waitForStart();
