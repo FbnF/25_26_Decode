@@ -4,6 +4,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.M
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -16,6 +18,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.List;
 
@@ -390,6 +393,7 @@ public final class AutoMotorControl {
         private long t0;
         private final double timeToShoot;
         private boolean init;
+        private long prevAlignNs = 0L;
 
 
 
@@ -506,6 +510,251 @@ public final class AutoMotorControl {
      * - Uses ShooterConfig.lookupTpsFromDistanceIn(rangeIn)
      * - Waits until at-speed is stable, then pulses feeder for each shot
      */
+
+
+
+
+    public static class ShooterAndCRFeederVisionAction implements Action {
+        private static final double M_TO_IN = 39.37007874015748;
+
+        private final DcMotorEx shooter;
+        private final CRServo feeder;
+        private final Limelight3A limelight;
+        private final CRServo sideServo;
+        private final MecanumDrive drive;
+
+        private long prevAlignNs = 0L;
+        private double prevAlignErr = 0.0;
+        private Double distIn_filt = null;  // Initialize as null
+        private Double txTarget = null;     // Initialize as null
+        private long alignedSinceNs = 0L;   // Track how long we've been aligned
+
+        private final int goalTagId;
+        private final int shots;
+        private final double feedHoldS;
+        private final double endPaddingS;
+
+        private boolean initialized = false;
+        private long t0Ns = 0L;
+
+        private int shotsFired = 0;
+        private boolean feeding = false;
+        private long feedStartNs = 0L;
+        private long lastShotEndNs = 0L;
+
+        private final double ShooterVelocity;
+
+        private static final long BETWEEN_SHOTS_NS = 350_000_000L;
+        private static final long RESULT_STALE_MS = 100;
+        private static final long MAX_ACTION_NS = 4_500_000_000L;
+        private static final long HOLD_LAST_GOOD_NS = 250_000_000L;
+        private static final long AT_SPEED_STABLE_NS = 150_000_000L;
+        private static final long ALIGNED_STABLE_NS = 100_000_000L; // 100ms aligned before shooting
+
+        private double lastGoodTPS = 0.0;
+        private long lastGoodNs = 0L;
+        private long atSpeedSinceNs = 0L;
+
+        public ShooterAndCRFeederVisionAction(
+                DcMotorEx shooter,
+                CRServo feeder,
+                Limelight3A limelight,
+                CRServo SideServo,
+                MecanumDrive drive,
+                int goalTagId,
+                int shots,
+                double feedHoldS,
+                double endPaddingS,
+                double shooterVelocity
+        ) {
+            this.shooter = shooter;
+            this.feeder = feeder;
+            this.limelight = limelight;
+            this.sideServo = SideServo;
+            this.drive = drive;
+            this.goalTagId = goalTagId;
+            this.shots = Math.max(0, shots);
+            this.feedHoldS = Math.max(0.0, feedHoldS);
+            this.endPaddingS = Math.max(0.0, endPaddingS);
+            ShooterVelocity = shooterVelocity;
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            long now = System.nanoTime();
+
+            if (!initialized) {
+                t0Ns = now;
+                if (shooter != null) {
+                    shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    shooter.setPower(0.0);
+                }
+                if (feeder != null) feeder.setPower(0.0);
+                if (sideServo != null) sideServo.setPower(0.0);
+                if (drive != null) drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
+                initialized = true;
+            }
+
+            // Hard timeout
+            double time = (now - t0Ns) / 1e9;
+
+            if ((now - t0Ns) > MAX_ACTION_NS) {
+                finish();
+                return false;
+            }
+
+
+            // Get vision data
+            Double tx = getVisionTx();
+
+
+            // Command shooter
+            if (shooter != null) shooter.setVelocity(ShooterVelocity);
+
+
+            // AUTO-ALIGNMENT
+            boolean aligned = false;
+            double turnPower = 0.0;
+
+            if (ShooterConfig.AUTO_ALIGN_ENABLED && distIn_filt != null && tx != null) {
+                // Lookup allowed Tx window
+                double[] window = ShooterConfig.lookupTxWindowFromDistanceIn(distIn_filt);
+                double txMin = window[0];
+                double txMax = window[1];
+
+                // Determine target Tx
+                if (txTarget == null || tx < txMin || tx > txMax) {
+                    // First time or outside window - aim for center
+                    txTarget = (txMin + txMax) / 2.0;
+                }
+                // Otherwise keep current target (we're in window)
+
+                // Calculate error (positive error = need to turn right/positive)
+                double error = tx - txTarget;
+
+                // Check if aligned (within window AND small error)
+                boolean inWindow = (tx >= txMin && tx <= txMax);
+                boolean smallError = Math.abs(error) <= ShooterConfig.ALIGN_ERR_DEADBAND_DEG;
+                aligned = inWindow && smallError;
+
+                // Track stability
+                if (aligned) {
+                    if (alignedSinceNs == 0L) alignedSinceNs = now;
+                } else {
+                    alignedSinceNs = 0L;
+                }
+
+                // Compute turn power (only if not feeding)
+                if (!feeding) {
+                    turnPower = computeAlignTurnFromErr(error, now);
+                }
+
+                // Telemetry
+                packet.put("align_tx", String.format("%.2f", tx));
+                packet.put("align_target", String.format("%.2f", txTarget));
+                packet.put("align_window", String.format("[%.2f, %.2f]", txMin, txMax));
+                packet.put("align_error", String.format("%.2f", error));
+                packet.put("align_in_window", inWindow);
+                packet.put("aligned", aligned);
+            } else {
+                // No alignment possible
+                aligned = !ShooterConfig.AUTO_ALIGN_ENABLED; // If disabled, always "aligned"
+                packet.put("align_status", "no_vision_or_disabled");
+            }
+
+            boolean alignedStable = aligned && alignedSinceNs != 0L &&
+                    (now - alignedSinceNs) >= ALIGNED_STABLE_NS;
+
+            // Command drive
+            if (drive != null) {
+                drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), turnPower));
+            }
+
+            // If currently feeding, wait out the hold time
+            if (feeding) {
+                long holdNs = (long) (feedHoldS * 1e9);
+                if ((now - feedStartNs) >= holdNs) {
+                    if (feeder != null) feeder.setPower(0.0);
+                    if (sideServo != null) sideServo.setPower(0.0);
+                    feeding = false;
+                    lastShotEndNs = now;
+                    shotsFired++;
+                    atSpeedSinceNs = 0L; // re-stabilize after shot
+                    alignedSinceNs = 0L; // re-align after shot
+                }
+                return true;
+            }
+
+            // Done firing?
+
+
+            // Spacing + gating
+            boolean spacingOk = (lastShotEndNs == 0L) ||
+                    ((now - lastShotEndNs) >= BETWEEN_SHOTS_NS);
+            boolean canFire = ShooterVelocity > 0.0;
+
+            if (canFire) {
+                if (feeder != null) feeder.setPower(-1);
+                if (sideServo != null) sideServo.setPower(-1);
+                feeding = true;
+                feedStartNs = now;
+            }
+
+            return true;
+        }
+
+        private void finish() {
+            if (feeder != null) feeder.setPower(0.0);
+            if (sideServo != null) sideServo.setPower(0.0);
+            if (shooter != null) shooter.setPower(0.0);
+            if (drive != null) drive.setDrivePowers(new PoseVelocity2d(new Vector2d(0, 0), 0));
+            feeding = false;
+            atSpeedSinceNs = 0L;
+            alignedSinceNs = 0L;
+        }
+
+
+        private Double getVisionTx() {
+            if (limelight == null) return null;
+            LLResult result = limelight.getLatestResult();
+            if (result == null || !result.isValid() ||
+                    result.getStaleness() >= RESULT_STALE_MS) return null;
+
+            List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+            if (fiducials == null) return null;
+
+            for (LLResultTypes.FiducialResult f : fiducials) {
+                if (f == null || f.getFiducialId() != goalTagId) continue;
+                return f.getTargetXDegrees();
+            }
+            return null;
+        }
+
+        private double computeAlignTurnFromErr(double errDeg, long now) {
+            double dt = (prevAlignNs == 0L) ? 0.02 : (now - prevAlignNs) / 1e9;
+            if (dt > 0.5) dt = 0.02; // Guard against huge dt
+            prevAlignNs = now;
+
+            double derr = (errDeg - prevAlignErr) / dt;
+            prevAlignErr = errDeg;
+
+            double u = ShooterConfig.ALIGN_KP * errDeg + ShooterConfig.ALIGN_KD * derr;
+
+            // Clamp to max
+            if (u > ShooterConfig.ALIGN_MAX_TURN) u = ShooterConfig.ALIGN_MAX_TURN;
+            if (u < -ShooterConfig.ALIGN_MAX_TURN) u = -ShooterConfig.ALIGN_MAX_TURN;
+
+            // Apply minimum turn (overcome static friction)
+            if (Math.abs(u) > 0.0 && Math.abs(u) < ShooterConfig.ALIGN_MIN_TURN) {
+                u = Math.copySign(ShooterConfig.ALIGN_MIN_TURN, u);
+            }
+
+            return u;
+        }
+    }
+
+
+
     public static class ShooterAndFeederVisionAction implements Action {
         private static final double M_TO_IN = 39.37007874015748;
 
