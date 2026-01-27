@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.MainCode;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -23,8 +24,9 @@ import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndF
 import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
+@Config
 @Autonomous(name="SmallTriRed", group="Auto")
-public class SmallTriRed extends LinearOpMode {
+public final class SmallTriRed extends LinearOpMode {
 
     // RC config names
     private static final String FEED_SERVO   = "feedServo";
@@ -36,7 +38,7 @@ public class SmallTriRed extends LinearOpMode {
 
     // Tunables
     public static final double INTAKE_POWER  = 0.73;
-    public static final double SIDE_POWER = -0.85;
+    public static  double SIDE_POWER = -0.5;
 
     public static double SHOOTER_POWER = 0.78;
     public static double SHOOTER_VEL = 1760;
@@ -99,7 +101,7 @@ public class SmallTriRed extends LinearOpMode {
 
                 .setTangent(Math.toRadians(154.5))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .strafeToLinearHeading(new Vector2d(32, 23), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(32, 19), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
                 .lineToY(48)
                 .lineToY(52)
@@ -113,9 +115,9 @@ public class SmallTriRed extends LinearOpMode {
                         WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .setTangent(Math.toRadians(152.5))
-                .strafeToLinearHeading(new Vector2d(12, 15), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(13, 15), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(12, 54), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(13, 54), Math.toRadians(90))
                 .build();
 
         Actions.runBlocking(all);

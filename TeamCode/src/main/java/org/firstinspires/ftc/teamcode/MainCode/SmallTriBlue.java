@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.MainCode;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -21,7 +22,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-
+@Config
 @Autonomous(name="SmallTriBlue", group="Auto")
 public class SmallTriBlue extends LinearOpMode {
 
@@ -42,7 +43,7 @@ public class SmallTriBlue extends LinearOpMode {
 
     public static double WaitTime = 6;
     public static double StartWaitTime = 2;
-    public static final double SIDE_POWER = -0.9;
+    public static double SIDE_POWER = -0.5;
 
 
     @Override
