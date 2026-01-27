@@ -31,38 +31,19 @@ public class SmallTriBlue extends LinearOpMode {
     private static final String LAUNCH_MOTOR = "LaunchMotor";
     private static final String SIDE_SERVO = "sideServo";
     private static final String LIMELIGHT = "Limelight";
-    private MecanumDrive drive;
 
     //private static final String VOLTAGE_SENSOR = "VoltageSensor";
 
     // Tunables
-    private static final double INTAKE_POWER  = 0.73;
-    private static double SHOOTER_POWER = 0.74;
+    public static final double INTAKE_POWER  = 0.73;
+    public static double SHOOTER_POWER = 0.74;
 
-    private static double SHOOTER_VEL = 1760;
+    public static double SHOOTER_VEL = 1760;
 
-    private static double WaitTime = 6;
-    private static double StartWaitTime = 2;
-    private static double SHOOTER_VEL_R2 = 1770;
+    public static double WaitTime = 6;
+    public static double StartWaitTime = 2;
+    public static final double SIDE_POWER = -0.9;
 
-    private static double SHOOTER_VEL_SEC = 1760;
-
-    // positions (use what worked in your tests)
-    private static final double SERVO_LOAD_POS = 0.0;
-    private static final double SERVO_FEED_POS = 0.12;
-
-    private static final double ANGLE_OF_TURN = -24;
-
-    // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double[] FEED_START_S = { 2, 4};
-    private static final double[] FEED_START_S_FIRST = {1};
-
-    private static final double   FEED_HOLD_S  = 0.7;
-    private static final double   END_PADDING_S = 1.0;
-
-    private static final double MAX_VOLTAGE = 12.5;
-
-    double CURRENT_VOLTAGE = 0.0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -97,7 +78,6 @@ public class SmallTriBlue extends LinearOpMode {
         telemetry.addData("SHOOTER_POWER", SHOOTER_POWER);
         telemetry.update();
 
-
         waitForStart();
         telemetry.addData("SHOOTER_VELOCITY", shooter.getVelocity());
         telemetry.update();
@@ -108,10 +88,10 @@ public class SmallTriBlue extends LinearOpMode {
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(52, -8), Math.toRadians(202))
                 .stopAndAdd(AutoMotorControl.setMotorPower(intake, 0.7))
-                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederVisionAction(
-                        shooter, feed,LimeLight ,SideServo
-                        ,drive,20,3,StartWaitTime,
-                        WaitTime,SHOOTER_VEL))
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
+                        shooter, intake,feed ,SideServo
+                        ,RangeSensor,SHOOTER_VEL,SIDE_POWER,StartWaitTime,
+                        WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .setTangent(Math.toRadians(204))
                 .strafeToLinearHeading(new Vector2d(30, -26), Math.toRadians(270))
@@ -124,10 +104,10 @@ public class SmallTriBlue extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(52, -12), Math.toRadians(215))
 
 
-                .stopAndAdd(new AutoMotorControl.ShooterAndCRFeederVisionAction(
-                        shooter, feed,LimeLight ,SideServo
-                        ,drive,20,3,StartWaitTime,
-                        WaitTime, SHOOTER_VEL))
+                .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
+                        shooter, intake,feed ,SideServo
+                        ,RangeSensor,SHOOTER_VEL,SIDE_POWER,StartWaitTime,
+                        WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
