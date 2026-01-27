@@ -97,6 +97,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
     // --- Intake/servo state ---
     private double intakePower = 0.0;
+    private double sidePower = 0.0;
 
     // --- Button edge detection ---
     private boolean prevRB = false;
@@ -439,20 +440,23 @@ public class TeleOpMainRed extends LinearOpMode {
 
 
             boolean rbEdge = gamepad2.right_bumper && !prevRB;
-            if (rbEdge) intakePower = -0.5;
+            if (rbEdge) {
+                intakePower = -0.5;
+                sidePower = -0.5;
+            }
+
             prevRB = gamepad2.right_bumper;
 
             if (gamepad2.right_trigger > 0){
                 intakePower = 0.73;
-                SideServo.setPower(0.7);
-
-
+                sidePower = 1;
             }
-            if (gamepad2.left_trigger > 0){
+            if (gamepad2.left_trigger > 0) {
                 intakePower = 0.0;
-                SideServo.setPower(0);
+                sidePower = 0;
             }
             intakeMotor.setPower(intakePower);
+            SideServo.setPower(sidePower);
 
             // ---------------- LEDs ----------------
             RevBlinkinLedDriver.BlinkinPattern pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;

@@ -2,7 +2,10 @@ package org.firstinspires.ftc.teamcode.MainCode;
 
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setCRServoPower;
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setServoPosition;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -18,7 +21,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndF
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
-@Autonomous(name = "BigTriRed9Clear", group = "BigTriRed")
+@Autonomous(name = "BigTriRED9Clear", group = "BigTriRed")
 public class BigTriRed9Clear extends LinearOpMode {
 
     private static final String FEED_SERVO   = "feedServo";
@@ -29,11 +32,11 @@ public class BigTriRed9Clear extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1340;
+    private static final double SHOOTER_Vel = 1325;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double WAIT_TIME = 0.7;
-    private static final double WAIT_TIME_Start = 1;
+    private static final double WAIT_TIME = 0.6;
+    private static final double WAIT_TIME_Start = 0.9;
     private static final double SHOOT_TIME = 4;
     private static final double sidePower = -0.9;
 
@@ -42,7 +45,7 @@ public class BigTriRed9Clear extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
+        Pose2d startPose = new Pose2d(-60, 38, Math.toRadians(90)); //-48, 48, Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -66,14 +69,16 @@ public class BigTriRed9Clear extends LinearOpMode {
                         WAIT_TIME_Start,SHOOT_TIME))
 
                 .stopAndAdd(setMotorPower(intake, 1.0))
+                .stopAndAdd(setCRServoPower(side,1.0))
                 // collect first spike line
                 .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .lineToY(48)
                 .lineToY(45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .strafeToLinearHeading(new Vector2d(3, 40), Math.toRadians(180))
-                .strafeToLinearHeading(new Vector2d(3, 52), Math.toRadians(180))
+                .stopAndAdd(setCRServoPower(side,0.0))
+                .strafeToLinearHeading(new Vector2d(1.5, 40), Math.toRadians(180))
+                .strafeToLinearHeading(new Vector2d(1.5, 54), Math.toRadians(180))
                 .waitSeconds(0.15)
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
 
@@ -84,7 +89,7 @@ public class BigTriRed9Clear extends LinearOpMode {
                         SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
                 .stopAndAdd(setMotorPower(intake, 1.0))
-
+                .stopAndAdd(setCRServoPower(side,1.0))
 
                 // collect second spike line
 
@@ -93,8 +98,9 @@ public class BigTriRed9Clear extends LinearOpMode {
                 .lineToY(52)
                 .lineToY(45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
+                .stopAndAdd(setCRServoPower(side,0.0))
 
-                .strafeToLinearHeading(new Vector2d(-36, 12), Math.toRadians(120))
+                .strafeToLinearHeading(new Vector2d(-32, 10), Math.toRadians(130))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,

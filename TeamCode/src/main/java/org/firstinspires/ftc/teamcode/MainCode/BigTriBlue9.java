@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.MainCode;
 
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
-
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
 
-@Autonomous(name = "BigTriBlue9", group = "BigTriBlue")
+@Autonomous(name = "BigTriBLUE9", group = "BigTriBlue")
 public class BigTriBlue9 extends LinearOpMode {
 
     private static final String FEED_SERVO   = "feedServo";
@@ -93,7 +93,7 @@ public class BigTriBlue9 extends LinearOpMode {
                 .lineToY(-45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
 
-                .strafeToLinearHeading(new Vector2d(-36, -12), Math.toRadians(240))
+                .strafeToLinearHeading(new Vector2d(-36, -10), Math.toRadians(240))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,

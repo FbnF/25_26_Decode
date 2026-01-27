@@ -66,6 +66,15 @@ public final class AutoMotorControl {
         };
     }
 
+    public static Action setCRServoPower(CRServo m, double power) {
+        return (TelemetryPacket pkt) -> {
+            if (m != null) {
+                m.setPower(power);
+            }
+            return false;
+        };
+    }
+
     /** One-shot action that sets a servo's position and immediately completes (non-blocking). */
     public static Action setServoPosition(Servo s, double pos) {
         return (TelemetryPacket pkt) -> {
@@ -481,7 +490,7 @@ public final class AutoMotorControl {
             }
             boolean nofirstball = false;
             double distance = rangeSensor.getDistance(DistanceUnit.MM);
-            if (!nofirstball && distance > 147){
+            if (!nofirstball && distance > 107){
                  sideServo.setPower(1);
                     intake.setPower(0.75);
                     nofirstball = true;

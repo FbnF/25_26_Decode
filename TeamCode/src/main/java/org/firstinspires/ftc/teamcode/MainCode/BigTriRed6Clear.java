@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndF
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
-@Autonomous(name = "BigTriRed6Clear", group = "BigTriRed")
+@Autonomous(name = "BigTriRED6Clear", group = "BigTriRed")
 public class BigTriRed6Clear extends LinearOpMode {
 
     private static final String FEED_SERVO   = "feedServo";
@@ -34,8 +34,8 @@ public class BigTriRed6Clear extends LinearOpMode {
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.7;
     private static final double WAIT_TIME_Start = 1;
-    private static final double SHOOT_TIME = 4;
-    private static final double sidePower = -0.9;
+    private static final double SHOOT_TIME = 5;
+    private static final double sidePower = -0.85;
 
 
 
@@ -73,7 +73,7 @@ public class BigTriRed6Clear extends LinearOpMode {
                 .lineToY(45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .strafeToLinearHeading(new Vector2d(3, 40), Math.toRadians(180))
-                .strafeToLinearHeading(new Vector2d(3, 52), Math.toRadians(180))
+                .strafeToLinearHeading(new Vector2d(3, 54), Math.toRadians(180))
                 .waitSeconds(0.15)
                 .strafeToLinearHeading(new Vector2d(-36, 12), Math.toRadians(120))
 

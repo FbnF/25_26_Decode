@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.MainCode;
 
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
-
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
 
-@Autonomous(name = "BigTriBlue9Clear", group = "BigTriBlue")
+@Autonomous(name = "BigTriBLUE9Clear", group = "BigTriBlue")
 public class BigTriBlue9Clear extends LinearOpMode {
 
     private static final String FEED_SERVO   = "feedServo";
@@ -43,7 +43,7 @@ public class BigTriBlue9Clear extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-48, -48, Math.toRadians(225));
+        Pose2d startPose = new Pose2d(-60, 38, Math.toRadians(90)); //-48, -48, Math.toRadians(225));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -96,7 +96,7 @@ public class BigTriBlue9Clear extends LinearOpMode {
                 .lineToY(-45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
 
-                .strafeToLinearHeading(new Vector2d(-36, -12), Math.toRadians(240))
+                .strafeToLinearHeading(new Vector2d(-32, -10), Math.toRadians(240))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,

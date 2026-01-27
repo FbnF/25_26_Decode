@@ -17,8 +17,8 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederCombined;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-
-@Autonomous(name = "BigTriBlue6", group = "BigTriBlue")
+import com.acmerobotics.dashboard.config.Config;
+@Autonomous(name = "BigTriBLUE6", group = "BigTriBlue")
 public class BigTriBlue6 extends LinearOpMode {
 
     private static final String FEED_SERVO   = "feedServo";
@@ -34,8 +34,8 @@ public class BigTriBlue6 extends LinearOpMode {
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.7;
     private static final double WAIT_TIME_Start = 1;
-    private static final double SHOOT_TIME = 4;
-    private static final double sidePower = -0.9;
+    private static final double SHOOT_TIME = 5;
+    private static final double sidePower = -0.85;
 
 
 
@@ -72,7 +72,7 @@ public class BigTriBlue6 extends LinearOpMode {
                 .lineToY(-48)
                 .lineToY(-45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .strafeToLinearHeading(new Vector2d(-36, -12), Math.toRadians(240))
+                .strafeToLinearHeading(new Vector2d(-36, -10), Math.toRadians(240))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(

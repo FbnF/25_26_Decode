@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.MainCode;
 
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
-
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndF
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
-@Autonomous(name = "BigTriBlue3", group = "BigTriBlue")
+@Autonomous(name = "BigTriBLUE3", group = "BigTriBlue")
 public class BigTriBlue3 extends LinearOpMode {
 
     private static final String FEED_SERVO   = "feedServo";
@@ -34,8 +34,8 @@ public class BigTriBlue3 extends LinearOpMode {
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.7;
     private static final double WAIT_TIME_Start = 1;
-    private static final double SHOOT_TIME = 4;
-    private static final double sidePower = -0.9;
+    private static final double SHOOT_TIME = 5.5;
+    private static final double sidePower = -0.8;
 
 
 
@@ -56,8 +56,7 @@ public class BigTriBlue3 extends LinearOpMode {
                 // First strafe and shoot
                 .setTangent(Math.toRadians(225))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeToLinearHeading(new Vector2d(-36, -12), Math.toRadians(240))
-
+                .strafeToLinearHeading(new Vector2d(-36, -10), Math.toRadians(240))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
