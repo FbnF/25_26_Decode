@@ -481,7 +481,7 @@ public final class AutoMotorControl {
             }
             boolean nofirstball = false;
             double distance = rangeSensor.getDistance(DistanceUnit.MM);
-            if (!nofirstball && distance > 127){
+            if (!nofirstball && distance > 147){
                  sideServo.setPower(1);
                     intake.setPower(0.75);
                     nofirstball = true;
