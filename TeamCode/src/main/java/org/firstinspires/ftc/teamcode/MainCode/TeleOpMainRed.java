@@ -424,7 +424,7 @@ public class TeleOpMainRed extends LinearOpMode {
             if (gamepad2.y) {
                 if (feedAllowed) {
                     feedServo.setPower(-0.9);
-                    if (dInForLogic != null){
+                    if (dInForLogic != null) {
                     sidePower = ((1/13440)*Math.pow(dInForLogic,2)) -  ((79/16800)*dInForLogic) - 1;
                     }
                     if (sidePower < - 1.0){
