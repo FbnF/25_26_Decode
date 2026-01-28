@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.MainCode.util;
 
-import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.MM;
-
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
@@ -448,7 +446,7 @@ public final class AutoMotorControl {
         private final CRServo sideServo;
         private final DistanceSensor rangeSensor;
         private final double shooterVel;
-        private final double sidePower;
+        private final double feedPower;
         private final double waitTime;
         private long t0;
         private final double timeToShoot;
@@ -458,7 +456,7 @@ public final class AutoMotorControl {
 
         public ShooterAndFeederCombined(DcMotorEx shooter, DcMotor intake, CRServo feedServo, CRServo sideServo,
                                                    DistanceSensor rangeSensor,
-                                                   double shooterVel,double sidePower, double waitTime,
+                                                   double shooterVel,double feedPower, double waitTime,
                                                    double timeToShoot) {
             this.shooter = shooter;
             this.intake = intake;
@@ -466,7 +464,7 @@ public final class AutoMotorControl {
             this.sideServo = sideServo;
             this.rangeSensor =rangeSensor;
             this.shooterVel = shooterVel;
-            this.sidePower = sidePower;
+            this.feedPower = feedPower;
             this.waitTime = waitTime;
             this.timeToShoot = timeToShoot;
         }
@@ -486,7 +484,7 @@ public final class AutoMotorControl {
 
             double t = (System.nanoTime() - t0) / 1e9;
             if(t >= waitTime){
-                feedServo.setPower(sidePower);
+                feedServo.setPower(feedPower);
             }
             boolean nofirstball = false;
             double distance = rangeSensor.getDistance(DistanceUnit.MM);

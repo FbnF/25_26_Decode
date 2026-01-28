@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setCRServoPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 import com.acmerobotics.dashboard.config.Config;
@@ -29,12 +30,12 @@ public class BigTriRed9 extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1340;
+    private static final double SHOOTER_Vel = 1325;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double WAIT_TIME = 0.7;
-    private static final double WAIT_TIME_Start = 1;
-    private static final double SHOOT_TIME = 4;
+    private static final double WAIT_TIME = 0.8;
+    private static final double WAIT_TIME_Start = 1.1;
+    private static final double SHOOT_TIME = 4.2;
     private static final double sidePower = -0.9;
 
 
@@ -42,7 +43,7 @@ public class BigTriRed9 extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
+        Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(90));//Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -56,7 +57,7 @@ public class BigTriRed9 extends LinearOpMode {
                 // First strafe and shoot
                 .setTangent(Math.toRadians(135))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeTo(new Vector2d(-20, 20))
+                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
@@ -66,13 +67,14 @@ public class BigTriRed9 extends LinearOpMode {
                         WAIT_TIME_Start,SHOOT_TIME))
 
                 .stopAndAdd(setMotorPower(intake, 1.0))
+                .stopAndAdd(setCRServoPower(side,1.0))
                 // collect first spike line
                 .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .lineToY(48)
                 .lineToY(45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-
+                .stopAndAdd(setCRServoPower(side,0.0))
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
 
                 // Shooter runs
@@ -82,7 +84,7 @@ public class BigTriRed9 extends LinearOpMode {
                         SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
                 .stopAndAdd(setMotorPower(intake, 1.0))
-
+                .stopAndAdd(setCRServoPower(side,1.0))
 
                 // collect second spike line
 
@@ -91,14 +93,16 @@ public class BigTriRed9 extends LinearOpMode {
                 .lineToY(52)
                 .lineToY(45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
+                .stopAndAdd(setCRServoPower(side,0.0))
 
-                .strafeToLinearHeading(new Vector2d(-36, 12), Math.toRadians(120))
+                .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(130))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
                         SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
+
                 .build();
 
         waitForStart();

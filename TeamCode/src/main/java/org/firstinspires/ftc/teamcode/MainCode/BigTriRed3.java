@@ -29,20 +29,20 @@ public class BigTriRed3 extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1340;
+    private static final double SHOOTER_Vel = 1325;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double WAIT_TIME = 0.7;
-    private static final double WAIT_TIME_Start = 1;
-    private static final double SHOOT_TIME = 5.5;
-    private static final double sidePower = -0.8;
+    private static final double WAIT_TIME = 1.2;
+    private static final double WAIT_TIME_Start = 1.2;
+    private static final double SHOOT_TIME = 5;
+    private static final double sidePower = -0.9;
 
 
 
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
+        Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(90));//Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
