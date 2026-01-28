@@ -46,6 +46,10 @@ public final class SmallTriRed extends LinearOpMode {
 
     public static double WaitTime = 5.5;
     public static double StartWaitTime = 2;
+    public static double SHOOT_HEADING = 152.5;
+    public static double INTAKE_X = 32;
+    public static double INTAKE_Y = 19;
+
 
 
     @Override
@@ -91,7 +95,7 @@ public final class SmallTriRed extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(154.5) )
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(SHOOT_HEADING) )
 
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
                         shooter, intake,feed ,SideServo
@@ -99,14 +103,14 @@ public final class SmallTriRed extends LinearOpMode {
                         WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
-                .setTangent(Math.toRadians(154.5))
+                .setTangent(Math.toRadians(SHOOT_HEADING))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .strafeToLinearHeading(new Vector2d(32, 19), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(INTAKE_X, INTAKE_Y), Math.toRadians(90))
                 .setTangent(Math.toRadians(90))
                 .lineToY(48)
                 .lineToY(52)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5))
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(SHOOT_HEADING))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
 
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
@@ -114,7 +118,7 @@ public final class SmallTriRed extends LinearOpMode {
                         ,RangeSensor,SHOOTER_VEL,SIDE_POWER,StartWaitTime,
                         WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .setTangent(Math.toRadians(152.5))
+                .setTangent(Math.toRadians(SHOOT_HEADING))
                 .strafeToLinearHeading(new Vector2d(40, 15), Math.toRadians(90))
                 .build();
 
