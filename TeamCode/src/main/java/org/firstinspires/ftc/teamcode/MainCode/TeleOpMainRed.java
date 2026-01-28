@@ -98,6 +98,7 @@ public class TeleOpMainRed extends LinearOpMode {
     // --- Intake/servo state ---
     private double intakePower = 0.0;
     private double sidePower = 0.0;
+    private double feedPower = 0.0;
 
     // --- Button edge detection ---
     private boolean prevRB = false;
@@ -309,7 +310,7 @@ public class TeleOpMainRed extends LinearOpMode {
                 }*/
 
                 if(tx < txMin || tx > txMax){
-                    txTarget_dbg = (txMin + txMax)/2;
+                    txTarget_dbg = ((txMin+15) + (txMax+15))/2;
                 } else {
                     txTarget_dbg = tx; // already within range
                 }
@@ -422,8 +423,17 @@ public class TeleOpMainRed extends LinearOpMode {
 
             if (gamepad2.y) {
                 if (feedAllowed) {
-                    feedServo.setPower(-1);
-                    SideServo.setPower(0.7);
+                    feedServo.setPower(-0.9);
+                    if (dInForLogic != null){
+                    sidePower = ((1/13440)*Math.pow(dInForLogic,2)) -  ((79/16800)*dInForLogic) - 1;
+                    }
+                    if (sidePower < - 1.0){
+                        sidePower = -1.0;
+                    }
+                    if (sidePower > 0.0){
+                        sidePower = 0.0;
+                    }
+
                     intakePower = 0.75;
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
@@ -431,9 +441,10 @@ public class TeleOpMainRed extends LinearOpMode {
             }
             if(gamepad2.x){
                 feedServo.setPower(0);
-                SideServo.setPower(0);
-                intakeMotor.setPower(0);
+                sidePower = 0.0;
+                intakePower = 0.75;
             }
+            SideServo.setPower(sidePower);
 
 
             // ---------------- INTAKE ----------------
