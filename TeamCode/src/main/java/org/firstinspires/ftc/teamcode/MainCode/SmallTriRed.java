@@ -115,9 +115,7 @@ public final class SmallTriRed extends LinearOpMode {
                         WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .setTangent(Math.toRadians(152.5))
-                .strafeToLinearHeading(new Vector2d(13, 15), Math.toRadians(90))
-                .setTangent(Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(13, 54), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(40, 15), Math.toRadians(90))
                 .build();
 
         Actions.runBlocking(all);
