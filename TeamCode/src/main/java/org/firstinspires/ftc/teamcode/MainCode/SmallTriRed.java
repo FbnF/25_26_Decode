@@ -45,7 +45,7 @@ public final class SmallTriRed extends LinearOpMode {
     public static double SHOOTER_VEL2 = 1780;
 
 
-    public static double WaitTime = 9.5;
+    public static double WaitTime = 10.5;
     public static double StartWaitTime = 2;
     public static double SHOOT_HEADING = 150.5;
     public static double SHOOTER_HEADING2 = 146.5;

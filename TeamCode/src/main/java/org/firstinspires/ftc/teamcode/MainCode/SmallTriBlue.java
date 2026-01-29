@@ -41,9 +41,9 @@ public class SmallTriBlue extends LinearOpMode {
 
     public static double SHOOTER_VEL = 1760;
 
-    public static double WaitTime = 6;
+    public static double WaitTime = 10.5;
     public static double StartWaitTime = 2;
-    public static double SIDE_POWER = -0.5;
+    public static double SIDE_POWER = -0.1;
 
 
     @Override
