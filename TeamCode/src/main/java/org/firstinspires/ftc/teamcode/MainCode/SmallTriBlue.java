@@ -39,7 +39,7 @@ public class SmallTriBlue extends LinearOpMode {
     public static final double INTAKE_POWER  = 0.73;
     public static double SHOOTER_POWER = 0.74;
 
-    public static double SHOOTER_VEL = 1760;
+    public static double SHOOTER_VEL = 1755;
 
     public static double WaitTime = 10.5;
     public static double StartWaitTime = 2;
@@ -87,7 +87,7 @@ public class SmallTriBlue extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(52, -8), Math.toRadians(202))
+                .strafeToLinearHeading(new Vector2d(52, -10), Math.toRadians(201))
                 .stopAndAdd(AutoMotorControl.setMotorPower(intake, 0.7))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
                         shooter, intake,feed ,SideServo
@@ -102,7 +102,7 @@ public class SmallTriBlue extends LinearOpMode {
                 // .lineToY(-36)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(52, -12), Math.toRadians(215))
+                .strafeToLinearHeading(new Vector2d(52, -14), Math.toRadians(203))
 
 
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
@@ -113,7 +113,7 @@ public class SmallTriBlue extends LinearOpMode {
 
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(215))
-                .strafeToLinearHeading(new Vector2d(40, -5), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(40, -15), Math.toRadians(270))
                 .build();
 
         Actions.runBlocking(all);
