@@ -48,6 +48,7 @@ public final class SmallTriRed extends LinearOpMode {
     public static double WaitTime = 9.5;
     public static double StartWaitTime = 2;
     public static double SHOOT_HEADING = 150.5;
+    public static double SHOOTER_HEADING2 = 149,5;
     public static double INTAKE_X = 34.5;
     public static double INTAKE_Y = 19;
 
@@ -111,7 +112,7 @@ public final class SmallTriRed extends LinearOpMode {
                 .lineToY(48)
                 .lineToY(58)
                 .stopAndAdd(setMotorPower(intake, 0.0))
-                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(SHOOT_HEADING-1))
+                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(SHOOTER_HEADING2))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
 
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
@@ -119,7 +120,7 @@ public final class SmallTriRed extends LinearOpMode {
                         ,RangeSensor,SHOOTER_VEL2,SIDE_POWER,StartWaitTime,
                         WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .setTangent(Math.toRadians(SHOOT_HEADING))
+                .setTangent(Math.toRadians(SHOOTER_HEADING2))
                 .strafeToLinearHeading(new Vector2d(40, 15), Math.toRadians(90))
                 .build();
 
