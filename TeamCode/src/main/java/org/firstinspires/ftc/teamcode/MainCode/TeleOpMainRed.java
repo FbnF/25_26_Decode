@@ -394,7 +394,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
                 } else {
                     shooterSetpointTPS = 0.0;
-                    launchMotor.setPower(0.0);
+                    launchMotor.setVelocity(1000);
                 }
 
             } else {

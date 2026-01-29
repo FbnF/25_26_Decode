@@ -31,10 +31,11 @@ public class BigTriRed6 extends LinearOpMode {
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
     private static final double SHOOTER_Vel = 1325;
+    private static final double SHOOTER_Vel_2 = 1340;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 1.2;
-    private static final double WAIT_TIME_Start = 1.2;
+    private static final double WAIT_TIME_Start = 1.4;
     private static final double SHOOT_TIME = 5;
     private static final double sidePower = -0.9;
 
@@ -57,7 +58,7 @@ public class BigTriRed6 extends LinearOpMode {
                 // First strafe and shoot
                 .setTangent(Math.toRadians(135))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeTo(new Vector2d(-20, 20))
+                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(130))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
@@ -76,13 +77,12 @@ public class BigTriRed6 extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
 
-                .strafeToLinearHeading(new Vector2d(-36, 12), Math.toRadians(120))
-
+                .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(130))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, sidePower,
+                        SHOOTER_Vel_2, sidePower,
                         WAIT_TIME,SHOOT_TIME))
 
                 .build();

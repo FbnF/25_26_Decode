@@ -35,14 +35,14 @@ public class BigTriBlue3 extends LinearOpMode {
     private static final double WAIT_TIME = 1.2;
     private static final double WAIT_TIME_Start = 1.2;
     private static final double SHOOT_TIME = 5;
-    private static final double sidePower = -0.9;
+    private static final double sidePower = -0.7;
 
 
 
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-57, -36, Math.toRadians(180));//Pose2d startPose = new Pose2d(-48, -48, Math.toRadians(225));
+        Pose2d startPose = new Pose2d(-57, -36, Math.toRadians(270));//Pose2d startPose = new Pose2d(-48, -48, Math.toRadians(225));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -56,15 +56,13 @@ public class BigTriBlue3 extends LinearOpMode {
                 // First strafe and shoot
                 .setTangent(Math.toRadians(225))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeToLinearHeading(new Vector2d(-36, -10), Math.toRadians(240))
+                .strafeToLinearHeading(new Vector2d(-29, -11.5), Math.toRadians(240))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
                         SHOOTER_Vel, sidePower,
-                        WAIT_TIME_Start,SHOOT_TIME))
-
-
+                        WAIT_TIME,SHOOT_TIME))
 
                 .build();
 
