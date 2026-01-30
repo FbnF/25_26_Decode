@@ -94,6 +94,7 @@ public class TeleOpMainRed extends LinearOpMode {
     private double speedFactor = 1.2;
     @SuppressWarnings("unused")
     BNO055IMU imu;
+    double txTargetOffset = 0.0;
 
     // --- Intake/servo state ---
     private double intakePower = 0.0;
@@ -310,7 +311,9 @@ public class TeleOpMainRed extends LinearOpMode {
                 }*/
 
                 if(tx < txMin || tx > txMax){
-                    txTarget_dbg = ((txMin+15) + (txMax+15))/2;
+                     txTargetOffset = ((txMin) + (txMax)) / 2;
+                     txTargetOffset = txTargetOffset * 0.1;
+                    txTarget_dbg = ((txMin+txTargetOffset) + (txMax+txTargetOffset))/2;
                 } else {
                     txTarget_dbg = tx; // already within range
                 }

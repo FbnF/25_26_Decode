@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setCRServoPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
 
@@ -16,11 +17,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl;
-import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederAction;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 @Config
 @Autonomous(name="SmallTriBlue", group="Auto")
@@ -39,11 +38,13 @@ public class SmallTriBlue extends LinearOpMode {
     public static final double INTAKE_POWER  = 0.73;
     public static double SHOOTER_POWER = 0.74;
 
-    public static double SHOOTER_VEL = 1755;
+    public static double SHOOTER_VEL = 1746;
+    public static double SHOOTER_VEL2 = 1759;
+
 
     public static double WaitTime = 10.5;
     public static double StartWaitTime = 2;
-    public static double SIDE_POWER = -0.1;
+    public static double SIDE_POWER = -0.155;
 
 
     @Override
@@ -55,9 +56,7 @@ public class SmallTriBlue extends LinearOpMode {
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
         CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
         CRServo SideServo = hardwareMap.get(CRServo.class, SIDE_SERVO);
-        VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
         DistanceSensor RangeSensor = hardwareMap.get(DistanceSensor.class, "RangeSensor");
-        Limelight3A LimeLight = hardwareMap.get(Limelight3A.class, LIMELIGHT);
         // VoltageSensor battery = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR); // read battery
 
         // Safe defaults
@@ -87,32 +86,33 @@ public class SmallTriBlue extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(52, -10), Math.toRadians(201))
+                .strafeToLinearHeading(new Vector2d(52, -10), Math.toRadians(200.7))
                 .stopAndAdd(AutoMotorControl.setMotorPower(intake, 0.7))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
                         shooter, intake,feed ,SideServo
                         ,RangeSensor,SHOOTER_VEL,SIDE_POWER,StartWaitTime,
                         WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
-                .setTangent(Math.toRadians(204))
-                .strafeToLinearHeading(new Vector2d(30, -26), Math.toRadians(270))
+                .stopAndAdd(setCRServoPower(SideServo, 1.0))
+                .setTangent(Math.toRadians(200.7))
+
+                .strafeToLinearHeading(new Vector2d(30.3, -26), Math.toRadians(270))
                 .setTangent(Math.toRadians(270))
                 .lineToY(-48)
-                .lineToY(-55)
+                .lineToY(-57)
                 // .lineToY(-36)
-                .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(52, -14), Math.toRadians(203))
+                .strafeToLinearHeading(new Vector2d(52, -14), Math.toRadians(200.6))
 
-
+                .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
                         shooter, intake,feed ,SideServo
-                        ,RangeSensor,SHOOTER_VEL,SIDE_POWER,StartWaitTime,
+                        ,RangeSensor,SHOOTER_VEL2,SIDE_POWER,StartWaitTime,
                         WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
-                .setTangent(Math.toRadians(215))
+                .setTangent(Math.toRadians(200.6))
                 .strafeToLinearHeading(new Vector2d(40, -15), Math.toRadians(270))
                 .build();
 
