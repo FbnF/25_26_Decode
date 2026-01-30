@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederCombined;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
@@ -34,10 +35,10 @@ public class BigTriRed9 extends LinearOpMode {
     private static final double SHOOTER_Vel_2 = 1340;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double WAIT_TIME = 0.9;
-    private static final double WAIT_TIME_Start = 1.2;
-    private static final double SHOOT_TIME = 4;
-    private static final double sidePower = -0.9;
+    private static final double WAIT_TIME = 1.1;
+    private static final double WAIT_TIME_Start = 1.4;
+    private static final double SHOOT_TIME = 4.5;
+    private static final double sidePower = -0.85;
 
 
     @Override
@@ -51,6 +52,15 @@ public class BigTriRed9 extends LinearOpMode {
         CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
         CRServo side            = hardwareMap.get(CRServo.class, SIDE_SERVO);
         DistanceSensor distance = hardwareMap.get(DistanceSensor.class, DISTANCE_SENSOR);
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        intake.setPower(0.0);
+        shooter.setPower(0.0);
+        feed.setPower(0);
 
         // Build one continuous action so pose/tangent carry correctly between segments.
         Action all = drive.actionBuilder(startPose)
