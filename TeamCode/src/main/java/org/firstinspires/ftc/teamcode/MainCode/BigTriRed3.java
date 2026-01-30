@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederCombined;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
@@ -51,6 +52,15 @@ public class BigTriRed3 extends LinearOpMode {
         CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
         CRServo side            = hardwareMap.get(CRServo.class, SIDE_SERVO);
         DistanceSensor distance = hardwareMap.get(DistanceSensor.class, DISTANCE_SENSOR);
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        intake.setPower(0.0);
+        shooter.setPower(0.0);
+        feed.setPower(0);
 
         // Build one continuous action so pose/tangent carry correctly between segments.
         Action all = drive.actionBuilder(startPose)

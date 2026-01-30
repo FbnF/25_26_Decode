@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
-import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setCRServoPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
+import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -9,13 +10,15 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.ShooterAndFeederCombined;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+
 
 
 @Autonomous(name = "BigTriBLUE3", group = "BigTriBlue")
@@ -32,17 +35,16 @@ public class BigTriBlue3 extends LinearOpMode {
     private static final double SHOOTER_Vel = 1325;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double WAIT_TIME = 1.2;
-    private static final double WAIT_TIME_Start = 1.2;
+    private static final double WAIT_TIME = 1.3;
+    private static final double WAIT_TIME_Start = 1.5;
     private static final double SHOOT_TIME = 5;
-    private static final double sidePower = -0.7;
-
+    private static final double sidePower = -0.8;
 
 
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-57, -36, Math.toRadians(270));//Pose2d startPose = new Pose2d(-48, -48, Math.toRadians(225));
+        Pose2d startPose = new Pose2d(-57, -36, Math.toRadians(270)); //-48, -48, Math.toRadians(225));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -50,14 +52,22 @@ public class BigTriBlue3 extends LinearOpMode {
         CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
         CRServo side            = hardwareMap.get(CRServo.class, SIDE_SERVO);
         DistanceSensor distance = hardwareMap.get(DistanceSensor.class, DISTANCE_SENSOR);
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        intake.setPower(0.0);
+        shooter.setPower(0.0);
+        feed.setPower(0);
 
         // Build one continuous action so pose/tangent carry correctly between segments.
         Action all = drive.actionBuilder(startPose)
                 // First strafe and shoot
                 .setTangent(Math.toRadians(225))
-                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))//start up motor
                 .strafeToLinearHeading(new Vector2d(-29, -11.5), Math.toRadians(240))
-                // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
