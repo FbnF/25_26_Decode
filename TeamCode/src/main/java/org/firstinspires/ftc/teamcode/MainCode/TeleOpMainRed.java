@@ -4,6 +4,7 @@
 
 package org.firstinspires.ftc.teamcode.MainCode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -35,6 +36,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
 
 import java.util.List;
 
+@Config
 @TeleOp(name = "TeleOpRed: Main", group = "TeleOp")
 public class TeleOpMainRed extends LinearOpMode {
 
@@ -139,6 +141,10 @@ public class TeleOpMainRed extends LinearOpMode {
     private double txTarget_dbg = 0.0;
     private double alignErr_dbg = 0.0;
     private boolean alignActive_dbg = false;
+
+    public static double txMinOffset = 0.0;
+    public static double txMaxOffset = 0.0;
+    public static double multiplier = 0.1;
 
     @Override
     public void runOpMode() {
@@ -311,9 +317,9 @@ public class TeleOpMainRed extends LinearOpMode {
                 }*/
 
                 if(tx < txMin || tx > txMax){
-                     txTargetOffset = ((txMin) + (txMax)) / 2;
-                     txTargetOffset = txTargetOffset * 0.1;
-                    txTarget_dbg = ((txMin+txTargetOffset) + (txMax+txTargetOffset))/2;
+                    txMinOffset = txMin * multiplier;
+                    txMaxOffset = txMax * multiplier;
+                    txTarget_dbg = ((txMin+txMinOffset) + (txMax+txMaxOffset))/2;
                 } else {
                     txTarget_dbg = tx; // already within range
                 }
