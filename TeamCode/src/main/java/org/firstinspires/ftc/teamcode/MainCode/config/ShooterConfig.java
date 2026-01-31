@@ -23,6 +23,10 @@ public final class ShooterConfig {
     // false = TUNING MODE: use physics + TPS_SCALE/OFFSET
     public static boolean USE_TABLE = true;
 
+    public static boolean USE_FEED_TABLE = true;
+
+    public static double FEED_DEFAULT = -0.9;
+
     // ---------------- Dashboard tuning knobs (used ONLY in physics mode) ----------------
     // Final TPS = (physicsTPS * TPS_SCALE) + TPS_OFFSET
     public static double TPS_SCALE = 1.0;
@@ -79,6 +83,103 @@ public final class ShooterConfig {
     //added 3 to all the mins
     public static double[] TX_MIN_AT_DIST = new double[] {-11.1 ,-8.36 ,-9.81 ,-6.25,-8.02,-10.65 ,-8.7 ,-8.8 ,-5.4 ,-6.39 ,-0.21 ,-5.72};
     public static double[] TX_MAX_AT_DIST = new double[] {0.801,0.4,3.45,0.91,4.64 ,-1.45 ,-2.69 ,-2.6,1.14,1.27,0.08,-1.68};
+
+
+
+
+
+
+
+    //Red Side maps
+    public static double[] TX_DIST_IN_RED = new double[] {
+
+    };
+    //added 3 to all the mins
+    public static double[] TX_MIN_AT_DIST_RED = new double[] {
+
+    };
+    public static double[] TX_MAX_AT_DIST_RED = new double[] {
+
+    };
+    public static double[] FEED_POWER_AT_DIST = new double[] {
+
+    };
+    public static double[] DIST_IN_RED = new double[] {
+            };
+
+    public static double[] TPS_AT_DIST_RED = new double[] {
+            };
+
+
+    public static double getFeedPowerAtDistance(double distIn) {
+        if (!Double.isFinite(distIn)) return 0.0;
+        if (DIST_IN_RED == null || FEED_POWER_AT_DIST == null) return 0.0;
+        if (DIST_IN_RED.length < 2 || FEED_POWER_AT_DIST.length != DIST_IN_RED.length) return 0.0;
+
+        if (distIn <= DIST_IN_RED[0]) return FEED_POWER_AT_DIST[0];
+        int last = DIST_IN_RED.length - 1;
+        if (distIn >= DIST_IN_RED[last]) return FEED_POWER_AT_DIST[last];
+
+        int i = 0;
+        while (i < last && distIn > DIST_IN_RED[i + 1]) i++;
+
+        double x0 = DIST_IN_RED[i];
+        double x1 = DIST_IN_RED[i + 1];
+        double y0 = FEED_POWER_AT_DIST[i];
+        double y1 = FEED_POWER_AT_DIST[i + 1];
+
+        if (x1 <= x0) return y0;
+
+        double t = (distIn - x0) / (x1 - x0);
+        return y0 + t * (y1 - y0);
+    }
+
+    public static double[] lookupTxWindowFromDistanceInRED(double distIn) {
+        if (!Double.isFinite(distIn)) return new double[]{-999.0, 999.0};
+        if (TX_DIST_IN_RED == null || TX_MIN_AT_DIST_RED == null || TX_MAX_AT_DIST_RED == null) return new double[]{-999.0, 999.0};
+        int n = TX_DIST_IN_RED.length;
+        if (n < 2 || TX_MIN_AT_DIST_RED.length != n || TX_MAX_AT_DIST_RED.length != n) return new double[]{-999.0, 999.0};
+
+        if (distIn <= TX_DIST_IN_RED[0]) return new double[]{TX_MIN_AT_DIST_RED[0], TX_MAX_AT_DIST_RED[0]};
+        if (distIn >= TX_DIST_IN_RED[n - 1]) return new double[]{TX_MIN_AT_DIST_RED[n - 1], TX_MAX_AT_DIST_RED[n - 1]};
+
+        int i = 0;
+        while (i < n - 1 && distIn > TX_DIST_IN_RED[i + 1]) i++;
+
+        double x0 = TX_DIST_IN_RED[i];
+        double x1 = TX_DIST_IN_RED[i + 1];
+        if (x1 <= x0) return new double[]{TX_MIN_AT_DIST_RED[i], TX_MAX_AT_DIST_RED[i]};
+
+        double t = (distIn - x0) / (x1 - x0);
+
+        double min = TX_MIN_AT_DIST_RED[i] + t * (TX_MIN_AT_DIST_RED[i + 1] - TX_MIN_AT_DIST_RED[i]);
+        double max = TX_MAX_AT_DIST_RED[i] + t * (TX_MAX_AT_DIST_RED[i + 1] - TX_MAX_AT_DIST_RED[i]);
+        return new double[]{min, max};
+    }
+
+    /** Linear interpolation lookup. */
+    public static double lookupTpsFromDistanceInRED(double distIn) {
+        if (!Double.isFinite(distIn)) return 0.0;
+        if (DIST_IN_RED == null || TPS_AT_DIST_RED == null) return 0.0;
+        if (DIST_IN_RED.length < 2 || TPS_AT_DIST_RED.length != DIST_IN_RED.length) return 0.0;
+
+        if (distIn <= DIST_IN_RED[0]) return TPS_AT_DIST_RED[0];
+        int last = DIST_IN_RED.length - 1;
+        if (distIn >= DIST_IN_RED[last]) return TPS_AT_DIST_RED[last];
+
+        int i = 0;
+        while (i < last && distIn > DIST_IN_RED[i + 1]) i++;
+
+        double x0 = DIST_IN_RED[i];
+        double x1 = DIST_IN_RED[i + 1];
+        double y0 = TPS_AT_DIST_RED[i];
+        double y1 = TPS_AT_DIST_RED[i + 1];
+
+        if (x1 <= x0) return y0;
+
+        double t = (distIn - x0) / (x1 - x0);
+        return y0 + t * (y1 - y0);
+    }
 
     /** Linear interpolation lookup for allowed Tx window. Returns [min, max]. */
     public static double[] lookupTxWindowFromDistanceIn(double distIn) {

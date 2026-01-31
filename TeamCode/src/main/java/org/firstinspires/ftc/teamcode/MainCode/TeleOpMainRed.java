@@ -4,7 +4,7 @@
 
 package org.firstinspires.ftc.teamcode.MainCode;
 
-import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -18,6 +18,8 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.acmerobotics.dashboard.config.Config;
+
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -35,7 +37,6 @@ import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
 
 import java.util.List;
-
 @Config
 @TeleOp(name = "TeleOpRed: Main", group = "TeleOp")
 public class TeleOpMainRed extends LinearOpMode {
@@ -96,7 +97,8 @@ public class TeleOpMainRed extends LinearOpMode {
     private double speedFactor = 1.2;
     @SuppressWarnings("unused")
     BNO055IMU imu;
-    double txTargetOffset = 0.0;
+    private static double txTargetOffset = 1.1;
+    private static double tpsOffset = 0.96;
 
     // --- Intake/servo state ---
     private double intakePower = 0.0;
@@ -142,12 +144,10 @@ public class TeleOpMainRed extends LinearOpMode {
     private double alignErr_dbg = 0.0;
     private boolean alignActive_dbg = false;
 
-    public static double txMinOffset = 0.0;
-    public static double txMaxOffset = 0.0;
-    public static double multiplier = 0.1;
 
     @Override
     public void runOpMode() {
+        FtcDashboard dashboard = FtcDashboard.getInstance();
 
         // Map hardware
         feedServo   = hardwareMap.get(CRServo.class,     "feedServo");
@@ -317,9 +317,9 @@ public class TeleOpMainRed extends LinearOpMode {
                 }*/
 
                 if(tx < txMin || tx > txMax){
-                    txMinOffset = txMin * multiplier;
-                    txMaxOffset = txMax * multiplier;
-                    txTarget_dbg = ((txMin+txMinOffset) + (txMax+txMaxOffset))/2;
+
+
+                    txTarget_dbg = (((txMin) + (txMax))/2)*txTargetOffset;
                 } else {
                     txTarget_dbg = tx; // already within range
                 }
@@ -398,12 +398,13 @@ public class TeleOpMainRed extends LinearOpMode {
 
                     } else {
                         shooterSetpointTPS = desired;
+                        shooterSetpointTPS=shooterSetpointTPS*tpsOffset;
                         launchMotor.setVelocity(shooterSetpointTPS);
                     }
 
                 } else {
                     shooterSetpointTPS = 0.0;
-                    launchMotor.setVelocity(1000);
+                    launchMotor.setVelocity(0);
                 }
 
             } else {
@@ -429,31 +430,38 @@ public class TeleOpMainRed extends LinearOpMode {
 
             // Block feeding if not spun up OR in no-shot zone OR not within angle window
             boolean feedAllowed = spunUpOk && !noShotZone;
+            boolean useFeedTable = ShooterConfig.USE_FEED_TABLE;
+            double tableFeedPower = ShooterConfig.getFeedPowerAtDistance(dInForLogic);
+            double feedDefault = ShooterConfig.FEED_DEFAULT;
 
             if (gamepad2.y) {
-                if (feedAllowed) {
-                    feedServo.setPower(-0.9);
-                    if (dInForLogic != null) {
-                    sidePower = ((1/13440)*Math.pow(dInForLogic,2)) -  ((79/16800)*dInForLogic) - 1;
+                /*if (feedAllowed&&useFeedTable) {
+                    feedPower = tableFeedPower;
+                    if (feedPower < - 1.0){
+                        feedPower = -1.0;
                     }
-                    if (sidePower < - 1.0){
-                        sidePower = -1.0;
-                    }
-                    if (sidePower > 0.0){
-                        sidePower = 0.0;
+                    if (feedPower > 0.0){
+                        feedPower = 0.0;
                     }
 
                     intakePower = 0.75;
+                    sidePower = 1.0;
+
+                 */
+                } if (feedAllowed) {
+                    feedPower = feedDefault;
+                    intakePower = 0.75;
+                    sidePower = 1.0;
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
             }
             if(gamepad2.x){
-                feedServo.setPower(0);
+                feedPower=0;
                 sidePower = 0.0;
-                intakePower = 0.75;
+                intakePower = 0.0;
             }
-            SideServo.setPower(sidePower);
+
 
 
             // ---------------- INTAKE ----------------
@@ -477,6 +485,7 @@ public class TeleOpMainRed extends LinearOpMode {
             }
             intakeMotor.setPower(intakePower);
             SideServo.setPower(sidePower);
+            feedServo.setPower(feedPower);
 
             // ---------------- LEDs ----------------
             RevBlinkinLedDriver.BlinkinPattern pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
@@ -534,6 +543,7 @@ public class TeleOpMainRed extends LinearOpMode {
             }
 
             // ---------------- TELEMETRY ----------------
+            telemetry.addData("ServoSpeed", feedPower);
             telemetry.addLine("---- Vision Distance (cameraPoseTargetSpace) ----");
             telemetry.addData("Vision Enabled", visionEnabled);
             telemetry.addData("Goal Tag Found", hasGoalTag_dbg);
@@ -575,6 +585,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
             telemetry.addLine("TIP: Set NO_SHOT_UNDER_IN to your measured 'too close' distance.");
             telemetry.update();
+            dashboard.updateConfig();
         }
 
         try {

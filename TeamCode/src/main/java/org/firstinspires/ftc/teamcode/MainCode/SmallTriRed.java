@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.MainCode;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setCRServoPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
-
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
