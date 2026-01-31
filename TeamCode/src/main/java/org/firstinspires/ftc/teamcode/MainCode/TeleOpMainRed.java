@@ -1,16 +1,14 @@
-// TeleOpMainBlue.java
-// Full file with Option A implemented AND feed gating always includes "wrong angle".
-// Removed all REQUIRE_ALIGNED_TO_FEED references (does not exist anymore).
-
 package org.firstinspires.ftc.teamcode.MainCode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -18,25 +16,18 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.acmerobotics.dashboard.config.Config;
-
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.List;
+
 @Config
 @TeleOp(name = "TeleOpRed: Main", group = "TeleOp")
 public class TeleOpMainRed extends LinearOpMode {
@@ -46,7 +37,7 @@ public class TeleOpMainRed extends LinearOpMode {
     private MecanumDrive drive;
     private DcMotorEx intakeMotor;
     private DcMotorEx launchMotor;
-  //  private RevBlinkinLedDriver blinkin;
+    //  private RevBlinkinLedDriver blinkin;
     private VoltageSensor battery;
     private Servo puckLight;
 
@@ -150,13 +141,13 @@ public class TeleOpMainRed extends LinearOpMode {
         FtcDashboard dashboard = FtcDashboard.getInstance();
 
         // Map hardware
-        feedServo   = hardwareMap.get(CRServo.class,     "feedServo");
+        feedServo = hardwareMap.get(CRServo.class, "feedServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
         launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
-        battery     = hardwareMap.voltageSensor.iterator().next();
+        battery = hardwareMap.voltageSensor.iterator().next();
 
-     //   blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-       // blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+        //   blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+        // blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
         puckLight = hardwareMap.get(Servo.class, "PuckLight");
         puckLight.setPosition(0.0);
         RangeSensor = hardwareMap.get(DistanceSensor.class, "RangeSensor");
@@ -213,8 +204,8 @@ public class TeleOpMainRed extends LinearOpMode {
             if (gamepad1.b) speedFactor = 0.4;
             if (gamepad1.x) speedFactor = 0.7;
 
-            double axial   = -gamepad1.right_stick_y * speedFactor;
-            double lateral = -gamepad1.left_stick_x  * speedFactor;
+            double axial = -gamepad1.right_stick_y * speedFactor;
+            double lateral = -gamepad1.left_stick_x * speedFactor;
             double headingManual = -gamepad1.right_stick_x * speedFactor;
 
             // ---------------- Vision toggle ----------------
@@ -316,15 +307,15 @@ public class TeleOpMainRed extends LinearOpMode {
                     txTarget_dbg = tx; // already within range
                 }*/
 
-                if(tx < txMin || tx > txMax){
+                if (tx < txMin || tx > txMax) {
 
 
-                    txTarget_dbg = (((txMin) + (txMax))/2)*txTargetOffset;
+                    txTarget_dbg = (((txMin) + (txMax)) / 2) * txTargetOffset;
                 } else {
                     txTarget_dbg = tx; // already within range
                 }
 
-                double err =  txTarget_dbg- tx;   // want err -> 0
+                double err = txTarget_dbg - tx;   // want err -> 0
                 alignErr_dbg = err;
 
                 if (Math.abs(err) <= ShooterConfig.ALIGN_ERR_DEADBAND_DEG) {
@@ -398,7 +389,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
                     } else {
                         shooterSetpointTPS = desired;
-                        shooterSetpointTPS=shooterSetpointTPS*tpsOffset;
+                        shooterSetpointTPS = shooterSetpointTPS * tpsOffset;
                         launchMotor.setVelocity(shooterSetpointTPS);
                     }
 
@@ -448,215 +439,154 @@ public class TeleOpMainRed extends LinearOpMode {
                     sidePower = 1.0;
 
                  */
-                } if (feedAllowed) {
-                    feedPower = feedDefault;
-                    intakePower = 0.75;
-                    sidePower = 1.0;
-                } else if (!feedAllowed) {
-                    yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
-                }
             }
-            if(gamepad2.x){
-                feedPower=0;
-                sidePower = 0.0;
-                intakePower = 0.0;
+            if (feedAllowed) {
+                feedPower = feedDefault;
+                intakePower = 0.75;
+                sidePower = 1.0;
+            } else if (!feedAllowed) {
+                yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
             }
+        }
+        if (gamepad2.x) {
+            feedPower = 0;
+            sidePower = 0.0;
+            intakePower = 0.0;
+        }
 
 
+        // ---------------- INTAKE ----------------
 
-            // ---------------- INTAKE ----------------
 
+        boolean rbEdge = gamepad2.right_bumper && !prevRB;
+        if (rbEdge) {
+            intakePower = -0.5;
+            sidePower = -0.5;
+        }
 
-            boolean rbEdge = gamepad2.right_bumper && !prevRB;
-            if (rbEdge) {
-                intakePower = -0.5;
-                sidePower = -0.5;
-            }
+        prevRB = gamepad2.right_bumper;
 
-            prevRB = gamepad2.right_bumper;
+        if (gamepad2.right_trigger > 0) {
+            intakePower = 0.73;
+            sidePower = 1;
+        }
+        if (gamepad2.left_trigger > 0) {
+            intakePower = 0.0;
+            sidePower = 0;
+        }
+        intakeMotor.setPower(intakePower);
+        SideServo.setPower(sidePower);
+        feedServo.setPower(feedPower);
 
-            if (gamepad2.right_trigger > 0){
-                intakePower = 0.73;
-                sidePower = 1;
-            }
-            if (gamepad2.left_trigger > 0) {
-                intakePower = 0.0;
-                sidePower = 0;
-            }
-            intakeMotor.setPower(intakePower);
-            SideServo.setPower(sidePower);
-            feedServo.setPower(feedPower);
+        // ---------------- LEDs ----------------
+        RevBlinkinLedDriver.BlinkinPattern pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
 
-            // ---------------- LEDs ----------------
-            RevBlinkinLedDriver.BlinkinPattern pat = RevBlinkinLedDriver.BlinkinPattern.BLACK;
-
-            if (!visionEnabled) {
-                puckLight.setPosition(0.0);
-            } else if (autoShooter) {
-                if (!correctTag) {
-                    puckLight.setPosition(0.287);
-                } else if (noShotZone) {
-                    // Too close to make the shot: force yellow even if at speed
-                    puckLight.setPosition(0.368);
+        if (!visionEnabled) {
+            puckLight.setPosition(0.0);
+        } else if (autoShooter) {
+            if (!correctTag) {
+                puckLight.setPosition(0.287);
+            } else if (noShotZone) {
+                // Too close to make the shot: force yellow even if at speed
+                puckLight.setPosition(0.368);
+            } else {
+                boolean atSpeed = spunUpOk && autoSpinArmed;
+                if (atSpeed) {
+                    puckLight.setPosition(0.444);
                 } else {
-                    boolean atSpeed = spunUpOk && autoSpinArmed;
-                    if(atSpeed){
-                        puckLight.setPosition(0.444);
-                    } else {
+                    puckLight.setPosition(0.368);
+                }
+            }
+        }
+
+        // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold
+        if (System.nanoTime() < yTooSoonFlashUntilNs) {
+            //     pat = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
+            if (blinking) {
+                if (blinkTimer.milliseconds() >= BLINK_INTERVAL_MS) {
+                    blinkTimer.reset();
+
+                    blinkState = !blinkState;
+
+                    if (blinkState) {
                         puckLight.setPosition(0.368);
+                    } else {
+                        puckLight.setPosition(0.0);
+                        blinkCount++;
+                    }
+
+                    if (blinkCount >= FLASH_AMOUNT) {
+                        blinking = false;
+                        puckLight.setPosition(0.0);
                     }
                 }
             }
-
-            // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold
-            if (System.nanoTime() < yTooSoonFlashUntilNs) {
-                //     pat = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
-                if (blinking) {
-                    if (blinkTimer.milliseconds() >= BLINK_INTERVAL_MS) {
-                        blinkTimer.reset();
-
-                        blinkState = !blinkState;
-
-                        if (blinkState) {
-                            puckLight.setPosition(0.368);
-                        } else {
-                            puckLight.setPosition(0.0);
-                            blinkCount++;
-                        }
-
-                        if (blinkCount >= FLASH_AMOUNT) {
-                            blinking = false;
-                            puckLight.setPosition(0.0);
-                        }
-                    }
-                }
-            }
+        }
           /* if(RangeSensor.getDistance(DistanceUnit.CM) < 20){
                 blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE);
             } else {
                 blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
             }*/
 
-            // ---------------- LOGGING ----------------
-            if (LOG_ENABLED && logger != null) {
-                logger.record("run");
-            }
-
-            // ---------------- TELEMETRY ----------------
-            telemetry.addData("ServoSpeed", feedPower);
-            telemetry.addLine("---- Vision Distance (cameraPoseTargetSpace) ----");
-            telemetry.addData("Vision Enabled", visionEnabled);
-            telemetry.addData("Goal Tag Found", hasGoalTag_dbg);
-            telemetry.addData("Seen Tag ID", tagId);
-            telemetry.addData("GOAL_TAG_ID", GOAL_TAG_ID);
-            telemetry.addData("rangeRawIn", "%.2f", distIn_raw_dbg);
-            telemetry.addData("rangeFiltIn", "%.2f", distIn_filt_dbg);
-            telemetry.addData("Tx",  Tx);
-            telemetry.addData("Ty", Ty);
-
-            telemetry.addLine("---- Align Window (Tx) ----");
-            telemetry.addData("AlignActive", alignActive_dbg);
-            telemetry.addData("txMin", "%.2f", txMin_dbg);
-            telemetry.addData("txMax", "%.2f", txMax_dbg);
-            telemetry.addData("txTarget", "%.2f", txTarget_dbg);
-            telemetry.addData("alignErr", "%.2f", alignErr_dbg);
-
-            telemetry.addLine("---- No-Shot Zone ----");
-            telemetry.addData("NO_SHOT_UNDER_IN", "%.2f", ShooterConfig.NO_SHOT_UNDER_IN);
-            telemetry.addData("noShotZone", noShotZone_dbg);
-
-            telemetry.addLine("---- Shooter Calc ----");
-            telemetry.addData("USE_TABLE (match)", ShooterConfig.USE_TABLE);
-            telemetry.addData("physicsTPS", "%.0f", physicsTps_dbg);
-            telemetry.addData("tableTPS", "%.0f", tableTps_dbg);
-            telemetry.addData("baseChosen", "%.0f", commandedBase_dbg);
-
-            telemetry.addData("scale (physics only)", "%.3f", ShooterConfig.TPS_SCALE);
-            telemetry.addData("offset (physics only)", "%.0f", ShooterConfig.TPS_OFFSET);
-            telemetry.addData("finalTPS", "%.0f", finalTps_dbg);
-
-            telemetry.addLine("---- Shooter State ----");
-            telemetry.addData("Armed", autoSpinArmed);
-            telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
-            telemetry.addData("Actual TPS", "%.0f", launchMotor.getVelocity());
-            telemetry.addData("Err", "%.0f", (launchMotor.getVelocity() - shooterSetpointTPS));
-            telemetry.addData("Ready", spunUpOk);
-            telemetry.addData("FeedAllowed", feedAllowed);
-
-            telemetry.addLine("TIP: Set NO_SHOT_UNDER_IN to your measured 'too close' distance.");
-            telemetry.update();
-            dashboard.updateConfig();
+        // ---------------- LOGGING ----------------
+        if (LOG_ENABLED && logger != null) {
+            logger.record("run");
         }
 
-        try {
-            launchMotor.setPower(0.0);
-            intakeMotor.setPower(0.0);
-        } finally {
-            if (LOG_ENABLED && logger != null) logger.close();
-        }
+        // ---------------- TELEMETRY ----------------
+        telemetry.addData("ServoSpeed", feedPower);
+        telemetry.addLine("---- Vision Distance (cameraPoseTargetSpace) ----");
+        telemetry.addData("Vision Enabled", visionEnabled);
+        telemetry.addData("Goal Tag Found", hasGoalTag_dbg);
+        telemetry.addData("Seen Tag ID", tagId);
+        telemetry.addData("GOAL_TAG_ID", GOAL_TAG_ID);
+        telemetry.addData("rangeRawIn", "%.2f", distIn_raw_dbg);
+        telemetry.addData("rangeFiltIn", "%.2f", distIn_filt_dbg);
+        telemetry.addData("Tx", Tx);
+        telemetry.addData("Ty", Ty);
+
+        telemetry.addLine("---- Align Window (Tx) ----");
+        telemetry.addData("AlignActive", alignActive_dbg);
+        telemetry.addData("txMin", "%.2f", txMin_dbg);
+        telemetry.addData("txMax", "%.2f", txMax_dbg);
+        telemetry.addData("txTarget", "%.2f", txTarget_dbg);
+        telemetry.addData("alignErr", "%.2f", alignErr_dbg);
+
+        telemetry.addLine("---- No-Shot Zone ----");
+        telemetry.addData("NO_SHOT_UNDER_IN", "%.2f", ShooterConfig.NO_SHOT_UNDER_IN);
+        telemetry.addData("noShotZone", noShotZone_dbg);
+
+        telemetry.addLine("---- Shooter Calc ----");
+        telemetry.addData("USE_TABLE (match)", ShooterConfig.USE_TABLE);
+        telemetry.addData("physicsTPS", "%.0f", physicsTps_dbg);
+        telemetry.addData("tableTPS", "%.0f", tableTps_dbg);
+        telemetry.addData("baseChosen", "%.0f", commandedBase_dbg);
+
+        telemetry.addData("scale (physics only)", "%.3f", ShooterConfig.TPS_SCALE);
+        telemetry.addData("offset (physics only)", "%.0f", ShooterConfig.TPS_OFFSET);
+        telemetry.addData("finalTPS", "%.0f", finalTps_dbg);
+
+        telemetry.addLine("---- Shooter State ----");
+        telemetry.addData("Armed", autoSpinArmed);
+        telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
+        telemetry.addData("Actual TPS", "%.0f", launchMotor.getVelocity());
+        telemetry.addData("Err", "%.0f", (launchMotor.getVelocity() - shooterSetpointTPS));
+        telemetry.addData("Ready", spunUpOk);
+        telemetry.addData("FeedAllowed", feedAllowed);
+
+        telemetry.addLine("TIP: Set NO_SHOT_UNDER_IN to your measured 'too close' distance.");
+        telemetry.update();
+        dashboard.updateConfig();
     }
 
-    // ---------------- Align helper (added) ----------------
-    private double computeAlignTurnFromErr(double errDeg) {
-        long now = System.nanoTime();
-        double dt = (prevAlignNs == 0L) ? 0.0 : (now - prevAlignNs) / 1e9;
-        prevAlignNs = now;
+        try
 
-        double derr = 0.0;
-        if (dt > 1e-4) derr = (errDeg - prevAlignErr) / dt;
-        prevAlignErr = errDeg;
+    {
+        launchMotor.setPower(0.0);
+        intakeMotor.setPower(0.0);
+    } finally
 
-        double u = ShooterConfig.ALIGN_KP * errDeg + ShooterConfig.ALIGN_KD * derr;
-
-        if (u > ShooterConfig.ALIGN_MAX_TURN) u = ShooterConfig.ALIGN_MAX_TURN;
-        if (u < -ShooterConfig.ALIGN_MAX_TURN) u = -ShooterConfig.ALIGN_MAX_TURN;
-
-        if (Math.abs(u) > 0.0 && Math.abs(u) < ShooterConfig.ALIGN_MIN_TURN) {
-            u = Math.copySign(ShooterConfig.ALIGN_MIN_TURN, u);
-        }
-
-        return u;
-    }
-
-    /**
-     * Returns distance in inches using Limelight cameraPoseTargetSpace:
-     * range = sqrt(x^2 + z^2)
-     */
-    private Double getVisionDistanceInches(LLResult result) {
-        hasGoalTag_dbg = false;
-
-        xM_dbg = yM_dbg = zM_dbg = 0;
-        xIn_dbg = yIn_dbg = zIn_dbg = 0;
-        rangeIn_dbg = 0;
-
-        if (result == null || !result.isValid() || result.getStaleness() >= 100) return null;
-
-        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-        if (fiducials == null) return null;
-
-        for (LLResultTypes.FiducialResult fiducial : fiducials) {
-            if (fiducial == null) continue;
-            if (fiducial.getFiducialId() != GOAL_TAG_ID) continue;
-
-            Pose3D targetPose = fiducial.getCameraPoseTargetSpace();
-            if (targetPose == null) continue;
-
-            hasGoalTag_dbg = true;
-
-            xM_dbg = targetPose.getPosition().x;
-            yM_dbg = targetPose.getPosition().y;
-            zM_dbg = targetPose.getPosition().z;
-
-            xIn_dbg = xM_dbg * M_TO_IN;
-            yIn_dbg = yM_dbg * M_TO_IN;
-            zIn_dbg = zM_dbg * M_TO_IN;
-
-            double rangeM = Math.sqrt((xM_dbg * xM_dbg) + (zM_dbg * zM_dbg));
-            rangeIn_dbg = rangeM * M_TO_IN;
-
-            return rangeIn_dbg;
-        }
-
-        return null;
+    {
+        if (LOG_ENABLED && logger != null) logger.close();
     }
 }
