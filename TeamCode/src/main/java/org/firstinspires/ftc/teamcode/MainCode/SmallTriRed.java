@@ -39,18 +39,18 @@ public final class SmallTriRed extends LinearOpMode {
 
     // Tunables
     public static final double INTAKE_POWER  = 0.73;
-    public static  double SIDE_POWER = -0.155;
+    public static  double SIDE_POWER = -0.145;
 
     public static double SHOOTER_POWER = 0.78;
     public static double SHOOTER_VEL = 1765;
-    public static double SHOOTER_VEL2 = 1770;
+    public static double SHOOTER_VEL2 = 1765;
 
 
     public static double WaitTime = 10.5;
     public static double StartWaitTime = 2;
     public static double SHOOT_HEADING = 148.5;
     public static double SHOOTER_HEADING2 = 147;
-    public static double INTAKE_X = 33.5;
+    public static double INTAKE_X = 33;
     public static double INTAKE_Y = 19;
 
 
