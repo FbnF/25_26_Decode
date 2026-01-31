@@ -22,7 +22,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 @Config
-@Autonomous(name="SmallTriBlue", group="Auto")
+@Autonomous(name="SmallTriBlueSimple", group="Auto")
 public class SmallBlueSimple extends LinearOpMode {
 
     // RC config names
