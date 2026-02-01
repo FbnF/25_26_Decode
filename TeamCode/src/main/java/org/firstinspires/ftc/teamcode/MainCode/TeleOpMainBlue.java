@@ -423,7 +423,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                             feedPower = 0.0;
                         }
 
-                        intakePower = 0.75;
+                        intakePower = 1;
                         sidePower = tableSidePower;
                         if (sidePower > 1.0){
                             sidePower = 1.0;
@@ -434,7 +434,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                     }
                     if (feedAllowed&&!useFeedTable) {
                         feedPower = feedDefault;
-                        intakePower = 0.75;
+                        intakePower = 1;
                         sidePower = sideDefault;
                     }
 
@@ -445,20 +445,20 @@ public class TeleOpMainBlue extends LinearOpMode {
                 if(gamepad2.x){
                     feedPower=0;
                     sidePower = 1.0;
-                    intakePower = 0.75;
+                    intakePower = 1;
                 }
 
                 // ---------------- INTAKE ----------------
                 boolean rbEdge = gamepad2.right_bumper && !prevRB;
                 if (rbEdge) {
-                    intakePower = -0.73;
+                    intakePower = -1;
                     sidePower = -1.0;
                 }
 
                 prevRB = gamepad2.right_bumper;
 
                 if (gamepad2.right_trigger > 0){
-                    intakePower = 0.73;
+                    intakePower = 1;
                     sidePower = 1;
                     feedPower = 0;
                 }
@@ -468,7 +468,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                 }
                 intakeMotor.setPower(intakePower);
                 sideServo.setPower(sidePower);
-                feedServo.setPower(feedPower);
+
 
                 // ---------------- LEDs ----------------
                 if (!visionEnabled) {
@@ -476,6 +476,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                 } else if (autoShooter) {
                     if (!correctTag) {
                         puckLight.setPosition(0.287);
+                        feedPower = 0;
                     } else if (noShotZone) {
                         // Too close to make the shot: force yellow even if at speed
                         puckLight.setPosition(0.368);
@@ -488,6 +489,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                         }
                     }
                 }
+                feedServo.setPower(feedPower);
 
                 // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold
                 if (System.nanoTime() < yTooSoonFlashUntilNs) {

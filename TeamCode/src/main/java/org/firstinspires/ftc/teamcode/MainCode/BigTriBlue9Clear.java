@@ -88,8 +88,8 @@ public class BigTriBlue9Clear extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
                 //Clear
-                .strafeToLinearHeading(new Vector2d(4, -40), Math.toRadians(0))
-                .strafeToLinearHeading(new Vector2d(4, -52), Math.toRadians(0))
+                .strafeToLinearHeading(new Vector2d(2, -40), Math.toRadians(0))
+                .strafeToLinearHeading(new Vector2d(2, -52), Math.toRadians(0))
                 .waitSeconds(0.15)
                 .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(221))
 
