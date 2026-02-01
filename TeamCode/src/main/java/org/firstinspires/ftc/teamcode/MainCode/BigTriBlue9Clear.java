@@ -33,6 +33,7 @@ public class BigTriBlue9Clear extends LinearOpMode {
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
     private static final double SHOOTER_Vel = 1315;
+    private static final double SHOOTER_Vel_1 = 1307;
     private static final double SHOOTER_Vel_2 = 1317;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
@@ -68,13 +69,13 @@ public class BigTriBlue9Clear extends LinearOpMode {
                 // First strafe and shoot
                 .setTangent(Math.toRadians(225))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(224))
+                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(227))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, sidePower,
+                        SHOOTER_Vel_1, sidePower,
                         WAIT_TIME_Start,SHOOT_TIME))
 
                 .stopAndAdd(setMotorPower(intake, 1.0))

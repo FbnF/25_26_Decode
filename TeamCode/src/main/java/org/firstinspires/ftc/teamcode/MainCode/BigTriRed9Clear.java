@@ -33,7 +33,7 @@ public class BigTriRed9Clear extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1310;
+    private static final double SHOOTER_Vel = 1315;
     private static final double SHOOTER_Vel_2 = 1320;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
@@ -91,7 +91,7 @@ public class BigTriRed9Clear extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(1, 40), Math.toRadians(180))
                 .strafeToLinearHeading(new Vector2d(1, 54), Math.toRadians(180))
                 .waitSeconds(0.15)
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(130))
+                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(134))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
@@ -110,7 +110,7 @@ public class BigTriRed9Clear extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
 
-                .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(122))
+                .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(127))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
