@@ -288,7 +288,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
                     // Use same distance you already use for shooter logic (filtered)
                     double dIn = (visInches != null) ? distIn_filt_dbg : Double.NaN;
-                    double[] win = ShooterConfig.lookupTxWindowFromDistanceIn(dIn);
+                    double[] win = ShooterConfig.lookupTxWindowFromDistanceInRED(dIn);
                     double txMin = win[0];
                     double txMax = win[1];
 
@@ -354,7 +354,7 @@ public class TeleOpMainRed extends LinearOpMode {
                         physicsTps_dbg = physicsTps;
 
                         // 2) table TPS (base)
-                        double tableTps = ShooterConfig.lookupTpsFromDistanceIn(dIn);
+                        double tableTps = ShooterConfig.lookupTpsFromDistanceInRED(dIn);
                         tableTps_dbg = tableTps;
 
                         // 3) choose base TPS (ONE SWITCH)
@@ -379,7 +379,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
                     } else {
                         shooterSetpointTPS = 0.0;
-                        launchMotor.setVelocity(0);
+                        launchMotor.setVelocity(1000);
                     }
 
                 } else {
@@ -397,7 +397,7 @@ public class TeleOpMainRed extends LinearOpMode {
                 // Angle gate: only allow feed if tag is found AND Tx is within the distance-based window.
                 boolean angleOk = false;
                 if (visionEnabled && hasGoalTag_dbg && ll != null && ll.isValid() && ll.getStaleness() < 100) {
-                    double[] win = ShooterConfig.lookupTxWindowFromDistanceIn(distIn_filt_dbg);
+                    double[] win = ShooterConfig.lookupTxWindowFromDistanceInRED(distIn_filt_dbg);
                     double txMin = win[0];
                     double txMax = win[1];
                     angleOk = (Tx >= txMin && Tx <= txMax);
@@ -405,12 +405,19 @@ public class TeleOpMainRed extends LinearOpMode {
 
                 // Block feeding if not spun up OR in no-shot zone OR not within angle window
                 boolean feedAllowed = spunUpOk && !noShotZone;
+                Double dIn = (visInches != null) ? distIn_filt_dbg : null;
                 boolean useFeedTable = ShooterConfig.USE_FEED_TABLE;
-                double tableFeedPower = ShooterConfig.getFeedPowerAtDistance(dInForLogic);
+                double tableFeedPower = 0;
+                if (dIn == null){tableFeedPower = 0;}
+                else {tableFeedPower = ShooterConfig.getFeedPowerAtDistanceRED(dIn);}
+                double tableSidePower = 0;
+                if (dIn == null){tableSidePower = 0;}
+                else {tableSidePower = ShooterConfig.getSidePowerAtDistanceRED(dIn);}
                 double feedDefault = ShooterConfig.FEED_DEFAULT;
+                double sideDefault = ShooterConfig.SIDE_DEFAULT;
 
                 if (gamepad2.y) {
-                    /*if (feedAllowed&&useFeedTable) {
+                    if (feedAllowed&&useFeedTable){
                         feedPower = tableFeedPower;
                         if (feedPower < - 1.0){
                             feedPower = -1.0;
@@ -420,29 +427,35 @@ public class TeleOpMainRed extends LinearOpMode {
                         }
 
                         intakePower = 0.75;
-                        sidePower = 1.0;
+                        sidePower = tableSidePower;
+                        if (sidePower > 1.0){
+                            sidePower = 1.0;
+                        }
+                        if (sidePower < 0.0){
+                            sidePower = 0.0;
+                        }
+                    }
+                    if (feedAllowed&&!useFeedTable) {
+                        feedPower = feedDefault;
+                        intakePower = 0.75;
+                        sidePower = sideDefault;
+                    }
 
-                     */
-                }
-                if (feedAllowed) {
-                    feedPower = feedDefault;
-                    intakePower = 0.75;
-                    sidePower = 1.0;
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
 
                 if(gamepad2.x){
                     feedPower=0;
-                    sidePower = 0.0;
-                    intakePower = 0.0;
+                    sidePower = 1.0;
+                    intakePower = 0.75;
                 }
 
                 // ---------------- INTAKE ----------------
                 boolean rbEdge = gamepad2.right_bumper && !prevRB;
                 if (rbEdge) {
-                    intakePower = -0.5;
-                    sidePower = -0.5;
+                    intakePower = -0.73;
+                    sidePower = -1.0;
                 }
 
                 prevRB = gamepad2.right_bumper;
@@ -457,6 +470,7 @@ public class TeleOpMainRed extends LinearOpMode {
                 }
                 intakeMotor.setPower(intakePower);
                 sideServo.setPower(sidePower);
+                feedServo.setPower(feedPower);
 
                 // ---------------- LEDs ----------------
                 if (!visionEnabled) {
