@@ -460,11 +460,12 @@ public class TeleOpMainBlue extends LinearOpMode {
                 if (gamepad2.right_trigger > 0){
                     intakePower = 1;
                     sidePower = 1;
-                    feedPower = 0;
+
                 }
                 if (gamepad2.left_trigger > 0) {
                     intakePower = 0.0;
                     sidePower = 0;
+                    feedPower = 0;
                 }
                 intakeMotor.setPower(intakePower);
                 sideServo.setPower(sidePower);
