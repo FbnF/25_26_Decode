@@ -113,7 +113,7 @@ public class SmallTriBlue extends LinearOpMode {
 
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(200.6))
-                .strafeToLinearHeading(new Vector2d(40, -15), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(55, -35), Math.toRadians(180))
                 .build();
 
         Actions.runBlocking(all);

@@ -463,6 +463,7 @@ public class TeleOpMainRed extends LinearOpMode {
                 if (gamepad2.right_trigger > 0){
                     intakePower = 0.73;
                     sidePower = 1;
+                    feedPower = 0;
                 }
                 if (gamepad2.left_trigger > 0) {
                     intakePower = 0.0;
@@ -478,6 +479,7 @@ public class TeleOpMainRed extends LinearOpMode {
                 } else if (autoShooter) {
                     if (!correctTag) {
                         puckLight.setPosition(0.287);
+                        feedPower = 0;
                     } else if (noShotZone) {
                         // Too close to make the shot: force yellow even if at speed
                         puckLight.setPosition(0.368);

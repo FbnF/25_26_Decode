@@ -94,7 +94,7 @@ public class SmallBlueSimple extends LinearOpMode {
                         WaitTime))
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(200.55))
-                .strafeToLinearHeading(new Vector2d(39, -15), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(55, -35), Math.toRadians(180))
                 .build();
 
         Actions.runBlocking(all);
