@@ -71,7 +71,7 @@ public class TeleOpMainBlue extends LinearOpMode {
     private static final boolean LOG_ENABLED = true;
     private TinyCsvLoggerFlex logger;
 
-    private static final int GOAL_TAG_ID = 24; // 20 = blue goal, 24 = red goal
+    private static final int GOAL_TAG_ID = 20; // 20 = blue goal, 24 = red goal
 
     // require driver to arm auto-spin before controlling flywheel
     private boolean autoSpinArmed = true;
