@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.MainCode;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setCRServoPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorPower;
 import static org.firstinspires.ftc.teamcode.MainCode.util.AutoMotorControl.setMotorVel;
-
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.MainCode.vision.AprilTagService;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 @Config
-@Autonomous(name="SmallTriRedSimple", group="Auto")
+@Autonomous(name="SmallRedSimple", group="Auto")
 public final class SmallRedSimple extends LinearOpMode {
 
     // RC config names
@@ -39,18 +39,18 @@ public final class SmallRedSimple extends LinearOpMode {
 
     // Tunables
     public static final double INTAKE_POWER  = 0.73;
-    public static  double SIDE_POWER = -0.155;
+    public static  double SIDE_POWER = -0.145;
 
     public static double SHOOTER_POWER = 0.78;
-    public static double SHOOTER_VEL = 1770;
-    public static double SHOOTER_VEL2 = 1770;
+    public static double SHOOTER_VEL = 1701;
+    public static double SHOOTER_VEL2 = 1735;
 
 
     public static double WaitTime = 10.5;
     public static double StartWaitTime = 2;
-    public static double SHOOT_HEADING = 148.6;
-    public static double SHOOTER_HEADING2 = 147;
-    public static double INTAKE_X = 33.5;
+    public static double SHOOT_HEADING = 153.5;
+    public static double SHOOTER_HEADING2 = 149;
+    public static double INTAKE_X = 31.8;
     public static double INTAKE_Y = 19;
 
 
@@ -104,7 +104,8 @@ public final class SmallRedSimple extends LinearOpMode {
                         shooter, intake,feed ,SideServo
                         ,RangeSensor,SHOOTER_VEL,SIDE_POWER,StartWaitTime,
                         WaitTime))
-                .strafeToLinearHeading(new Vector2d(40, 15), Math.toRadians(90))
+                .setTangent(Math.toRadians(SHOOT_HEADING))
+                .strafeToLinearHeading(new Vector2d(55, 35), Math.toRadians(180))
                 .build();
 
         Actions.runBlocking(all);

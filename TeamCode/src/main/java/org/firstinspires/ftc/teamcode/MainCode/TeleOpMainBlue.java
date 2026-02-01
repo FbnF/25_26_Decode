@@ -471,7 +471,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                 } else {
                     boolean atSpeed = spunUpOk && autoSpinArmed;
                     if(atSpeed){
-                        puckLight.setPosition(0.444);
+                        puckLight.setPosition(0.622);
                     } else {
                         puckLight.setPosition(0.368);
                     }
