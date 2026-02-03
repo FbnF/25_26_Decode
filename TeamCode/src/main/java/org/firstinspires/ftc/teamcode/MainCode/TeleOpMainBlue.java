@@ -64,7 +64,9 @@ public class TeleOpMainBlue extends LinearOpMode {
     private double physicsTps_dbg = 0.0;
     private double tableTps_dbg = 0.0;
     private double commandedBase_dbg = 0.0; // base TPS chosen BEFORE scale/offset (if any)
-    private double finalTps_dbg = 0.0;       // actual TPS commanded to motor
+    private double finalTps_dbg = 0.0;// actual TPS commanded to motor
+
+    private double lastTPS = 0.0;
     private boolean noShotZone_dbg = false;
 
     // --- Logging ---
@@ -372,11 +374,12 @@ public class TeleOpMainBlue extends LinearOpMode {
                         } else {
                             shooterSetpointTPS = desired;
                             launchMotor.setVelocity(shooterSetpointTPS);
-                        }
 
+                        }
+                        lastTPS = shooterSetpointTPS;
                     } else {
                         shooterSetpointTPS = 0.0;
-                        launchMotor.setVelocity(1000);
+                        launchMotor.setVelocity(lastTPS);
                     }
 
                 } else {
@@ -477,7 +480,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                 } else if (autoShooter) {
                     if (!correctTag) {
                         puckLight.setPosition(0.287);
-           
+
                     } else if (noShotZone) {
                         // Too close to make the shot: force yellow even if at speed
                         puckLight.setPosition(0.368);
