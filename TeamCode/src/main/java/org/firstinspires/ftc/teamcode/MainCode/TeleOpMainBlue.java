@@ -477,7 +477,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                 } else if (autoShooter) {
                     if (!correctTag) {
                         puckLight.setPosition(0.287);
-                        feedPower = 0;
+           
                     } else if (noShotZone) {
                         // Too close to make the shot: force yellow even if at speed
                         puckLight.setPosition(0.368);
