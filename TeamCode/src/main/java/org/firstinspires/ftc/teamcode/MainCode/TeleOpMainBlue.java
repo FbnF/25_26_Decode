@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -28,6 +29,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
 
 import java.util.List;
 
+@Config
 @TeleOp(name = "TeleOpBlue: Main", group = "TeleOp")
 public class TeleOpMainBlue extends LinearOpMode {
 
@@ -67,6 +69,7 @@ public class TeleOpMainBlue extends LinearOpMode {
     private double finalTps_dbg = 0.0;// actual TPS commanded to motor
 
     private double lastTPS = 0.0;
+    public static double FACTOR  = 0.8;
     private boolean noShotZone_dbg = false;
 
     // --- Logging ---
@@ -376,7 +379,7 @@ public class TeleOpMainBlue extends LinearOpMode {
                             launchMotor.setVelocity(shooterSetpointTPS);
 
                         }
-                        lastTPS = shooterSetpointTPS;
+                        lastTPS = shooterSetpointTPS * FACTOR;
                     } else {
                         shooterSetpointTPS = 0.0;
                         launchMotor.setVelocity(lastTPS);

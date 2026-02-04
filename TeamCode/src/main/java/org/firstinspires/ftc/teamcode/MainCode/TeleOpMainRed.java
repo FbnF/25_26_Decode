@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -30,7 +31,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
 
 import java.util.List;
-
+@Config
 @TeleOp(name = "TeleOpRed: Main", group = "TeleOp")
 public class TeleOpMainRed extends LinearOpMode {
 
@@ -61,13 +62,19 @@ public class TeleOpMainRed extends LinearOpMode {
     double rangeIn_dbg = 0;
     boolean hasGoalTag_dbg = false;
 
+    private boolean limelightNull = false;
+    private long limelightNullStartNs = 0;
+    private static final double LIMELIGHT_NULL_DELAY_S = 1.0;
+
     // Additional debug: base TPS values
     private double distIn_raw_dbg = 0.0;
     private double distIn_filt_dbg = 0.0;
     private double physicsTps_dbg = 0.0;
     private double tableTps_dbg = 0.0;
     private double commandedBase_dbg = 0.0; // base TPS chosen BEFORE scale/offset (if any)
-    private double finalTps_dbg = 0.0;       // actual TPS commanded to motor
+    private double finalTps_dbg = 0.0;// actual TPS commanded to motor
+
+    private double lastTPS = 0.0;      // actual TPS commanded to motor
     private boolean noShotZone_dbg = false;
 
     // --- Logging ---
@@ -83,6 +90,10 @@ public class TeleOpMainRed extends LinearOpMode {
     // flash window when Y pressed too soon OR no-shot zone
     private long yTooSoonFlashUntilNs = 0L;
     private static final long FLASH_YELLOW_NS = 500_000_000L;
+    private static double SECONDS = 1;
+    private boolean init;
+    private long t0;
+    public static double FACTOR = 0.8;
 
     // --- Drive/settings ---
     private double speedFactor = 1.2;
@@ -136,11 +147,11 @@ public class TeleOpMainRed extends LinearOpMode {
     public void runOpMode() {
 
         // Map hardware
-        feedServo   = hardwareMap.get(CRServo.class,     "feedServo");
-        sideServo   = hardwareMap.get(CRServo.class,     "sideServo");
+        feedServo = hardwareMap.get(CRServo.class, "feedServo");
+        sideServo = hardwareMap.get(CRServo.class, "sideServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
         launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
-        battery     = hardwareMap.voltageSensor.iterator().next();
+        battery = hardwareMap.voltageSensor.iterator().next();
 
         //   blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         // blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
@@ -201,8 +212,8 @@ public class TeleOpMainRed extends LinearOpMode {
                 if (gamepad1.b) speedFactor = 0.4;
                 if (gamepad1.x) speedFactor = 0.7;
 
-                double axial   = -gamepad1.right_stick_y * speedFactor;
-                double lateral = -gamepad1.left_stick_x  * speedFactor;
+                double axial = -gamepad1.right_stick_y * speedFactor;
+                double lateral = -gamepad1.left_stick_x * speedFactor;
                 double headingManual = -gamepad1.right_stick_x * speedFactor;
 
                 // ---------------- Vision toggle ----------------
@@ -295,13 +306,13 @@ public class TeleOpMainRed extends LinearOpMode {
                     txMin_dbg = txMin;
                     txMax_dbg = txMax;
 
-                    if(tx < txMin || tx > txMax){
-                        txTarget_dbg = (txMin + txMax)/2;
+                    if (tx < txMin || tx > txMax) {
+                        txTarget_dbg = (txMin + txMax) / 2;
                     } else {
                         txTarget_dbg = tx; // already within range
                     }
 
-                    double err =  txTarget_dbg - tx;   // want err -> 0
+                    double err = txTarget_dbg - tx;   // want err -> 0
                     alignErr_dbg = err;
 
                     if (Math.abs(err) <= ShooterConfig.ALIGN_ERR_DEADBAND_DEG) {
@@ -369,23 +380,29 @@ public class TeleOpMainRed extends LinearOpMode {
 
                         finalTps_dbg = desired;
 
+
                         if (desired <= 0.0) {
-                            shooterSetpointTPS = 0.0;
-                            launchMotor.setPower(0.0);
+                                shooterSetpointTPS = 0.0;
+                                launchMotor.setPower(0.0);
+
                         } else {
                             shooterSetpointTPS = desired;
                             launchMotor.setVelocity(shooterSetpointTPS);
                         }
+                        lastTPS = shooterSetpointTPS * FACTOR;
+
 
                     } else {
-                        shooterSetpointTPS = 0.0;
-                        launchMotor.setVelocity(1000);
+                            shooterSetpointTPS = 0.0;
+                            launchMotor.setVelocity(lastTPS);
                     }
 
                 } else {
-                    shooterSetpointTPS = 0.0;
-                    launchMotor.setPower(0.0);
+                        shooterSetpointTPS = 0.0;
+                        launchMotor.setPower(0.0);
+
                 }
+
 
                 // ---------------- FEED LOGIC ----------------
                 boolean spunUpOk = false;
@@ -408,34 +425,40 @@ public class TeleOpMainRed extends LinearOpMode {
                 Double dIn = (visInches != null) ? distIn_filt_dbg : null;
                 boolean useFeedTable = ShooterConfig.USE_FEED_TABLE;
                 double tableFeedPower = 0;
-                if (dIn == null){tableFeedPower = 0;}
-                else {tableFeedPower = ShooterConfig.getFeedPowerAtDistanceRED(dIn);}
+                if (dIn == null) {
+                    tableFeedPower = 0;
+                } else {
+                    tableFeedPower = ShooterConfig.getFeedPowerAtDistanceRED(dIn);
+                }
                 double tableSidePower = 0;
-                if (dIn == null){tableSidePower = 0;}
-                else {tableSidePower = ShooterConfig.getSidePowerAtDistanceRED(dIn);}
+                if (dIn == null) {
+                    tableSidePower = 0;
+                } else {
+                    tableSidePower = ShooterConfig.getSidePowerAtDistanceRED(dIn);
+                }
                 double feedDefault = ShooterConfig.FEED_DEFAULT;
                 double sideDefault = ShooterConfig.SIDE_DEFAULT;
 
                 if (gamepad2.y) {
-                    if (feedAllowed&&useFeedTable){
+                    if (feedAllowed && useFeedTable) {
                         feedPower = tableFeedPower;
-                        if (feedPower < - 1.0){
+                        if (feedPower < -1.0) {
                             feedPower = -1.0;
                         }
-                        if (feedPower > 0.0){
+                        if (feedPower > 0.0) {
                             feedPower = 0.0;
                         }
 
                         intakePower = 1;
                         sidePower = tableSidePower;
-                        if (sidePower > 1.0){
+                        if (sidePower > 1.0) {
                             sidePower = 1.0;
                         }
-                        if (sidePower < 0.0){
+                        if (sidePower < 0.0) {
                             sidePower = 0.0;
                         }
                     }
-                    if (feedAllowed&&!useFeedTable) {
+                    if (feedAllowed && !useFeedTable) {
                         feedPower = feedDefault;
                         intakePower = 1;
                         sidePower = sideDefault;
@@ -445,8 +468,8 @@ public class TeleOpMainRed extends LinearOpMode {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
 
-                if(gamepad2.x){
-                    feedPower=0;
+                if (gamepad2.x) {
+                    feedPower = 0;
                     sidePower = 1.0;
                     intakePower = 1;
                 }
@@ -460,7 +483,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
                 prevRB = gamepad2.right_bumper;
 
-                if (gamepad2.right_trigger > 0){
+                if (gamepad2.right_trigger > 0) {
                     intakePower = 1;
                     sidePower = 1;
 
@@ -486,7 +509,7 @@ public class TeleOpMainRed extends LinearOpMode {
                         puckLight.setPosition(0.368);
                     } else {
                         boolean atSpeed = spunUpOk && autoSpinArmed;
-                        if(atSpeed){
+                        if (atSpeed) {
                             puckLight.setPosition(0.622);
                         } else {
                             puckLight.setPosition(0.368);
@@ -538,7 +561,7 @@ public class TeleOpMainRed extends LinearOpMode {
                 telemetry.addData("GOAL_TAG_ID", GOAL_TAG_ID);
                 telemetry.addData("rangeRawIn", "%.2f", distIn_raw_dbg);
                 telemetry.addData("rangeFiltIn", "%.2f", distIn_filt_dbg);
-                telemetry.addData("Tx",  Tx);
+                telemetry.addData("Tx", Tx);
                 telemetry.addData("Ty", Ty);
 
                 telemetry.addLine("---- Align Window (Tx) ----");
@@ -644,4 +667,18 @@ public class TeleOpMainRed extends LinearOpMode {
 
         return null;
     }
+
+    public boolean waitForSeconds(double Seconds) {
+        if (!init) {
+            init = true;
+            t0 = System.nanoTime();
+        }
+        double t = (System.nanoTime() - t0) / 1e9;
+        if (t >= Seconds) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
+
