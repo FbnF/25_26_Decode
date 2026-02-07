@@ -258,7 +258,6 @@ public final class ShooterConfig {
 
         int i = 0;
         while (i < last && distIn > DIST_IN_RED[i + 1]) i++;
-
         double x0 = DIST_IN_RED[i];
         double x1 = DIST_IN_RED[i + 1];
         double y0 = TPS_AT_DIST_RED[i];
