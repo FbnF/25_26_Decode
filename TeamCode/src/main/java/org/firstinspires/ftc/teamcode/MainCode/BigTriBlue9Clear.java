@@ -104,7 +104,7 @@ public class BigTriBlue9Clear extends LinearOpMode {
 
                 // collect second spike line
 
-                .splineToLinearHeading(new Pose2d(17.5, -24,Math.toRadians(270)),Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(16, -24,Math.toRadians(270)),Math.toRadians(270))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .lineToY(-52)
                 .lineToY(-45)

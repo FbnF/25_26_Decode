@@ -428,13 +428,13 @@ public class TeleOpMainRed extends LinearOpMode {
                 if (dIn == null) {
                     tableFeedPower = 0;
                 } else {
-                    tableFeedPower = ShooterConfig.getFeedPowerAtDistanceRED(dIn);
+                    tableFeedPower = ShooterConfig.getFeedPowerAtDistanceBLUE(dIn);
                 }
                 double tableSidePower = 0;
                 if (dIn == null) {
                     tableSidePower = 0;
                 } else {
-                    tableSidePower = ShooterConfig.getSidePowerAtDistanceRED(dIn);
+                    tableSidePower = ShooterConfig.getSidePowerAtDistanceBLUE(dIn);
                 }
                 double feedDefault = ShooterConfig.FEED_DEFAULT;
                 double sideDefault = ShooterConfig.SIDE_DEFAULT;
