@@ -5,6 +5,9 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 
+import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
+import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
+import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -45,6 +48,10 @@ public class TeleOPLocalization extends LinearOpMode {
     //  private RevBlinkinLedDriver blinkin;
     private VoltageSensor battery;
     private Servo puckLight;
+
+    private OverflowEncoder par0;
+    private OverflowEncoder par1;
+    private OverflowEncoder perp;
 
     private DistanceSensor RangeSensor;
 
@@ -137,6 +144,11 @@ public class TeleOPLocalization extends LinearOpMode {
     private double alignErr_dbg = 0.0;
     private boolean alignActive_dbg = false;
 
+    private double par0Start;
+    private double par1Start;
+    private double perpStart;
+
+
     @Override
     public void runOpMode() {
 
@@ -146,6 +158,10 @@ public class TeleOPLocalization extends LinearOpMode {
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
         launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
         battery     = hardwareMap.voltageSensor.iterator().next();
+
+        par0 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "leftFront")));
+        par1 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "rightFront")));
+        perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "leftBack")));
 
         //   blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         // blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
@@ -190,6 +206,16 @@ public class TeleOPLocalization extends LinearOpMode {
             );
         }
 
+        PositionVelocityPair par0PosVel = par0.getPositionAndVelocity();
+        PositionVelocityPair par1PosVel = par1.getPositionAndVelocity();
+        PositionVelocityPair perpPosVel = perp.getPositionAndVelocity();
+
+        par0Start = par0PosVel.position;
+        par1Start = par1PosVel.position;
+        perpStart = perpPosVel.position;
+
+         ThreeDeadWheelLocalizer DeadWheelLocal = new ThreeDeadWheelLocalizer(hardwareMap, 0.002152807647553116,
+                 new Pose2d(new  Vector2d(50.0, 50.0), Math.toRadians(180)));
         waitForStart();
 
         intakeMotor.setPower(0.0);
@@ -203,6 +229,7 @@ public class TeleOPLocalization extends LinearOpMode {
 
 
 
+
                 // ---------------- Base Drive ----------------
                 if (gamepad1.a) speedFactor = 1.35;
                 if (gamepad1.b) speedFactor = 0.4;
@@ -211,6 +238,10 @@ public class TeleOPLocalization extends LinearOpMode {
                 double axial   = -gamepad1.right_stick_y * speedFactor;
                 double lateral = -gamepad1.left_stick_x  * speedFactor;
                 double headingManual = -gamepad1.right_stick_x * speedFactor;
+
+                //-----------Localization--------------------
+                Pose2d Pose = DeadWheelLocal.getPose();
+
 
                 // ---------------- Vision toggle ----------------
                 boolean g2LeftEdge = gamepad2.dpad_left && !prevG2DpadLeft;
@@ -284,6 +315,8 @@ public class TeleOPLocalization extends LinearOpMode {
 
                 boolean alignBtn = gamepad1.left_bumper;
                 boolean fresh = (ll != null && ll.isValid() && ll.getStaleness() < ShooterConfig.ALIGN_MAX_STALE_MS);
+
+
 
                 if (ShooterConfig.AUTO_ALIGN_ENABLED
                         && alignBtn
@@ -538,6 +571,8 @@ public class TeleOPLocalization extends LinearOpMode {
                 }
 
                 // ---------------- TELEMETRY ----------------
+                telemetry.addLine("---------Localization--------");
+                telemetry.addData("Pose", Pose);
                 telemetry.addData("ServoSpeed", feedPower);
                 telemetry.addLine("---- Vision Distance (cameraPoseTargetSpace) ----");
                 telemetry.addData("Vision Enabled", visionEnabled);
