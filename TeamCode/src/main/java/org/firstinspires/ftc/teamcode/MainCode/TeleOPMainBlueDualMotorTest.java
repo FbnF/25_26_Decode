@@ -31,7 +31,7 @@ import java.util.List;
 
 @Config
 @TeleOp(name = "TeleOpBlueDualMotor: Main", group = "TeleOp")
-public class TeleOpMainBlue extends LinearOpMode {
+public class TeleOPMainBlueDualMotorTest extends LinearOpMode {
 
     // --- Hardware ---
     private CRServo feedServo;
@@ -143,7 +143,7 @@ public class TeleOpMainBlue extends LinearOpMode {
         sideServo   = hardwareMap.get(CRServo.class,     "sideServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
         launchMotor1 = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
-        launchMotor2 = hardwareMap.get(DcMotorEx.class, "LaunchMotor_2")
+        launchMotor2 = hardwareMap.get(DcMotorEx.class, "LaunchMotor_2");
         battery     = hardwareMap.voltageSensor.iterator().next();
 
         //   blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
@@ -196,7 +196,7 @@ public class TeleOpMainBlue extends LinearOpMode {
 
         intakeMotor.setPower(0.0);
         launchMotor1.setPower(0.0);
-        launchMotor2.setPower(0.0)
+        launchMotor2.setPower(0.0);
         PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
         launchMotor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
         launchMotor2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
