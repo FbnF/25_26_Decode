@@ -54,6 +54,7 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
     private MecanumDrive drive;
     private DcMotorEx intakeMotor;
     private DcMotorEx launchMotor;
+    private DcMotorEx launchMotor_2;
     private RevBlinkinLedDriver blinkin; // LED
     private VoltageSensor battery;
 
@@ -118,6 +119,7 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
         feedServo = hardwareMap.get(Servo.class, "feedServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
         launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
+        launchMotor_2 = hardwareMap.get(DcMotorEx.class, "LaunchMotor_2");
         battery = hardwareMap.voltageSensor.iterator().next();
 
         blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
@@ -128,8 +130,9 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
 
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+        launchMotor_2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launchMotor_2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         // intake runs open-loop (no encoder feedback)
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -170,6 +173,7 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
         // Safe startup
         intakeMotor.setPower(0.0);
         launchMotor.setPower(0.0);
+        launchMotor_2.setPower(0.0);
 
         double vel_error = 0.0;
 
@@ -185,6 +189,7 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
 
             if (DashTuning.applyPidfContinuously) {
                 launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, cur);
+                launchMotor_2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, cur);
             } else {
                 if (lastAppliedPidf == null ||
                         lastAppliedPidf.p != cur.p ||
@@ -192,6 +197,7 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
                         lastAppliedPidf.d != cur.d ||
                         lastAppliedPidf.f != cur.f) {
                     launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, cur);
+                    launchMotor_2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, cur);
                     lastAppliedPidf = cur;
                 }
             }
@@ -233,11 +239,13 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
                 autoShooter = true;
                 autoSpinArmed = false;
                 launchMotor.setPower(0.0);
+                launchMotor_2.setPower(0.0);
             }
             if (downEdge) {
                 autoShooter = false;
                 autoSpinArmed = false;
                 launchMotor.setPower(0.0);
+                launchMotor_2.setPower(0.0);
             }
             prevDpadUp = gamepad2.dpad_up;
             prevDpadDown = gamepad2.dpad_down;
@@ -257,12 +265,14 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
 
                 launchPowerVel = cmd;
                 launchMotor.setVelocity(launchPowerVel);
+                launchMotor_2.setVelocity(launchPowerVel);
                 vel_error = launchPowerVel - launchMotor.getVelocity();
 
                 // Optional quick kill on X
                 if (gamepad2.x) {
                     launchPowerVel = 0.0;
                     launchMotor.setPower(0.0);
+                    launchMotor_2.setPower(0.0);
                     vel_error = 0.0;
                 }
             }
@@ -288,17 +298,23 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
                             tps = Math.min(tps, ShooterConfig.TPS_MAX);
                             shooterSetpointTPS = tps;
                             launchMotor.setVelocity(tps);
+                            launchMotor_2.setVelocity(tps);
+
                         } else {
                             shooterSetpointTPS = 0.0;
                             launchMotor.setPower(0.0);
+                            launchMotor_2.setPower(0.0);
                         }
                     } else {
                         shooterSetpointTPS = 0.0;
                         launchMotor.setPower(0.0);
+
+                        launchMotor_2.setPower(0.0);
                     }
                 } else {
                     shooterSetpointTPS = 0.0;
                     launchMotor.setPower(0.0);
+                    launchMotor_2.setPower(0.0);
                 }
             }
 
@@ -306,12 +322,14 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
             boolean spunUpOk = false;
             if (autoShooter && shooterSetpointTPS > 0.0) {
                 double vel = launchMotor.getVelocity();
-                spunUpOk = Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
+                double vel2 = launchMotor.getVelocity();
+                spunUpOk = Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL &&  Math.abs(vel2 - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
             } else if (!autoShooter) {
                 spunUpOk = (launchMotor.getPower() > 0.0);
                 // FIXED: manual uses velocity control, so compare velocity error not getPower()
                 spunUpOk = (launchPowerVel > 0.0) &&
-                        (Math.abs(launchMotor.getVelocity() - launchPowerVel) <= DashTuning.manualTolTPS);
+                        (Math.abs(launchMotor.getVelocity() - launchPowerVel) <= DashTuning.manualTolTPS) &&
+                        (Math.abs(launchMotor_2.getVelocity() - launchPowerVel) <= DashTuning.manualTolTPS);
             }
 
             if (gamepad2.y) {
@@ -404,6 +422,7 @@ public class TeleOpMainPIDFTunner extends LinearOpMode {
         // cleanup
         try {
             launchMotor.setPower(0.0);
+            launchMotor_2.setPower(0.0);
             intakeMotor.setPower(0.0);
         } finally {
             tagService.stop();
