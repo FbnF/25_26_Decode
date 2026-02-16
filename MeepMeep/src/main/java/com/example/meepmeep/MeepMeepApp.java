@@ -16,7 +16,7 @@ public class MeepMeepApp {
         MeepMeep meepMeep = new MeepMeep(800);
 
         // FTC autonomous start pose
-        Pose2d startPose = new Pose2d(32, 31, Math.toRadians(90));
+        Pose2d startPose = new Pose2d( -57, 36, Math.toRadians(90));
         // Old code: always spline to (0, 0, 225)
         Pose2d splineTarget = new Pose2d(0, 0, Math.toRadians(225));
 
@@ -26,9 +26,39 @@ public class MeepMeepApp {
 
         myBot.runAction(
                 myBot.getDrive().actionBuilder(startPose)
-                        // First spline and shoot
+                        // First strafe and shoot
+                        .setTangent(Math.toRadians(135))
+                        .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(132))
+                        // collect second spike line
 
-                        .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(152.5))
+                        .splineToLinearHeading(new Pose2d(17.5, 24,Math.toRadians(90)),Math.toRadians(90))
+
+                        .lineToY(52)
+                        .lineToY(45)
+                        .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(134))
+                        .strafeToLinearHeading(new Vector2d(10, 40), Math.toRadians(134))
+                        .strafeToLinearHeading(new Vector2d(10, 54), Math.toRadians(134))
+                        .waitSeconds(0.15)
+                        .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(134))
+
+                        // collect first spike line
+                        .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
+
+                        .lineToY(48)
+                        .lineToY(45)
+
+//clear
+
+                        // Shooter runs
+
+
+                        .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(127))
+
+
+
+                        // Shooter runs
+
+
                         .build()
         );
 
