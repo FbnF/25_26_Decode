@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -167,6 +168,8 @@ public class TeleOPMainBlueDualMotorTest extends LinearOpMode {
         launchMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        launchMotor1.setDirection(DcMotor.Direction.REVERSE);
+        launchMotor2.setDirection(DcMotor.Direction.REVERSE);
 
         // Drive
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
@@ -384,15 +387,15 @@ public class TeleOPMainBlueDualMotorTest extends LinearOpMode {
                             launchMotor2.setPower(0.0);
                         } else {
                             shooterSetpointTPS = desired;
-                            launchMotor1.setVelocity(shooterSetpointTPS/2);
-                            launchMotor2.setVelocity(shooterSetpointTPS/2);
+                            launchMotor1.setVelocity(shooterSetpointTPS);
+                            launchMotor2.setVelocity(shooterSetpointTPS);
 
                         }
                         lastTPS = shooterSetpointTPS * FACTOR;
                     } else {
                         shooterSetpointTPS = 0.0;
-                        launchMotor1.setVelocity(lastTPS/2);
-                        launchMotor2.setVelocity(lastTPS/2);
+                        launchMotor1.setVelocity(lastTPS);
+                        launchMotor2.setVelocity(lastTPS);
                     }
 
                 } else {
