@@ -225,7 +225,7 @@ public class TeleOpMainRedDualMotorTestKick extends LinearOpMode {
                 if (gamepad1.x) speedFactor = 0.7;
 
                 if(gamepad1.yWasPressed()){
-                    KickMotor.setTargetPosition(KickMotor.getCurrentPosition() + 200);
+                    KickMotor.setTargetPosition(KickMotor.getCurrentPosition() + 380);
                     KickMotor.setPower(0.9);
                 }
 
