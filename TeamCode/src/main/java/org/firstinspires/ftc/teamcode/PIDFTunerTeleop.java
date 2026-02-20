@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.PIDFTunerTeleop.DashTuning.manualTargetTPS;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -291,7 +293,7 @@ public class PIDFTunerTeleop extends LinearOpMode {
             // --------------------------- MANUAL MODE --------------------------
             if (!autoShooter) {
                 // Manual command is now driven by Dashboard
-                double cmd = DashTuning.manualTargetTPS;
+                double cmd = manualTargetTPS;
                 cmd = Math.max(0.0, Math.min(cmd, DashTuning.manualMaxTPS));
 
                 launchPowerVel = cmd;
@@ -406,42 +408,47 @@ public class PIDFTunerTeleop extends LinearOpMode {
                     logger.record("run");
                 }
 
-                // ------------- Telemetry data -------------------------------------------------
-                double tpsMeas = launchMotor.getVelocity();
-                double rpmMeas = (tpsMeas * 60.0) / ShooterConfig.TICKS_PER_REV;
-                // Double visInches = getVisionDistanceInches();
-                int tagId = (r != null && r.hasTag) ? r.id : -1;
-
-                telemetry.addLine("---- Shooter ----");
-                telemetry.addData("Mode", autoShooter ? "AUTO" : "MANUAL");
-                telemetry.addData("Armed", autoSpinArmed);
-                telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
-
-                telemetry.addData("Dash PIDF", "P=%.4f I=%.4f D=%.4f F=%.4f",
-                        DashTuning.P, DashTuning.I, DashTuning.D, DashTuning.F);
-
-                if (autoShooter) {
-                    telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
-                } else {
-                    telemetry.addData("Manual TPS Cmd (Dash)", "%.0f", launchPowerVel);
-                }
-
-                telemetry.addData("Actual TPS", "%.0f", tpsMeas);
-                telemetry.addData("Measured RPM", "%.0f", rpmMeas);
-                telemetry.addData("Velocity Error", "%.0f", vel_error);
-                if (!autoShooter) telemetry.addData("Manual Power", "%.2f", CompPower);
-                telemetry.addData("Ready?", spunUpOk);
-
-                telemetry.addLine("---- Vision ----");
-                telemetry.addData("Vision Enabled", visionEnabled);
-                telemetry.addData("Tag ID", tagId);
-                telemetry.addData("Goal Tag ID", GOAL_TAG_ID);
-                telemetry.addData("Correct Tag", correctTag);
-                //  telemetry.addData("Range (in)", (visInches == null) ? "N/A" : String.format("%.1f", visInches));
-                telemetry.addData("LED", pat.name());
-
-                telemetry.update();
             }
+
+            // ------------- Telemetry data -------------------------------------------------
+            double tpsMeas = launchMotor.getVelocity();
+            double rpmMeas = (tpsMeas * 60.0) / ShooterConfig.TICKS_PER_REV;
+            AprilTagService.Reading r = tagService.getLatest();
+            // Double visInches = getVisionDistanceInches();
+            int tagId = (r != null && r.hasTag) ? r.id : -1;
+
+            telemetry.addLine("---- Shooter ----");
+            telemetry.addData("Mode", autoShooter ? "AUTO" : "MANUAL");
+            telemetry.addData("Armed", autoSpinArmed);
+            telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
+
+            telemetry.addData("Dash PIDF", "P=%.4f I=%.4f D=%.4f F=%.4f",
+                    DashTuning.P, DashTuning.I, DashTuning.D, DashTuning.F);
+
+            if (autoShooter) {
+                telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
+            } else {
+                telemetry.addData("Manual TPS Cmd (Dash)", "%.0f", launchPowerVel);
+            }
+
+            telemetry.addData("Actual TPS", "%.0f", tpsMeas);
+            telemetry.addData("Measured RPM", "%.0f", rpmMeas);
+            telemetry.addData("Velocity Error", "%.0f", vel_error);
+            if (!autoShooter) telemetry.addData("Manual Power", "%.2f", CompPower);
+            telemetry.addData("Ready?", spunUpOk);
+            telemetry.addData("Manual TPS", manualTargetTPS);
+            telemetry.addData("LaunchMotor", launchMotor.getVelocity());
+            telemetry.addData("LaunchMotor_2", launchMotor_2.getVelocity());
+
+            telemetry.addLine("---- Vision ----");
+            telemetry.addData("Vision Enabled", visionEnabled);
+            telemetry.addData("Tag ID", tagId);
+            telemetry.addData("Goal Tag ID", GOAL_TAG_ID);
+     //       telemetry.addData("Correct Tag", correctTag);
+            //  telemetry.addData("Range (in)", (visInches == null) ? "N/A" : String.format("%.1f", visInches));
+       //     telemetry.addData("LED", pat.name());
+
+            telemetry.update();
 
             // cleanup
             try {

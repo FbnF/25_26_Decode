@@ -226,7 +226,7 @@ public class TeleOpMainRedDualMotorTestKick extends LinearOpMode {
 
                 if(gamepad1.yWasPressed()){
                     KickMotor.setTargetPosition(KickMotor.getCurrentPosition() + 380);
-                    KickMotor.setPower(0.9);
+                    KickMotor.setPower(1);
                 }
 
                 double axial = -gamepad1.right_stick_y * speedFactor;
