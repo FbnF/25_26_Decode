@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -29,6 +30,7 @@ public class SmallBlueSimple extends LinearOpMode {
     private static final String FEED_SERVO   = "feedServo";
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
+    private static final String LAUNCH_MOTOR_2 = "LaunchMotor_2";
     private static final String SIDE_SERVO = "sideServo";
     private static final String LIMELIGHT = "Limelight";
 
@@ -38,13 +40,13 @@ public class SmallBlueSimple extends LinearOpMode {
     public static final double INTAKE_POWER  = 0.73;
     public static double SHOOTER_POWER = 0.74;
 
-    public static double SHOOTER_VEL = 1746;
-    public static double SHOOTER_VEL2 = 1759;
+    public static double SHOOTER_VEL = 1047;
 
 
-    public static double WaitTime = 10.5;
-    public static double StartWaitTime = 2;
-    public static double SIDE_POWER = -0.155;
+
+    public static double WaitTime = 5;
+    public static double StartWaitTime = 0.5;
+    public static double SIDE_POWER = -0.45;
 
 
     @Override
@@ -54,6 +56,7 @@ public class SmallBlueSimple extends LinearOpMode {
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
+        DcMotorEx shooter2     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR_2);
         CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
         CRServo SideServo = hardwareMap.get(CRServo.class, SIDE_SERVO);
         DistanceSensor RangeSensor = hardwareMap.get(DistanceSensor.class, "RangeSensor");
@@ -64,8 +67,11 @@ public class SmallBlueSimple extends LinearOpMode {
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(600, 5, 0, 15);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setPower(0.0);
         shooter.setPower(0.0);
         feed.setPower(0);
@@ -86,12 +92,15 @@ public class SmallBlueSimple extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(52, -10), Math.toRadians(200.55))
                 .stopAndAdd(AutoMotorControl.setMotorPower(intake, 0.7))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
-                        shooter, intake,feed ,SideServo
-                        ,RangeSensor,SHOOTER_VEL,SIDE_POWER,StartWaitTime,
-                        WaitTime))
+                         shooter, shooter2, intake,
+                         feed, SideServo, RangeSensor,
+                         SHOOTER_VEL, SIDE_POWER,
+                         StartWaitTime,WaitTime))
+
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(200.55))
                 .strafeToLinearHeading(new Vector2d(55, -35), Math.toRadians(180))

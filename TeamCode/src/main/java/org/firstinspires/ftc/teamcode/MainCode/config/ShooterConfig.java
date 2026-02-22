@@ -98,11 +98,9 @@ public final class ShooterConfig {
             //0.801,0.4,3.45,0.91,4.64 ,-1.45 ,-2.69 ,-2.6,1.14,1.27,0.08,-1.68
              };
     public static double[] FEED_POWER_AT_DIST_BLUE = new double[] {
-            -0.9 ,-0.9 ,-0.4 ,-0.49 ,-0.6 ,-0.4 ,-0.2 ,-0.17 ,-0.15 ,-0.15
+            -1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-0.9 ,-0.45 ,-0.42 ,-0.4
     };
-    public static double[] SIDE_POWER_AT_DIST_BLUE = new double[] {
-            1 ,1 ,0.7 ,1 ,0.5,0.5,0.5
-    };
+
 
 
     //Red Side maps
@@ -118,11 +116,8 @@ public final class ShooterConfig {
     public static double[] TX_MAX_AT_DIST_RED = new double[] {
             3.16 ,3 ,2.55 ,2 ,0.01 ,-1.3 ,-4.08 ,-3.8 ,-3.61 ,-3.4// 1, 1.25,1.5,3.5,3.25 ,2, -1, -2 ,1.5,1.25 ,1 ,-1.5
     };
-    public static double[] FEED_POWER_AT_DIST_RED = new double[] {
-            -0.9, -0.4 ,-0.25 ,-0.49 ,-0.25 ,-0.4 ,-0.2,-0.15,-0.15,-0.15
-    };
-    public static double[] SIDE_POWER_AT_DIST_RED = new double[] {
-            1 ,1 ,0.7 ,1 ,0.5,0.5,0.5,0.5,0.5,0.5
+    public static double[] SIDE_POWER_AT_DIST = new double[] {
+            1 ,1 ,1,1 ,1,1,1,0.7,0.7,0.7
     };
     public static double[] DIST_IN_RED = new double[] {
             45.82, 48.78,51.15,58.22,62.8,69.09,81.5, 130.9 ,136 ,138.6// -14.5, -13 ,-12 ,-10.5 ,-10.25 ,-9.5 ,-9 ,-8.5 ,-6.5 ,-6.25 ,-5 ,-4
@@ -133,44 +128,23 @@ public final class ShooterConfig {
             };
 
 
-    public static double getFeedPowerAtDistanceRED(double distIn) {
-        if (!Double.isFinite(distIn)) return 0.0;
-        if (DIST_IN_RED == null || FEED_POWER_AT_DIST_RED == null) return 0.0;
-        if (DIST_IN_RED.length < 2 || FEED_POWER_AT_DIST_RED.length != DIST_IN_RED.length) return 0.0;
 
-        if (distIn <= DIST_IN_RED[0]) return FEED_POWER_AT_DIST_RED[0];
-        int last = DIST_IN_RED.length - 1;
-        if (distIn >= DIST_IN_RED[last]) return FEED_POWER_AT_DIST_RED[last];
-
-        int i = 0;
-        while (i < last && distIn > DIST_IN_RED[i + 1]) i++;
-
-        double x0 = DIST_IN_RED[i];
-        double x1 = DIST_IN_RED[i + 1];
-        double y0 = FEED_POWER_AT_DIST_RED[i];
-        double y1 = FEED_POWER_AT_DIST_RED[i + 1];
-
-        if (x1 <= x0) return y0;
-
-        double t = (distIn - x0) / (x1 - x0);
-        return y0 + t * (y1 - y0);
-    }
     public static double getSidePowerAtDistanceRED(double distIn) {
         if (!Double.isFinite(distIn)) return 0.0;
-        if (DIST_IN_RED == null || SIDE_POWER_AT_DIST_RED == null) return 0.0;
-        if (DIST_IN_RED.length < 2 || SIDE_POWER_AT_DIST_RED.length != DIST_IN_RED.length) return 0.0;
+        if (DIST_IN_RED == null || SIDE_POWER_AT_DIST == null) return 0.0;
+        if (DIST_IN_RED.length < 2 || SIDE_POWER_AT_DIST.length != DIST_IN_RED.length) return 0.0;
 
-        if (distIn <= DIST_IN_RED[0]) return SIDE_POWER_AT_DIST_RED[0];
+        if (distIn <= DIST_IN_RED[0]) return SIDE_POWER_AT_DIST[0];
         int last = DIST_IN_RED.length - 1;
-        if (distIn >= DIST_IN_RED[last]) return SIDE_POWER_AT_DIST_RED[last];
+        if (distIn >= DIST_IN_RED[last]) return SIDE_POWER_AT_DIST[last];
 
         int i = 0;
         while (i < last && distIn > DIST_IN_RED[i + 1]) i++;
 
         double x0 = DIST_IN_RED[i];
         double x1 = DIST_IN_RED[i + 1];
-        double y0 = SIDE_POWER_AT_DIST_RED[i];
-        double y1 = SIDE_POWER_AT_DIST_RED[i + 1];
+        double y0 = SIDE_POWER_AT_DIST[i];
+        double y1 = SIDE_POWER_AT_DIST[i + 1];
 
         if (x1 <= x0) return y0;
 
@@ -200,28 +174,7 @@ public final class ShooterConfig {
         double t = (distIn - x0) / (x1 - x0);
         return y0 + t * (y1 - y0);
     }
-    public static double getSidePowerAtDistanceBLUE(double distIn) {
-        if (!Double.isFinite(distIn)) return 0.0;
-        if (DIST_IN_BLUE == null || SIDE_POWER_AT_DIST_BLUE == null) return 0.0;
-        if (DIST_IN_BLUE.length < 2 || SIDE_POWER_AT_DIST_BLUE.length != DIST_IN_BLUE.length) return 0.0;
 
-        if (distIn <= DIST_IN_BLUE[0]) return SIDE_POWER_AT_DIST_BLUE[0];
-        int last = DIST_IN_BLUE.length - 1;
-        if (distIn >= DIST_IN_BLUE[last]) return SIDE_POWER_AT_DIST_BLUE[last];
-
-        int i = 0;
-        while (i < last && distIn > DIST_IN_BLUE[i + 1]) i++;
-
-        double x0 = DIST_IN_BLUE[i];
-        double x1 = DIST_IN_BLUE[i + 1];
-        double y0 = SIDE_POWER_AT_DIST_BLUE[i];
-        double y1 = SIDE_POWER_AT_DIST_BLUE[i + 1];
-
-        if (x1 <= x0) return y0;
-
-        double t = (distIn - x0) / (x1 - x0);
-        return y0 + t * (y1 - y0);
-    }
 
     public static double[] lookupTxWindowFromDistanceInRED(double distIn) {
         if (!Double.isFinite(distIn)) return new double[]{-999.0, 999.0};

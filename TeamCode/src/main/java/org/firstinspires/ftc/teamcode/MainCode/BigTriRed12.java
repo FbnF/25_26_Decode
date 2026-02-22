@@ -26,55 +26,63 @@ public class BigTriRed12 extends LinearOpMode {
     private static final String FEED_SERVO   = "feedServo";
     private static final String INTAKE_MOTOR = "IntakeMotor";
     private static final String LAUNCH_MOTOR = "LaunchMotor";
+    private static final String LAUNCH_MOTOR_2 = "LaunchMotor_2";
     private static final String SIDE_SERVO = "sideServo";
     private static final String DISTANCE_SENSOR = "RangeSensor";
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1315;
-    private static final double SHOOTER_Vel_2 = 1320;
+    private static final double SHOOTER_Vel = 795;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double WAIT_TIME = 0.7;
-    private static final double WAIT_TIME_Start = 1.1;
-    private static final double SHOOT_TIME = 4;
-    private static final double sidePower = -0.9;
+    private static final double WAIT_TIME = 0.2;
+
+    private static final double SHOOT_TIME = 4.5;
+    private static final double sidePower = -1.0;
 
 
 
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(90)); //-48, 48, Math.toRadians(135));
+        Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(90));//Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
+        DcMotorEx shooter2     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR_2);
         CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
         CRServo side            = hardwareMap.get(CRServo.class, SIDE_SERVO);
         DistanceSensor distance = hardwareMap.get(DistanceSensor.class, DISTANCE_SENSOR);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(600, 5, 0, 15);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        shooter.setDirection(DcMotor.Direction.REVERSE);
+        shooter2.setDirection(DcMotor.Direction.REVERSE);
         intake.setPower(0.0);
         shooter.setPower(0.0);
+        shooter2.setPower(0.0);
         feed.setPower(0);
         // Build one continuous action so pose/tangent carry correctly between segments.
         Action all = drive.actionBuilder(startPose)
                 // First strafe and shoot
                 .setTangent(Math.toRadians(132))
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(132))
 
                 // Shooter runs
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
-                        shooter, intake,
+                        shooter, shooter2, intake,
                         feed, side, distance,
                         SHOOTER_Vel, sidePower,
-                        WAIT_TIME_Start,SHOOT_TIME))
+                        WAIT_TIME,SHOOT_TIME))
 
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
@@ -83,24 +91,33 @@ public class BigTriRed12 extends LinearOpMode {
                 .splineToLinearHeading(new Pose2d(17.5, 24,Math.toRadians(90)),Math.toRadians(90))
                 .lineToY(52)
                 .lineToY(45)
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(134))
+                .stopAndAdd(new  ShooterAndFeederCombined(
+                        shooter, shooter2, intake,
+                        feed, side, distance,
+                        SHOOTER_Vel, sidePower,
+                        WAIT_TIME,SHOOT_TIME))
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
                 //clear&collect
                 .strafeToLinearHeading(new Vector2d(10, 40), Math.toRadians(134))
                 .strafeToLinearHeading(new Vector2d(10, 54), Math.toRadians(134))
                 .waitSeconds(0.3)
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(134))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
-                        shooter, intake,
+                        shooter, shooter2, intake,
                         feed, side, distance,
                         SHOOTER_Vel, sidePower,
-                        WAIT_TIME_Start,SHOOT_TIME))
+                        WAIT_TIME,SHOOT_TIME))
 
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
@@ -110,10 +127,17 @@ public class BigTriRed12 extends LinearOpMode {
 
                 .lineToY(48)
                 .lineToY(45)
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
                 // Shooter runs
                 .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(127))
+                .stopAndAdd(new  ShooterAndFeederCombined(
+                        shooter, shooter2, intake,
+                        feed, side, distance,
+                        SHOOTER_Vel, sidePower,
+                        WAIT_TIME,SHOOT_TIME))
                 .build();
 
         waitForStart();

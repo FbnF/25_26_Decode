@@ -4,33 +4,30 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.List;
+
 @Config
 @TeleOp(name = "TeleOpRed: Main", group = "TeleOp")
 public class TeleOpMainRed extends LinearOpMode {
@@ -40,8 +37,9 @@ public class TeleOpMainRed extends LinearOpMode {
     private CRServo sideServo;
     private MecanumDrive drive;
     private DcMotorEx intakeMotor;
-    private DcMotorEx launchMotor;
-    //  private RevBlinkinLedDriver blinkin;
+    private DcMotorEx launchMotor_1;
+    private DcMotorEx launchMotor_2;
+    private DcMotorEx KickMotor;
     private VoltageSensor battery;
     private Servo puckLight;
 
@@ -143,6 +141,14 @@ public class TeleOpMainRed extends LinearOpMode {
     private double alignErr_dbg = 0.0;
     private boolean alignActive_dbg = false;
 
+    @Config
+    public static class TeleOpTuning {
+        public static double velocity_scale = 0.6;
+        public static double angle_offset = -4;
+        public static double servo_speed=1.0;
+
+    }
+
     @Override
     public void runOpMode() {
 
@@ -150,7 +156,9 @@ public class TeleOpMainRed extends LinearOpMode {
         feedServo = hardwareMap.get(CRServo.class, "feedServo");
         sideServo = hardwareMap.get(CRServo.class, "sideServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
-        launchMotor = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
+        launchMotor_1 = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
+        launchMotor_2 = hardwareMap.get(DcMotorEx.class, "LaunchMotor_2");
+        KickMotor = hardwareMap.get(DcMotorEx.class, "KickMotor");
         battery = hardwareMap.voltageSensor.iterator().next();
 
         //   blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
@@ -167,11 +175,24 @@ public class TeleOpMainRed extends LinearOpMode {
         feedServo.setPower(0.0);
         sideServo.setPower(0.0);
 
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        launchMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        launchMotor_1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        launchMotor_2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        KickMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+
+        launchMotor_1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launchMotor_2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        KickMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        KickMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        KickMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        launchMotor_1.setDirection(DcMotorEx.Direction.REVERSE);
+        launchMotor_2.setDirection(DcMotorEx.Direction.REVERSE);
+
+
+
 
         // Drive
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
@@ -188,7 +209,8 @@ public class TeleOpMainRed extends LinearOpMode {
                     TinyCsvLoggerFlex.doubleCol("tps_base_cmd", () -> commandedBase_dbg),
                     TinyCsvLoggerFlex.doubleCol("tps_final_cmd", () -> finalTps_dbg),
                     TinyCsvLoggerFlex.doubleCol("launch_cmd", () -> shooterSetpointTPS),
-                    TinyCsvLoggerFlex.motorEx("launch", launchMotor),
+                    TinyCsvLoggerFlex.motorEx("launch_1", launchMotor_1),
+                    TinyCsvLoggerFlex.motorEx("launch_2", launchMotor_2),
                     TinyCsvLoggerFlex.doubleCol("intake_cmd", () -> intakePower),
                     TinyCsvLoggerFlex.motorEx("intake", intakeMotor),
                     //    TinyCsvLoggerFlex.servoPos("feed_pos", feedServo),
@@ -199,9 +221,11 @@ public class TeleOpMainRed extends LinearOpMode {
         waitForStart();
 
         intakeMotor.setPower(0.0);
-        launchMotor.setPower(0.0);
-        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
-        launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        launchMotor_1.setPower(0.0);
+        launchMotor_2.setPower(0.0);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(600, 5, 0, 15);
+        launchMotor_1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        launchMotor_2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
 
         try {
 
@@ -211,6 +235,11 @@ public class TeleOpMainRed extends LinearOpMode {
                 if (gamepad1.a) speedFactor = 1.35;
                 if (gamepad1.b) speedFactor = 0.4;
                 if (gamepad1.x) speedFactor = 0.7;
+
+                if(gamepad1.yWasPressed()){
+                    KickMotor.setTargetPosition(KickMotor.getCurrentPosition() + 380);
+                    KickMotor.setPower(1);
+                }
 
                 double axial = -gamepad1.right_stick_y * speedFactor;
                 double lateral = -gamepad1.left_stick_x * speedFactor;
@@ -307,7 +336,7 @@ public class TeleOpMainRed extends LinearOpMode {
                     txMax_dbg = txMax;
 
                     if (tx < txMin || tx > txMax) {
-                        txTarget_dbg = (txMin + txMax) / 2;
+                        txTarget_dbg = TeleOpTuning.angle_offset;//(txMin + txMax) / 2;
                     } else {
                         txTarget_dbg = tx; // already within range
                     }
@@ -383,23 +412,28 @@ public class TeleOpMainRed extends LinearOpMode {
 
                         if (desired <= 0.0) {
                                 shooterSetpointTPS = 0.0;
-                                launchMotor.setPower(0.0);
+                                launchMotor_1.setPower(0.0);
+                                launchMotor_2.setPower(0.0);
 
                         } else {
-                            shooterSetpointTPS = desired;
-                            launchMotor.setVelocity(shooterSetpointTPS);
+
+                            shooterSetpointTPS = desired*0.6;
+                            launchMotor_1.setVelocity(shooterSetpointTPS);
+                            launchMotor_2.setVelocity(shooterSetpointTPS);
                         }
                         lastTPS = shooterSetpointTPS * FACTOR;
 
 
                     } else {
                             shooterSetpointTPS = 0.0;
-                            launchMotor.setVelocity(lastTPS);
+                            launchMotor_1.setVelocity(lastTPS);
+                            launchMotor_2.setVelocity(lastTPS);
                     }
 
                 } else {
                         shooterSetpointTPS = 0.0;
-                        launchMotor.setPower(0.0);
+                        launchMotor_1.setPower(0.0);
+                        launchMotor_2.setPower(0.0);
 
                 }
 
@@ -407,8 +441,9 @@ public class TeleOpMainRed extends LinearOpMode {
                 // ---------------- FEED LOGIC ----------------
                 boolean spunUpOk = false;
                 if (autoShooter && shooterSetpointTPS > 0.0) {
-                    double vel = launchMotor.getVelocity();
-                    spunUpOk = Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
+                    double vel = launchMotor_1.getVelocity();
+                    double vel2 = launchMotor_2.getVelocity();
+                    spunUpOk = (Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL) && (Math.abs(vel2 - shooterSetpointTPS) <= ShooterConfig.TPS_TOL);
                 }
 
                 // Angle gate: only allow feed if tag is found AND Tx is within the distance-based window.
@@ -434,7 +469,7 @@ public class TeleOpMainRed extends LinearOpMode {
                 if (dIn == null) {
                     tableSidePower = 0;
                 } else {
-                    tableSidePower = ShooterConfig.getSidePowerAtDistanceBLUE(dIn);
+                    tableSidePower = ShooterConfig.getSidePowerAtDistanceRED(dIn) ;
                 }
                 double feedDefault = ShooterConfig.FEED_DEFAULT;
                 double sideDefault = ShooterConfig.SIDE_DEFAULT;
@@ -588,8 +623,10 @@ public class TeleOpMainRed extends LinearOpMode {
                 telemetry.addLine("---- Shooter State ----");
                 telemetry.addData("Armed", autoSpinArmed);
                 telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
-                telemetry.addData("Actual TPS", "%.0f", launchMotor.getVelocity());
-                telemetry.addData("Err", "%.0f", (launchMotor.getVelocity() - shooterSetpointTPS));
+                telemetry.addData("Actual TPS", "%.0f", launchMotor_1.getVelocity());
+                telemetry.addData("Err", "%.0f", (launchMotor_1.getVelocity() - shooterSetpointTPS));
+                telemetry.addData("Actual TPS", "%.0f", launchMotor_2.getVelocity());
+                telemetry.addData("Err", "%.0f", (launchMotor_2.getVelocity() - shooterSetpointTPS));
                 telemetry.addData("Ready", spunUpOk);
                 telemetry.addData("FeedAllowed", feedAllowed);
 
@@ -598,7 +635,8 @@ public class TeleOpMainRed extends LinearOpMode {
             }
 
         } finally {
-            launchMotor.setPower(0.0);
+            launchMotor_1.setPower(0.0);
+            launchMotor_2.setPower(0.0);
             intakeMotor.setPower(0.0);
             if (LOG_ENABLED && logger != null) logger.close();
         }

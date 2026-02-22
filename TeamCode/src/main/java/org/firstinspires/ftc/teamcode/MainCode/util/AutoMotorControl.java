@@ -439,7 +439,7 @@ public final class AutoMotorControl {
             return true;
         }
     }
-    public static class ShooterAndFeederCombined implements Action {
+    public static class ShooterAndFeederCombined1motor implements Action {
         private final DcMotorEx shooter;
         private final DcMotor intake;
         private final CRServo feedServo;
@@ -454,7 +454,7 @@ public final class AutoMotorControl {
 
 
 
-        public ShooterAndFeederCombined(DcMotorEx shooter, DcMotor intake, CRServo feedServo, CRServo sideServo,
+        public ShooterAndFeederCombined1motor(DcMotorEx shooter, DcMotor intake, CRServo feedServo, CRServo sideServo,
                                                    DistanceSensor rangeSensor,
                                                    double shooterVel,double feedPower, double waitTime,
                                                    double timeToShoot) {
@@ -496,6 +496,77 @@ public final class AutoMotorControl {
             if(t >= timeToShoot){
                 if(feedServo != null) feedServo.setPower(0);
                 if(shooter != null) shooter.setVelocity(0.0);
+                if(intake != null) intake.setPower(0.0);
+                if(sideServo != null) sideServo.setPower(0);
+                return false;
+            }
+            return true;
+        }
+    }
+    public static class ShooterAndFeederCombined implements Action {
+        private final DcMotorEx shooter;
+        private final DcMotorEx shooter2;
+        private final DcMotor intake;
+        private final CRServo feedServo;
+        private final CRServo sideServo;
+        private final DistanceSensor rangeSensor;
+        private final double shooterVel;
+        private final double feedPower;
+        private final double waitTime;
+        private long t0;
+        private final double timeToShoot;
+        private boolean init;
+
+
+
+        public ShooterAndFeederCombined(DcMotorEx shooter,DcMotorEx shooter2, DcMotor intake, CRServo feedServo, CRServo sideServo,
+                                        DistanceSensor rangeSensor,
+                                        double shooterVel,double feedPower, double waitTime,
+                                        double timeToShoot) {
+            this.shooter = shooter;
+            this.shooter2 = shooter2;
+            this.intake = intake;
+            this.feedServo = feedServo;
+            this.sideServo = sideServo;
+            this.rangeSensor =rangeSensor;
+            this.shooterVel = shooterVel;
+            this.feedPower = feedPower;
+            this.waitTime = waitTime;
+            this.timeToShoot = timeToShoot;
+        }
+
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            if (!init) {
+                init = true;
+                t0 = System.nanoTime();
+                if (shooter != null) {
+                    shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                    shooter.setVelocity(shooterVel);
+                }
+                if (shooter2 != null) {
+                    shooter2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+                    shooter2.setVelocity(shooterVel);
+                }
+
+                if (feedServo != null) feedServo.setPower(0);
+            }
+
+            double t = (System.nanoTime() - t0) / 1e9;
+            if(t >= waitTime){
+                feedServo.setPower(feedPower);
+            }
+            boolean nofirstball = false;
+            double distance = rangeSensor.getDistance(DistanceUnit.MM);
+            if (!nofirstball && distance > 107){
+                sideServo.setPower(1);
+                intake.setPower(0.75);
+                nofirstball = true;
+            }
+            if(t >= timeToShoot){
+                if(feedServo != null) feedServo.setPower(0);
+                if(shooter != null) shooter.setVelocity(0.0);
+                if(shooter2 != null) shooter2.setVelocity(0.0);
                 if(intake != null) intake.setPower(0.0);
                 if(sideServo != null) sideServo.setPower(0);
                 return false;

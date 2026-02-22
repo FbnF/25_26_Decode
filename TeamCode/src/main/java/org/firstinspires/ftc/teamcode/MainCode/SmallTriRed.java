@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -28,43 +29,44 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @Config
 @Autonomous(name="SmallTriRed", group="Auto")
 public final class SmallTriRed extends LinearOpMode {
-
-    // RC config names
-    private static final String FEED_SERVO   = "feedServo";
-    private static final String INTAKE_MOTOR = "IntakeMotor";
-    private static final String LAUNCH_MOTOR = "LaunchMotor";
-    private static final String SIDE_SERVO = "sideServo";
-
-    //private static final String VOLTAGE_SENSOR = "VoltageSensor";
-
-    // Tunables
-    public static final double INTAKE_POWER  = 0.73;
-    public static  double SIDE_POWER = -0.145;
-
-    public static double SHOOTER_POWER = 0.78;
-    public static double SHOOTER_VEL = 1701;
-    public static double SHOOTER_VEL2 = 1735;
-
-
-    public static double WaitTime = 10.5;
-    public static double StartWaitTime = 2;
     public static double SHOOT_HEADING = 153.5;
     public static double SHOOTER_HEADING2 = 149;
     public static double INTAKE_X = 31.8;
     public static double INTAKE_Y = 19;
 
 
+    // RC config names
+    private static final String FEED_SERVO   = "feedServo";
+    private static final String INTAKE_MOTOR = "IntakeMotor";
+    private static final String LAUNCH_MOTOR = "LaunchMotor";
+    private static final String LAUNCH_MOTOR_2 = "LaunchMotor_2";
+    private static final String SIDE_SERVO = "sideServo";
+    private static final String LIMELIGHT = "Limelight";
+
+    //private static final String VOLTAGE_SENSOR = "VoltageSensor";
+
+    // Tunables
+    public static final double INTAKE_POWER  = 0.73;
+    public static double SHOOTER_POWER = 0.74;
+
+    public static double SHOOTER_VEL = 1047;
+
+
+    public static double WaitTime = 5;
+    public static double StartWaitTime = 0.5;
+    public static double SIDE_POWER = -0.45;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startPose = new Pose2d(60, 16, Math.toRadians(180));
+        Pose2d startPose = new Pose2d(60, -16, Math.toRadians(180));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
         DcMotorEx shooter     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR);
+        DcMotorEx shooter2     = (DcMotorEx) hardwareMap.get(DcMotor.class, LAUNCH_MOTOR_2);
         CRServo feed            = hardwareMap.get(CRServo.class, FEED_SERVO);
         CRServo SideServo = hardwareMap.get(CRServo.class, SIDE_SERVO);
-        VoltageSensor battery = hardwareMap.voltageSensor.iterator().next();
         DistanceSensor RangeSensor = hardwareMap.get(DistanceSensor.class, "RangeSensor");
         // VoltageSensor battery = hardwareMap.get(VoltageSensor.class, VOLTAGE_SENSOR); // read battery
 
@@ -73,8 +75,11 @@ public final class SmallTriRed extends LinearOpMode {
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        PIDFCoefficients pidf_cur = new PIDFCoefficients(500, 3, 0, 4);
+        PIDFCoefficients pidf_cur = new PIDFCoefficients(600, 5, 0, 15);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setPower(0.0);
         shooter.setPower(0.0);
         feed.setPower(0);
@@ -98,12 +103,14 @@ public final class SmallTriRed extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_VEL))
                 .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(SHOOT_HEADING) )
 
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
-                        shooter, intake,feed ,SideServo
-                        ,RangeSensor,SHOOTER_VEL,SIDE_POWER,StartWaitTime,
-                        WaitTime))
+                        shooter, shooter2, intake,
+                        feed, SideServo, RangeSensor,
+                        SHOOTER_VEL, SIDE_POWER,
+                        StartWaitTime,WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .stopAndAdd(setCRServoPower(SideServo, 1.0))
 
@@ -118,11 +125,13 @@ public final class SmallTriRed extends LinearOpMode {
                 .stopAndAdd(setCRServoPower(SideServo, 0.0))
                 .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(SHOOTER_HEADING2))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_VEL))
 
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
-                        shooter, intake,feed ,SideServo
-                        ,RangeSensor,SHOOTER_VEL2,SIDE_POWER,StartWaitTime,
-                        WaitTime))
+                        shooter, shooter2, intake,
+                        feed, SideServo, RangeSensor,
+                        SHOOTER_VEL, SIDE_POWER,
+                        StartWaitTime,WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .stopAndAdd(setCRServoPower(SideServo, 1.0))
                 .setTangent(Math.toRadians(SHOOTER_HEADING2))
