@@ -33,12 +33,13 @@ public class BigTriBlue9 extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 795;
+    private static final double SHOOTER_Vel = 790;
+    private static final double SHOOTER_Vel2 = 800;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double WAIT_TIME = 0.2;
+    private static final double WAIT_TIME = 0;
 
-    private static final double SHOOT_TIME = 4.5;
+    private static final double SHOOT_TIME = 3;
     private static final double sidePower = -1.0;
 
 
@@ -75,7 +76,7 @@ public class BigTriBlue9 extends LinearOpMode {
                 .setTangent(Math.toRadians(225))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))//start up motor
-                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(225.5))
+                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(230))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
@@ -88,21 +89,21 @@ public class BigTriBlue9 extends LinearOpMode {
                 .stopAndAdd(setCRServoPower(side,1.0))
                 // collect first spike line
                 .splineToLinearHeading(new Pose2d(-8, -24,Math.toRadians(270)),Math.toRadians(270))
-                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
-                .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel2))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel2))
                 .lineToY(-48)
                 .lineToY(-45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
 
 
-                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(220))
+                .strafeToLinearHeading(new Vector2d(-12, -20), Math.toRadians(220))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, shooter2, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, sidePower,
+                        SHOOTER_Vel2, sidePower,
                         WAIT_TIME,SHOOT_TIME))
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
@@ -110,19 +111,19 @@ public class BigTriBlue9 extends LinearOpMode {
                 // collect second spike line
 
                 .splineToLinearHeading(new Pose2d(16, -24,Math.toRadians(270)),Math.toRadians(270))
-                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
-                .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel2))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel2))
                 .lineToY(-52)
                 .lineToY(-45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
 
-                .strafeToLinearHeading(new Vector2d(-29, -11.5), Math.toRadians(235))
+                .strafeToLinearHeading(new Vector2d(-30.5, -11.5), Math.toRadians(235))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, shooter2, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, sidePower,
+                        SHOOTER_Vel2, sidePower,
                         WAIT_TIME,SHOOT_TIME))
 
                 .build();

@@ -34,7 +34,7 @@ public class BigTriRed9Clear extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 795;
+    private static final double SHOOTER_Vel = 780;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.2;
@@ -88,7 +88,7 @@ public class BigTriRed9Clear extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
                 // collect first spike line
-                .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(-3, 24,Math.toRadians(97)),Math.toRadians(97))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .lineToY(48)
@@ -111,7 +111,7 @@ public class BigTriRed9Clear extends LinearOpMode {
 
                 // collect second spike line
 
-                .splineToLinearHeading(new Pose2d(17.5, 24,Math.toRadians(90)),Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(17.5, 24,Math.toRadians(95)),Math.toRadians(95))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .lineToY(52)

@@ -32,7 +32,7 @@ public class BigTriRed6 extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 795;
+    private static final double SHOOTER_Vel = 780;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.2;
@@ -87,7 +87,7 @@ public class BigTriRed6 extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
                 // collect first spike line
-                .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(-3, 24,Math.toRadians(97)),Math.toRadians(97))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .lineToY(48)
@@ -95,7 +95,7 @@ public class BigTriRed6 extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
 
-                .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(123))
+                .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(130))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, shooter2, intake,

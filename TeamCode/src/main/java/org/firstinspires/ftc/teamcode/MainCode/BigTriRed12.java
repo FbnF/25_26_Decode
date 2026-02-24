@@ -32,12 +32,12 @@ public class BigTriRed12 extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 795;
+    private static final double SHOOTER_Vel = 780;//795
 
     // Feed schedule at the stop (seconds from start of the shooter action)
-    private static final double WAIT_TIME = 0.2;
+    private static final double WAIT_TIME = 0;
 
-    private static final double SHOOT_TIME = 4.5;
+    private static final double SHOOT_TIME = 2.3;
     private static final double sidePower = -1.0;
 
 
@@ -86,16 +86,18 @@ public class BigTriRed12 extends LinearOpMode {
 
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
-                // collect second spike line
+                // collect first spike line
+                .splineToLinearHeading(new Pose2d(-3, 24,Math.toRadians(97)),Math.toRadians(97))
 
-                .splineToLinearHeading(new Pose2d(17.5, 24,Math.toRadians(90)),Math.toRadians(90))
-                .lineToY(52)
+                .lineToY(48)
                 .lineToY(45)
+
+
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(134))
+                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(140))
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, shooter2, intake,
                         feed, side, distance,
@@ -103,15 +105,16 @@ public class BigTriRed12 extends LinearOpMode {
                         WAIT_TIME,SHOOT_TIME))
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
-                //clear&collect
-                .strafeToLinearHeading(new Vector2d(10, 40), Math.toRadians(134))
-                .strafeToLinearHeading(new Vector2d(10, 54), Math.toRadians(134))
-                .waitSeconds(0.3)
+
+                // collect second spike line
+                .splineToLinearHeading(new Pose2d(17.5, 24,Math.toRadians(95)),Math.toRadians(95))
+                .lineToY(52)
+                .lineToY(45)
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(134))
+                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(145))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, shooter2, intake,
@@ -122,11 +125,10 @@ public class BigTriRed12 extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
 
-                // collect first spike line
-                .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
-
-                .lineToY(48)
-                .lineToY(45)
+                //clear&collect
+                .strafeToLinearHeading(new Vector2d(12, 45), Math.toRadians(150))
+                .strafeToLinearHeading(new Vector2d(12, 63), Math.toRadians(150))
+                .waitSeconds(0.3)
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))
                 .stopAndAdd(setMotorPower(intake, 0.0))

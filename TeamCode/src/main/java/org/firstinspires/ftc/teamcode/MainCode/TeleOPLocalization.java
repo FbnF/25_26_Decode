@@ -453,7 +453,7 @@ public class TeleOPLocalization extends LinearOpMode {
                 else {tableFeedPower = ShooterConfig.getFeedPowerAtDistanceBLUE(dIn);}
                 double tableSidePower = 0;
                 if (dIn == null){tableSidePower = 0;}
-                else {tableSidePower = ShooterConfig.getSidePowerAtDistanceBLUE(dIn);}
+                else {tableSidePower = ShooterConfig.getSidePowerAtDistanceRED(dIn);}
                 double feedDefault = ShooterConfig.FEED_DEFAULT;
                 double sideDefault = ShooterConfig.SIDE_DEFAULT;
 

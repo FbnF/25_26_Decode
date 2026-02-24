@@ -33,7 +33,7 @@ public class BigTriBlue6 extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 795;
+    private static final double SHOOTER_Vel = 790;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.2;
@@ -75,7 +75,7 @@ public class BigTriBlue6 extends LinearOpMode {
                 .setTangent(Math.toRadians(225))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .stopAndAdd(setMotorVel(shooter2, SHOOTER_Vel))//start up motor
-                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(225))
+                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(230))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
@@ -94,7 +94,7 @@ public class BigTriBlue6 extends LinearOpMode {
                 .lineToY(-45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
-                .strafeToLinearHeading(new Vector2d(-29, -11.5), Math.toRadians(240))
+                .strafeToLinearHeading(new Vector2d(-30.5, -11.5), Math.toRadians(235))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, shooter2, intake,
