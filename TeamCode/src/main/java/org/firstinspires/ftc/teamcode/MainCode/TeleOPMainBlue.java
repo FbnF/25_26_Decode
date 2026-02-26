@@ -134,6 +134,13 @@ public class TeleOPMainBlue extends LinearOpMode {
     private double txTarget_dbg = 0.0;
     private double alignErr_dbg = 0.0;
     private boolean alignActive_dbg = false;
+    @Config
+    public static class TeleOpTuning {
+        public static double velocity_scale = 0.6;
+        public static double angle_offset = 4;
+        public static double servo_speed=1.0;
+
+    }
 
     @Override
     public void runOpMode() {
@@ -307,7 +314,7 @@ public class TeleOPMainBlue extends LinearOpMode {
                     txMax_dbg = txMax;
 
                     if(tx < txMin || tx > txMax){
-                        txTarget_dbg = 4;//(txMin + txMax)/2;
+                        txTarget_dbg = TeleOpTuning.angle_offset;//(txMin + txMax)/2;
                     } else {
                         txTarget_dbg = tx; // already within range
                     }

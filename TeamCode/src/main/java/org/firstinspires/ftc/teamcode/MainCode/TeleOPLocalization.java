@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.MainCode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -215,7 +216,7 @@ public class TeleOPLocalization extends LinearOpMode {
         perpStart = perpPosVel.position;
 
          ThreeDeadWheelLocalizer DeadWheelLocal = new ThreeDeadWheelLocalizer(hardwareMap, 0.002152807647553116,
-                 new Pose2d(new  Vector2d(50.0, 50.0), Math.toRadians(180)));
+                 new Pose2d(new Vector2d(-29, -11.5), Math.toRadians(233)));
         waitForStart();
 
         intakeMotor.setPower(0.0);
@@ -558,6 +559,13 @@ public class TeleOPLocalization extends LinearOpMode {
                             }
                         }
                     }
+                }
+                DeadWheelLocal.update();
+                Pose2d startPose = DeadWheelLocal.getPose();
+                if (gamepad1.dpadDownWasPressed()){
+                    Action all = drive.actionBuilder(startPose)
+                            .splineToLinearHeading(new Pose2d(60, 60, Math.toRadians(305)), Math.toRadians(305))
+                            .build();
                 }
                 /* if(RangeSensor.getDistance(DistanceUnit.CM) < 20){
                         blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE);
