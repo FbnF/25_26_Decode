@@ -40,12 +40,22 @@ public class SmallTriBlue extends LinearOpMode {
     public static final double INTAKE_POWER  = 0.73;
     public static double SHOOTER_POWER = 0.74;
 
-    public static double SHOOTER_VEL = 1047;
+    public static double SHOOTER_VEL = 1057;
+    public static double SHOOTER_VEL2 = 1054;
 
 
-    public static double WaitTime = 5;
-    public static double StartWaitTime = 0.5;
-    public static double SIDE_POWER = -0.45;
+    public static double WaitTime = 7;
+    public static double StartWaitTime1 = 2.5;
+    public static double StartWaitTime2 = 2.5;
+    public static double SIDE_POWER = -0.4;
+    public static double HEADING1 = 204.2;
+    public static double HEADING2= 215;
+
+    public static double Pickup_x = 30.3;
+    public static double Pickup_y = -26;
+    public static double Pickup_Length = -59;
+
+
 
 
     @Override
@@ -92,36 +102,36 @@ public class SmallTriBlue extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
                 .stopAndAdd(setMotorVel(shooter2, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(52, -10), Math.toRadians(200.7))
+                .strafeToLinearHeading(new Vector2d(52, -10), Math.toRadians(HEADING1))
                 .stopAndAdd(AutoMotorControl.setMotorPower(intake, 0.7))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
                         shooter, shooter2, intake,
                         feed, SideServo, RangeSensor,
                         SHOOTER_VEL, SIDE_POWER,
-                        StartWaitTime,WaitTime))
+                        StartWaitTime1,WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
                 .stopAndAdd(setCRServoPower(SideServo, 1.0))
-                .setTangent(Math.toRadians(200.7))
+                .setTangent(Math.toRadians(HEADING1))
 
-                .strafeToLinearHeading(new Vector2d(30.3, -26), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(Pickup_x, Pickup_y), Math.toRadians(270))
                 .setTangent(Math.toRadians(270))
                 .lineToY(-48)
-                .lineToY(-57)
+                .lineToY(Pickup_Length)
                 // .lineToY(-36)
-                .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .stopAndAdd(setMotorVel(shooter2, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(52, -14), Math.toRadians(200.6))
+                .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL2))
+                .stopAndAdd(setMotorVel(shooter2, SHOOTER_VEL2))
+                .strafeToLinearHeading(new Vector2d(52, -14), Math.toRadians(HEADING2))
 
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
                         shooter, shooter2, intake,
                         feed, SideServo, RangeSensor,
-                        SHOOTER_VEL, SIDE_POWER,
-                        StartWaitTime,WaitTime))
+                        SHOOTER_VEL2, SIDE_POWER,
+                        StartWaitTime2,WaitTime))
                 .stopAndAdd(setMotorPower(intake, INTAKE_POWER))
 
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
-                .setTangent(Math.toRadians(200.6))
+                .setTangent(Math.toRadians(HEADING2))
                 .strafeToLinearHeading(new Vector2d(55, -35), Math.toRadians(180))
                 .build();
 
