@@ -2,15 +2,19 @@ package org.firstinspires.ftc.teamcode.MainCode;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Trajectory;
 import com.acmerobotics.roadrunner.Vector2d;
 
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
 import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
 import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -36,6 +40,7 @@ import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
 
 import java.util.List;
 
+@Disabled
 @Config
 @TeleOp(name = "TeleOpBlue: Main", group = "TeleOp")
 public class TeleOPLocalization extends LinearOpMode {
@@ -55,6 +60,8 @@ public class TeleOPLocalization extends LinearOpMode {
     private OverflowEncoder perp;
 
     private DistanceSensor RangeSensor;
+
+    private Pose2d startPoses;
 
     // --- Vision ---
     private boolean visionEnabled = true;
@@ -148,6 +155,8 @@ public class TeleOPLocalization extends LinearOpMode {
     private double par0Start;
     private double par1Start;
     private double perpStart;
+    private boolean isAutomaticControl = false;
+    private boolean DpadDown = false;
 
 
     @Override
@@ -563,10 +572,25 @@ public class TeleOPLocalization extends LinearOpMode {
                 DeadWheelLocal.update();
                 Pose2d startPose = DeadWheelLocal.getPose();
                 if (gamepad1.dpadDownWasPressed()){
-                    Action all = drive.actionBuilder(startPose)
-                            .splineToLinearHeading(new Pose2d(60, 60, Math.toRadians(305)), Math.toRadians(305))
-                            .build();
+                    if(DpadDown){
+                        isAutomaticControl = false;
+                    } else {
+                        isAutomaticControl = true;
+                    }
+                    DpadDown = !DpadDown;
+
+                    if(isAutomaticControl){
+                        Action All = drive.actionBuilder(startPose)
+                                .setTangent(Math.toRadians(233))
+                                .splineToLinearHeading(new Pose2d(60, -60, Math.toRadians(305)), Math.toRadians(305))
+                                .build();
+                        Actions.runBlocking(All);
+
+
+                    }
                 }
+
+
                 /* if(RangeSensor.getDistance(DistanceUnit.CM) < 20){
                         blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE);
                     } else {

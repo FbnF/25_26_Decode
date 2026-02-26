@@ -392,7 +392,7 @@ public class TeleOPMainBlue extends LinearOpMode {
                             launchMotor1.setPower(0.0);
                             launchMotor2.setPower(0.0);
                         } else {
-                            shooterSetpointTPS = desired*0.67;
+                            shooterSetpointTPS = desired*TeleOpTuning.velocity_scale;
                             launchMotor1.setVelocity(shooterSetpointTPS);
                             launchMotor2.setVelocity(shooterSetpointTPS);
 
