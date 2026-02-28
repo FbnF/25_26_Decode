@@ -42,8 +42,8 @@ public final class SmallTriRed extends LinearOpMode {
     public static  double SIDE_POWER = -0.145;
 
     public static double SHOOTER_POWER = 0.78;
-    public static double SHOOTER_VEL = 1701;
-    public static double SHOOTER_VEL2 = 1735;
+    public static double SHOOTER_VEL = 1600;
+    public static double SHOOTER_VEL2 = 1595;
 
 
     public static double WaitTime = 10.5;
@@ -116,7 +116,7 @@ public final class SmallTriRed extends LinearOpMode {
                 .lineToY(58)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(SideServo, 0.0))
-                .strafeToLinearHeading(new Vector2d(51, 10), Math.toRadians(SHOOTER_HEADING2))
+                .strafeToLinearHeading(new Vector2d(51, 11), Math.toRadians(SHOOTER_HEADING2))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
 
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(

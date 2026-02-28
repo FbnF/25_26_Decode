@@ -38,7 +38,7 @@ public class SmallBlueSimple extends LinearOpMode {
     public static final double INTAKE_POWER  = 0.73;
     public static double SHOOTER_POWER = 0.74;
 
-    public static double SHOOTER_VEL = 1746;
+    public static double SHOOTER_VEL = 1655;
     public static double SHOOTER_VEL2 = 1759;
 
 
@@ -86,14 +86,14 @@ public class SmallBlueSimple extends LinearOpMode {
         Action all = drive.actionBuilder(startPose)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_VEL))
-                .strafeToLinearHeading(new Vector2d(52, -10), Math.toRadians(200.55))
+                .strafeToLinearHeading(new Vector2d(52, -10), Math.toRadians(206.9))
                 .stopAndAdd(AutoMotorControl.setMotorPower(intake, 0.7))
                 .stopAndAdd(new AutoMotorControl.ShooterAndFeederCombined(
                         shooter, intake,feed ,SideServo
                         ,RangeSensor,SHOOTER_VEL,SIDE_POWER,StartWaitTime,
                         WaitTime))
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
-                .setTangent(Math.toRadians(200.55))
+                .setTangent(Math.toRadians(206.9))
                 .strafeToLinearHeading(new Vector2d(55, -35), Math.toRadians(180))
                 .build();
 
