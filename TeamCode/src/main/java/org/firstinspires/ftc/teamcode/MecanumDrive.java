@@ -63,17 +63,17 @@ public final class MecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
         // drive model parameters
-        public double inPerTick = 0.002934;
-        public double lateralInPerTick = 0.002152807647553116;
-        public double trackWidthTicks = 4686.225749980024;
+        public double inPerTick = 0.00296302;
+        public double lateralInPerTick = 0.0025350802093784415;
+        public double trackWidthTicks = 4492.980334909254;
 
         // feedforward parameters (in tick units)
-        public double kS = 0.965;//1.6225290253277156;
-        public double kV = 0.0005727; //0.0005729172663920725;//0.0005770632627021179;
+        public double kS = 1.2474958207785751;//1.6225290253277156;
+        public double kV = 0.00041357750551050736; //0.0005729172663920725;//0.0005770632627021179;
         public double kA = 0.0001;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 53;//50
+        public double maxWheelVel = 79;//79.4945036215;//53;//50
         //Auto code velocity
         public double minProfileAccel = -30;
         public double maxProfileAccel = 50;
@@ -139,8 +139,8 @@ public final class MecanumDrive {
             imu = lazyImu.get();
 
             // TODO: reverse encoders if needed
-               rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-               rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
             this.pose = pose;
         }
@@ -458,14 +458,14 @@ public final class MecanumDrive {
     public PoseVelocity2d updatePoseEstimate() {
         PoseVelocity2d vel = localizer.update();
         poseHistory.add(localizer.getPose());
-        
+
         while (poseHistory.size() > 100) {
             poseHistory.removeFirst();
         }
 
         estimatedPoseWriter.write(new PoseMessage(localizer.getPose()));
-        
-        
+
+
         return vel;
     }
 
