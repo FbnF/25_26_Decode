@@ -29,34 +29,35 @@ public class MeepMeepApp {
                         // First strafe and shoot
                         .setTangent(Math.toRadians(135))
                         .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(132))
-                        // collect second spike line
 
-                        .splineToLinearHeading(new Pose2d(17.5, 24,Math.toRadians(90)),Math.toRadians(90))
-
-                        .lineToY(52)
-                        .lineToY(45)
-                        .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(134))
-                        .strafeToLinearHeading(new Vector2d(10, 40), Math.toRadians(134))
-                        .strafeToLinearHeading(new Vector2d(10, 54), Math.toRadians(134))
-                        .waitSeconds(0.15)
-                        .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(134))
-
+                        // Shooter runs
                         // collect first spike line
-                        .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
+                        .splineToLinearHeading(new Pose2d(-1.7, 24,Math.toRadians(97)),Math.toRadians(97))
 
                         .lineToY(48)
                         .lineToY(45)
-
-//clear
-
-                        // Shooter runs
-
-
-                        .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(127))
-
-
+                        .strafeToLinearHeading(new Vector2d(-12, 20), Math.toRadians(150))
 
                         // Shooter runs
+
+                        // collect second spike line
+
+                        .splineToLinearHeading(new Pose2d(18.5, 24,Math.toRadians(95)),Math.toRadians(95))
+                        .lineToY(52)
+                        .lineToY(45)
+
+                        .strafeToLinearHeading(new Vector2d(-12, 20), Math.toRadians(150))
+
+
+
+                        // collect third spike line
+
+                        .strafeToLinearHeading(new Vector2d(37.5, 24), Math.toRadians(95))
+                        .lineToY(52)
+                        .lineToY(45)
+
+                        .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(130))
+
 
 
                         .build()

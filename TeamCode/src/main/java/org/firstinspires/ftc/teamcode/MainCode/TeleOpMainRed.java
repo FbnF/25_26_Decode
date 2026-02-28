@@ -4,11 +4,9 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -18,13 +16,16 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
 import org.firstinspires.ftc.teamcode.MainCode.util.Calculations;
 import org.firstinspires.ftc.teamcode.MainCode.util.TinyCsvLoggerFlex;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 import java.util.List;
 
@@ -37,9 +38,9 @@ public class TeleOpMainRed extends LinearOpMode {
     private CRServo sideServo;
     private MecanumDrive drive;
     private DcMotorEx intakeMotor;
-    private DcMotorEx launchMotor_1;
-    private DcMotorEx launchMotor_2;
-    private DcMotorEx KickMotor;
+    private DcMotorEx launchMotor1;
+    private DcMotorEx launchMotor2;
+    //  private RevBlinkinLedDriver blinkin;
     private VoltageSensor battery;
     private Servo puckLight;
 
@@ -60,10 +61,6 @@ public class TeleOpMainRed extends LinearOpMode {
     double rangeIn_dbg = 0;
     boolean hasGoalTag_dbg = false;
 
-    private boolean limelightNull = false;
-    private long limelightNullStartNs = 0;
-    private static final double LIMELIGHT_NULL_DELAY_S = 1.0;
-
     // Additional debug: base TPS values
     private double distIn_raw_dbg = 0.0;
     private double distIn_filt_dbg = 0.0;
@@ -72,7 +69,8 @@ public class TeleOpMainRed extends LinearOpMode {
     private double commandedBase_dbg = 0.0; // base TPS chosen BEFORE scale/offset (if any)
     private double finalTps_dbg = 0.0;// actual TPS commanded to motor
 
-    private double lastTPS = 0.0;      // actual TPS commanded to motor
+    private double lastTPS = 0.0;
+    public static double FACTOR  = 0.8;
     private boolean noShotZone_dbg = false;
 
     // --- Logging ---
@@ -88,10 +86,6 @@ public class TeleOpMainRed extends LinearOpMode {
     // flash window when Y pressed too soon OR no-shot zone
     private long yTooSoonFlashUntilNs = 0L;
     private static final long FLASH_YELLOW_NS = 500_000_000L;
-    private static double SECONDS = 1;
-    private boolean init;
-    private long t0;
-    public static double FACTOR = 0.8;
 
     // --- Drive/settings ---
     private double speedFactor = 1.2;
@@ -141,11 +135,16 @@ public class TeleOpMainRed extends LinearOpMode {
     private double alignErr_dbg = 0.0;
     private boolean alignActive_dbg = false;
 
+    private double SpeedServoDistance = 80;
+
     @Config
-    public static class TeleOpTuning {
+    public static class TeleOpTuningeRed {
         public static double velocity_scale = 0.6;
-        public static double angle_offset = -4;
-        public static double servo_speed=1.0;
+        public static double angle_offset = -0.4;
+        public static double far_angle_offset = 1.5;
+        public static double servo_speed=-1.0;
+        public static double far_servo_speed = -0.4;
+        public static double velocity_offset = 10;
 
     }
 
@@ -153,13 +152,12 @@ public class TeleOpMainRed extends LinearOpMode {
     public void runOpMode() {
 
         // Map hardware
-        feedServo = hardwareMap.get(CRServo.class, "feedServo");
-        sideServo = hardwareMap.get(CRServo.class, "sideServo");
+        feedServo   = hardwareMap.get(CRServo.class,     "feedServo");
+        sideServo   = hardwareMap.get(CRServo.class,     "sideServo");
         intakeMotor = hardwareMap.get(DcMotorEx.class, "IntakeMotor");
-        launchMotor_1 = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
-        launchMotor_2 = hardwareMap.get(DcMotorEx.class, "LaunchMotor_2");
-        KickMotor = hardwareMap.get(DcMotorEx.class, "KickMotor");
-        battery = hardwareMap.voltageSensor.iterator().next();
+        launchMotor1 = hardwareMap.get(DcMotorEx.class, "LaunchMotor");
+        launchMotor2 = hardwareMap.get(DcMotorEx.class, "LaunchMotor_2");
+        battery     = hardwareMap.voltageSensor.iterator().next();
 
         //   blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         // blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
@@ -175,24 +173,15 @@ public class TeleOpMainRed extends LinearOpMode {
         feedServo.setPower(0.0);
         sideServo.setPower(0.0);
 
-
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        launchMotor_1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        launchMotor_2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        KickMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        launchMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        launchMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
-        launchMotor_1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        launchMotor_2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launchMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launchMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        KickMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        KickMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        KickMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        launchMotor_1.setDirection(DcMotorEx.Direction.REVERSE);
-        launchMotor_2.setDirection(DcMotorEx.Direction.REVERSE);
-
-
-
+        launchMotor1.setDirection(DcMotor.Direction.REVERSE);
+        launchMotor2.setDirection(DcMotor.Direction.REVERSE);
 
         // Drive
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
@@ -209,8 +198,8 @@ public class TeleOpMainRed extends LinearOpMode {
                     TinyCsvLoggerFlex.doubleCol("tps_base_cmd", () -> commandedBase_dbg),
                     TinyCsvLoggerFlex.doubleCol("tps_final_cmd", () -> finalTps_dbg),
                     TinyCsvLoggerFlex.doubleCol("launch_cmd", () -> shooterSetpointTPS),
-                    TinyCsvLoggerFlex.motorEx("launch_1", launchMotor_1),
-                    TinyCsvLoggerFlex.motorEx("launch_2", launchMotor_2),
+                    TinyCsvLoggerFlex.motorEx("launch1", launchMotor1),
+                    TinyCsvLoggerFlex.motorEx("launch2", launchMotor2),
                     TinyCsvLoggerFlex.doubleCol("intake_cmd", () -> intakePower),
                     TinyCsvLoggerFlex.motorEx("intake", intakeMotor),
                     //    TinyCsvLoggerFlex.servoPos("feed_pos", feedServo),
@@ -221,11 +210,11 @@ public class TeleOpMainRed extends LinearOpMode {
         waitForStart();
 
         intakeMotor.setPower(0.0);
-        launchMotor_1.setPower(0.0);
-        launchMotor_2.setPower(0.0);
+        launchMotor1.setPower(0.0);
+        launchMotor2.setPower(0.0);
         PIDFCoefficients pidf_cur = new PIDFCoefficients(600, 5, 0, 15);
-        launchMotor_1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
-        launchMotor_2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        launchMotor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
+        launchMotor2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf_cur);
 
         try {
 
@@ -236,13 +225,8 @@ public class TeleOpMainRed extends LinearOpMode {
                 if (gamepad1.b) speedFactor = 0.4;
                 if (gamepad1.x) speedFactor = 0.7;
 
-                if(gamepad1.yWasPressed()){
-                    KickMotor.setTargetPosition(KickMotor.getCurrentPosition() + 380);
-                    KickMotor.setPower(1);
-                }
-
-                double axial = -gamepad1.right_stick_y * speedFactor;
-                double lateral = -gamepad1.left_stick_x * speedFactor;
+                double axial   = -gamepad1.right_stick_y * speedFactor;
+                double lateral = -gamepad1.left_stick_x  * speedFactor;
                 double headingManual = -gamepad1.right_stick_x * speedFactor;
 
                 // ---------------- Vision toggle ----------------
@@ -326,29 +310,19 @@ public class TeleOpMainRed extends LinearOpMode {
 
                     double tx = Tx;
 
-                    // Use same distance you already use for shooter logic (filtered)
-                    double dIn = (visInches != null) ? distIn_filt_dbg : Double.NaN;
-                    double[] win = ShooterConfig.lookupTxWindowFromDistanceInRED(dIn);
-                    double txMin = win[0];
-                    double txMax = win[1];
-
-                    txMin_dbg = txMin;
-                    txMax_dbg = txMax;
-
-                    if (tx < txMin || tx > txMax) {
-                        txTarget_dbg = TeleOpTuning.angle_offset;//(txMin + txMax) / 2;
+                    if(distIn_filt_dbg < SpeedServoDistance){
+                        txTarget_dbg = TeleOpTuningeRed.angle_offset;
                     } else {
-                        txTarget_dbg = tx; // already within range
+                        txTarget_dbg = TeleOpTuningeRed.far_angle_offset;
                     }
+                    ;//(txMin + txMax)/2;
 
-                    double err = txTarget_dbg - tx;   // want err -> 0
+                    double err =  txTarget_dbg - tx;   // want err -> 0
                     alignErr_dbg = err;
-
-                    if (Math.abs(err) <= ShooterConfig.ALIGN_ERR_DEADBAND_DEG) {
-                        headingCmd = 0.0;
-                    } else {
+                    if(Math.abs(alignErr_dbg) > 0.5){
                         headingCmd = computeAlignTurnFromErr(err);
                     }
+
 
                     alignActive_dbg = true;
                 } else {
@@ -376,7 +350,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
                     Double dIn = (visInches != null) ? distIn_filt_dbg : null;
 
-                    // Require: valid distance, above ignore floor, AND not in no-shot zone
+                    // Require: val\ distance, above ignore floor, AND not in no-shot zone
                     if (dIn != null && dIn >= ShooterConfig.MIN_RANGE_IN && !noShotZone) {
 
                         // 1) physics TPS (base)
@@ -394,7 +368,7 @@ public class TeleOpMainRed extends LinearOpMode {
                         physicsTps_dbg = physicsTps;
 
                         // 2) table TPS (base)
-                        double tableTps = ShooterConfig.lookupTpsFromDistanceInRED(dIn);
+                        double tableTps = ShooterConfig.lookupTpsFromDistanceIn(dIn);
                         tableTps_dbg = tableTps;
 
                         // 3) choose base TPS (ONE SWITCH)
@@ -409,47 +383,45 @@ public class TeleOpMainRed extends LinearOpMode {
 
                         finalTps_dbg = desired;
 
-
                         if (desired <= 0.0) {
-                                shooterSetpointTPS = 0.0;
-                                launchMotor_1.setPower(0.0);
-                                launchMotor_2.setPower(0.0);
-
+                            shooterSetpointTPS = 0.0;
+                            launchMotor1.setPower(0.0);
+                            launchMotor2.setPower(0.0);
                         } else {
+                            shooterSetpointTPS = desired*TeleOpTuningeRed.velocity_scale;
+                            if(distIn_filt_dbg > SpeedServoDistance){
+                                shooterSetpointTPS += TeleOpTuningeRed.velocity_offset;
+                            }
+                            launchMotor1.setVelocity(shooterSetpointTPS);
+                            launchMotor2.setVelocity(shooterSetpointTPS);
 
-                            shooterSetpointTPS = desired*0.6;
-                            launchMotor_1.setVelocity(shooterSetpointTPS);
-                            launchMotor_2.setVelocity(shooterSetpointTPS);
                         }
                         lastTPS = shooterSetpointTPS * FACTOR;
-
-
                     } else {
-                            shooterSetpointTPS = 0.0;
-                            launchMotor_1.setVelocity(lastTPS);
-                            launchMotor_2.setVelocity(lastTPS);
+                        shooterSetpointTPS = 0.0;
+                        launchMotor1.setVelocity(lastTPS);
+                        launchMotor2.setVelocity(lastTPS);
                     }
 
                 } else {
-                        shooterSetpointTPS = 0.0;
-                        launchMotor_1.setPower(0.0);
-                        launchMotor_2.setPower(0.0);
+                    shooterSetpointTPS = 0.0;
+                    launchMotor1.setPower(0.0);
+                    launchMotor2.setPower(0.0);
 
                 }
-
 
                 // ---------------- FEED LOGIC ----------------
                 boolean spunUpOk = false;
                 if (autoShooter && shooterSetpointTPS > 0.0) {
-                    double vel = launchMotor_1.getVelocity();
-                    double vel2 = launchMotor_2.getVelocity();
-                    spunUpOk = (Math.abs(vel - shooterSetpointTPS) <= ShooterConfig.TPS_TOL) && (Math.abs(vel2 - shooterSetpointTPS) <= ShooterConfig.TPS_TOL);
+                    double vel1 = launchMotor1.getVelocity();
+                    double vel2 = launchMotor2.getVelocity();
+                    spunUpOk = Math.abs(vel1 - shooterSetpointTPS) <= ShooterConfig.TPS_TOL && Math.abs(vel2 - shooterSetpointTPS) <= ShooterConfig.TPS_TOL;
                 }
 
                 // Angle gate: only allow feed if tag is found AND Tx is within the distance-based window.
                 boolean angleOk = false;
                 if (visionEnabled && hasGoalTag_dbg && ll != null && ll.isValid() && ll.getStaleness() < 100) {
-                    double[] win = ShooterConfig.lookupTxWindowFromDistanceInRED(distIn_filt_dbg);
+                    double[] win = ShooterConfig.lookupTxWindowFromDistanceIn(distIn_filt_dbg);
                     double txMin = win[0];
                     double txMax = win[1];
                     angleOk = (Tx >= txMin && Tx <= txMax);
@@ -460,41 +432,39 @@ public class TeleOpMainRed extends LinearOpMode {
                 Double dIn = (visInches != null) ? distIn_filt_dbg : null;
                 boolean useFeedTable = ShooterConfig.USE_FEED_TABLE;
                 double tableFeedPower = 0;
-                if (dIn == null) {
-                    tableFeedPower = 0;
-                } else {
-                    tableFeedPower = ShooterConfig.getFeedPowerAtDistanceBLUE(dIn);
-                }
+                if (dIn == null){tableFeedPower = 0;}
+                else {tableFeedPower = ShooterConfig.getFeedPowerAtDistanceBLUE(dIn);}
                 double tableSidePower = 0;
-                if (dIn == null) {
-                    tableSidePower = 0;
-                } else {
-                    tableSidePower = ShooterConfig.getSidePowerAtDistanceRED(dIn) ;
-                }
+                if (dIn == null){tableSidePower = 0;}
+                else {tableSidePower = ShooterConfig.getSidePowerAtDistanceRED(dIn);}
                 double feedDefault = ShooterConfig.FEED_DEFAULT;
                 double sideDefault = ShooterConfig.SIDE_DEFAULT;
 
                 if (gamepad2.y) {
-                    if (feedAllowed && useFeedTable) {
+                    if (feedAllowed&&useFeedTable){
                         feedPower = tableFeedPower;
-                        if (feedPower < -1.0) {
+                        if (feedPower < - 1.0){
                             feedPower = -1.0;
                         }
-                        if (feedPower > 0.0) {
+                        if (feedPower > 0.0){
                             feedPower = 0.0;
                         }
 
                         intakePower = 1;
                         sidePower = tableSidePower;
-                        if (sidePower > 1.0) {
+                        if (sidePower > 1.0){
                             sidePower = 1.0;
                         }
-                        if (sidePower < 0.0) {
+                        if (sidePower < 0.0){
                             sidePower = 0.0;
                         }
                     }
-                    if (feedAllowed && !useFeedTable) {
-                        feedPower = feedDefault;
+                    if (feedAllowed&&!useFeedTable) {
+                        if(distIn_filt_dbg > SpeedServoDistance){
+                            feedPower = TeleOpTuningeRed.far_servo_speed;
+                        } else {
+                            feedPower = TeleOpTuningeRed.servo_speed;
+                        }
                         intakePower = 1;
                         sidePower = sideDefault;
                     }
@@ -503,8 +473,8 @@ public class TeleOpMainRed extends LinearOpMode {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
 
-                if (gamepad2.x) {
-                    feedPower = 0;
+                if(gamepad2.x){
+                    feedPower=0;
                     sidePower = 1.0;
                     intakePower = 1;
                 }
@@ -518,7 +488,7 @@ public class TeleOpMainRed extends LinearOpMode {
 
                 prevRB = gamepad2.right_bumper;
 
-                if (gamepad2.right_trigger > 0) {
+                if (gamepad2.right_trigger > 0){
                     intakePower = 1;
                     sidePower = 1;
 
@@ -527,10 +497,10 @@ public class TeleOpMainRed extends LinearOpMode {
                     intakePower = 0.0;
                     sidePower = 0;
                     feedPower = 0;
-
                 }
                 intakeMotor.setPower(intakePower);
                 sideServo.setPower(sidePower);
+
 
                 // ---------------- LEDs ----------------
                 if (!visionEnabled) {
@@ -544,7 +514,7 @@ public class TeleOpMainRed extends LinearOpMode {
                         puckLight.setPosition(0.368);
                     } else {
                         boolean atSpeed = spunUpOk && autoSpinArmed;
-                        if (atSpeed) {
+                        if(atSpeed){
                             puckLight.setPosition(0.622);
                         } else {
                             puckLight.setPosition(0.368);
@@ -596,7 +566,8 @@ public class TeleOpMainRed extends LinearOpMode {
                 telemetry.addData("GOAL_TAG_ID", GOAL_TAG_ID);
                 telemetry.addData("rangeRawIn", "%.2f", distIn_raw_dbg);
                 telemetry.addData("rangeFiltIn", "%.2f", distIn_filt_dbg);
-                telemetry.addData("Tx", Tx);
+                telemetry.addData("Tx",  Tx);
+                telemetry.addData("HeadingCMD", headingCmd);
                 telemetry.addData("Ty", Ty);
 
                 telemetry.addLine("---- Align Window (Tx) ----");
@@ -623,10 +594,10 @@ public class TeleOpMainRed extends LinearOpMode {
                 telemetry.addLine("---- Shooter State ----");
                 telemetry.addData("Armed", autoSpinArmed);
                 telemetry.addData("Setpoint TPS", "%.0f", shooterSetpointTPS);
-                telemetry.addData("Actual TPS", "%.0f", launchMotor_1.getVelocity());
-                telemetry.addData("Err", "%.0f", (launchMotor_1.getVelocity() - shooterSetpointTPS));
-                telemetry.addData("Actual TPS", "%.0f", launchMotor_2.getVelocity());
-                telemetry.addData("Err", "%.0f", (launchMotor_2.getVelocity() - shooterSetpointTPS));
+                telemetry.addData("Actual TPS L1", "%.0f", launchMotor1.getVelocity());
+                telemetry.addData("Actual TPS L2", "%.0f", launchMotor2.getVelocity());
+                telemetry.addData("Err1", "%.0f", (launchMotor1.getVelocity() - shooterSetpointTPS/2));
+                telemetry.addData("Err2", "%.0f", (launchMotor2.getVelocity() - shooterSetpointTPS/2));
                 telemetry.addData("Ready", spunUpOk);
                 telemetry.addData("FeedAllowed", feedAllowed);
 
@@ -635,8 +606,8 @@ public class TeleOpMainRed extends LinearOpMode {
             }
 
         } finally {
-            launchMotor_1.setPower(0.0);
-            launchMotor_2.setPower(0.0);
+            launchMotor1.setPower(0.0);
+            launchMotor2.setPower(0.0);
             intakeMotor.setPower(0.0);
             if (LOG_ENABLED && logger != null) logger.close();
         }
@@ -653,12 +624,15 @@ public class TeleOpMainRed extends LinearOpMode {
         prevAlignErr = errDeg;
 
         double u = ShooterConfig.ALIGN_KP * errDeg + ShooterConfig.ALIGN_KD * derr;
+        // double u = ShooterConfig.ALIGN_KP * errDeg;
+
 
         if (u > ShooterConfig.ALIGN_MAX_TURN) u = ShooterConfig.ALIGN_MAX_TURN;
         if (u < -ShooterConfig.ALIGN_MAX_TURN) u = -ShooterConfig.ALIGN_MAX_TURN;
 
         if (Math.abs(u) > 0.0 && Math.abs(u) < ShooterConfig.ALIGN_MIN_TURN) {
-            u = Math.copySign(ShooterConfig.ALIGN_MIN_TURN, u);
+            //  u = Math.copySign(ShooterConfig.ALIGN_MIN_TURN, u);
+            u = 0;
         }
 
         return u;
@@ -705,18 +679,4 @@ public class TeleOpMainRed extends LinearOpMode {
 
         return null;
     }
-
-    public boolean waitForSeconds(double Seconds) {
-        if (!init) {
-            init = true;
-            t0 = System.nanoTime();
-        }
-        double t = (System.nanoTime() - t0) / 1e9;
-        if (t >= Seconds) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 }
-

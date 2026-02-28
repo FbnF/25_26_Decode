@@ -134,11 +134,17 @@ public class TeleOPMainBlue extends LinearOpMode {
     private double txTarget_dbg = 0.0;
     private double alignErr_dbg = 0.0;
     private boolean alignActive_dbg = false;
+
+    private double SpeedServoDistance = 80;
+
     @Config
-    public static class TeleOpTuning {
-        public static double velocity_scale = 0.6;
-        public static double angle_offset = 4;
-        public static double servo_speed=1.0;
+    public static class TeleOpTuningBlue {
+        public static double velocity_scale = 1.0;
+        public static double angle_offset = -0.4;
+        public static double far_angle_offset = 1.5;
+        public static double servo_speed=-1.0;
+        public static double far_servo_speed = -0.4;
+        public static double velocity_offset = 0;
 
     }
 
@@ -304,29 +310,19 @@ public class TeleOPMainBlue extends LinearOpMode {
 
                     double tx = Tx;
 
-                    // Use same distance you already use for shooter logic (filtered)
-                    double dIn = (visInches != null) ? distIn_filt_dbg : Double.NaN;
-                    double[] win = ShooterConfig.lookupTxWindowFromDistanceIn(dIn);
-                    double txMin = win[0];
-                    double txMax = win[1];
-
-                    txMin_dbg = txMin;
-                    txMax_dbg = txMax;
-
-                    if(tx < txMin || tx > txMax){
-                        txTarget_dbg = TeleOpTuning.angle_offset;//(txMin + txMax)/2;
+                    if(distIn_filt_dbg < SpeedServoDistance){
+                        txTarget_dbg = TeleOpTuningBlue.angle_offset;
                     } else {
-                        txTarget_dbg = tx; // already within range
+                        txTarget_dbg = TeleOpTuningBlue.far_angle_offset;
                     }
+                 ;//(txMin + txMax)/2;
 
                     double err =  txTarget_dbg - tx;   // want err -> 0
                     alignErr_dbg = err;
-
-                    if (Math.abs(err) <= ShooterConfig.ALIGN_ERR_DEADBAND_DEG) {
-                        headingCmd = 0.0;
-                    } else {
+                    if(Math.abs(alignErr_dbg) > 0.5){
                         headingCmd = computeAlignTurnFromErr(err);
                     }
+
 
                     alignActive_dbg = true;
                 } else {
@@ -392,7 +388,10 @@ public class TeleOPMainBlue extends LinearOpMode {
                             launchMotor1.setPower(0.0);
                             launchMotor2.setPower(0.0);
                         } else {
-                            shooterSetpointTPS = desired*TeleOpTuning.velocity_scale;
+                            shooterSetpointTPS = desired*TeleOpTuningBlue.velocity_scale;
+                            if(distIn_filt_dbg > SpeedServoDistance){
+                                shooterSetpointTPS += TeleOpTuningBlue.velocity_offset;
+                            }
                             launchMotor1.setVelocity(shooterSetpointTPS);
                             launchMotor2.setVelocity(shooterSetpointTPS);
 
@@ -461,7 +460,11 @@ public class TeleOPMainBlue extends LinearOpMode {
                         }
                     }
                     if (feedAllowed&&!useFeedTable) {
-                        feedPower = feedDefault;
+                        if(distIn_filt_dbg > SpeedServoDistance){
+                            feedPower = TeleOpTuningBlue.far_servo_speed;
+                        } else {
+                            feedPower = TeleOpTuningBlue.servo_speed;
+                        }
                         intakePower = 1;
                         sidePower = sideDefault;
                     }
@@ -564,6 +567,7 @@ public class TeleOPMainBlue extends LinearOpMode {
                 telemetry.addData("rangeRawIn", "%.2f", distIn_raw_dbg);
                 telemetry.addData("rangeFiltIn", "%.2f", distIn_filt_dbg);
                 telemetry.addData("Tx",  Tx);
+                telemetry.addData("HeadingCMD", headingCmd);
                 telemetry.addData("Ty", Ty);
 
                 telemetry.addLine("---- Align Window (Tx) ----");
@@ -620,12 +624,15 @@ public class TeleOPMainBlue extends LinearOpMode {
         prevAlignErr = errDeg;
 
         double u = ShooterConfig.ALIGN_KP * errDeg + ShooterConfig.ALIGN_KD * derr;
+       // double u = ShooterConfig.ALIGN_KP * errDeg;
+
 
         if (u > ShooterConfig.ALIGN_MAX_TURN) u = ShooterConfig.ALIGN_MAX_TURN;
         if (u < -ShooterConfig.ALIGN_MAX_TURN) u = -ShooterConfig.ALIGN_MAX_TURN;
 
         if (Math.abs(u) > 0.0 && Math.abs(u) < ShooterConfig.ALIGN_MIN_TURN) {
-            u = Math.copySign(ShooterConfig.ALIGN_MIN_TURN, u);
+          //  u = Math.copySign(ShooterConfig.ALIGN_MIN_TURN, u);
+            u = 0;
         }
 
         return u;

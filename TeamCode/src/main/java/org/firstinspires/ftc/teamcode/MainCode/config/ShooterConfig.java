@@ -62,9 +62,9 @@ public final class ShooterConfig {
     public static boolean AUTO_ALIGN_ENABLED = true;
 
     // Controller knobs (dashboard-tunable)
-    public static double ALIGN_KP = 0.02;
+    public static double ALIGN_KP = 0.04                ;
     public static double ALIGN_KD = 0.00045;
-    public static double ALIGN_MAX_TURN = 0.7;
+    public static double ALIGN_MAX_TURN = 1;
     public static double ALIGN_MIN_TURN = 0.08;
     public static double ALIGN_ERR_DEADBAND_DEG = 0.25;
     public static double ALIGN_MAX_STALE_MS = 100;
@@ -76,7 +76,8 @@ public final class ShooterConfig {
     };
 
     public static double[] TPS_AT_DIST = new double[] {
-            1297 ,1331 ,1359 ,1329 ,1342 ,1386 ,1462 ,1746 ,1787 ,1806
+            778.2,798.6,815.4,797.4,805.2,831.6,877.2,1047.6,1072.2,1083.6
+           // 1297 ,1331 ,1359 ,1329 ,1342 ,1386 ,1462 ,1746 ,1787 ,1806
            // 1366 ,1429 ,1367 ,1488 ,1455 ,1538 ,1559 ,1681 ,1733 ,1736 ,1794 ,1888
             //1425.92,1440.12,1421.64 ,1423.18, 1417.68,1507.04, 1526.44, 1618.7,1742.12, 1697.36, 1754.1, 1780.68,1787, 1829.85,
             //1676, 1635, 1738, 1830, 1947, 1990, 2012, 2065,
@@ -91,14 +92,14 @@ public final class ShooterConfig {
     //added 3 to all the mins
     public static double[] MIN_ANGLE_BLUE = new double[] {
             -8.92 ,-8 ,-7.08 ,-10.81 ,-10.61 ,-9.6 ,-6.95 ,-2.9 ,-2.6 ,-3.8
-            //-11.1 ,-8.36 ,-9.81 ,-6.25,-8.02,-10.65 ,-8.7 ,-8.8 ,-5.4 ,-6.39 ,-0.21 ,-5.72
+            //-11.1 ,-8.36 ,-9.81 ,-6.25,-8.02,-10.65 ,-8.7 ,-8.8   ,-5.4 ,-6.39 ,-0.21 ,-5.72
              };
     public static double[] MAX_ANGLE_BLUE = new double[] {
             4.47 ,-4.5 ,-0.52 ,-4.7,2.37,2.1 ,3 ,1.42 ,0 ,0.58
             //0.801,0.4,3.45,0.91,4.64 ,-1.45 ,-2.69 ,-2.6,1.14,1.27,0.08,-1.68
              };
     public static double[] FEED_POWER_AT_DIST_BLUE = new double[] {
-            -1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-0.9 ,-0.45 ,-0.42 ,-0.4
+            -1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-0.9 ,-0.4 ,-0.35 ,-0.3
     };
 
 
