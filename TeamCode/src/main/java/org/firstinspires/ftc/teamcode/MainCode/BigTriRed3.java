@@ -30,8 +30,8 @@ public class BigTriRed3 extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1325;
-    private static final double SHOOTER_Vel_2 = 1340;
+    private static final double SHOOTER_Vel = 1190;
+    private static final double SHOOTER_Vel_2 = 1200;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 1.2;

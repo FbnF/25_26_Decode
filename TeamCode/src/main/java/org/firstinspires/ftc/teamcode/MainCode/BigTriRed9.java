@@ -31,13 +31,15 @@ public class BigTriRed9 extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1310;
-    private static final double SHOOTER_Vel_2 = 1320;
+    private static final double SHOOTER_Vel = 1200;
+    private static final double SHOOTER_Vel_2 = 1240;
+    private static final double SHOOTER_Vel_3 = 1180;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.7;
     private static final double WAIT_TIME_Start = 1.1;
     private static final double SHOOT_TIME = 4;
+    private static final double SHOOT_TIME_2 = 5;
     private static final double sidePower = -0.9;
 
 
@@ -65,53 +67,54 @@ public class BigTriRed9 extends LinearOpMode {
         // Build one continuous action so pose/tangent carry correctly between segments.
         Action all = drive.actionBuilder(startPose)
                 // First strafe and shoot
+                // First strafe and shoot
                 .setTangent(Math.toRadians(135))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(132))
+                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(127))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, sidePower,
+                        SHOOTER_Vel_3, sidePower,
                         WAIT_TIME_Start,SHOOT_TIME))
 
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
                 // collect first spike line
-                .splineToLinearHeading(new Pose2d(-5, 24,Math.toRadians(90)),Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(-3, 24,Math.toRadians(94)),Math.toRadians(94))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .lineToY(48)
                 .lineToY(45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
-
+//clear
+                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(138))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel_2, sidePower,
+                        SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
 
                 // collect second spike line
 
-                .splineToLinearHeading(new Pose2d(17.5, 24,Math.toRadians(90)),Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(18.5, 24,Math.toRadians(97)),Math.toRadians(97))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .lineToY(52)
                 .lineToY(45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
 
-                .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(123))
+                .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(127))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
                         SHOOTER_Vel_2, sidePower,
-                        WAIT_TIME,SHOOT_TIME))
+                        WAIT_TIME,SHOOT_TIME_2))
 
                 .build();
 
