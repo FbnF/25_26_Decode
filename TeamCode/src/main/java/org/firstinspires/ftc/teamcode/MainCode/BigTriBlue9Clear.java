@@ -32,14 +32,13 @@ public class BigTriBlue9Clear extends LinearOpMode {
 
     // Tunables
     private static final double INTAKE_POWER  = 0.0;
-    private static final double SHOOTER_Vel = 1315;
-    private static final double SHOOTER_Vel_1 = 1307;
-    private static final double SHOOTER_Vel_2 = 1317;
+    private static final double SHOOTER_Vel = 1200;
+    private static final double SHOOTER_Vel_2 = 1220;
 
     // Feed schedule at the stop (seconds from start of the shooter action)
     private static final double WAIT_TIME = 0.7;
-    private static final double WAIT_TIME_Start = 1.1;
-    private static final double SHOOT_TIME = 4;
+    private static final double WAIT_TIME_Start = 0.7;
+    private static final double SHOOT_TIME = 4.5;
     private static final double sidePower = -0.9;
 
 
@@ -69,19 +68,19 @@ public class BigTriBlue9Clear extends LinearOpMode {
                 // First strafe and shoot
                 .setTangent(Math.toRadians(225))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(227))
+                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(232))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel_1, sidePower,
+                        SHOOTER_Vel, sidePower,
                         WAIT_TIME_Start,SHOOT_TIME))
 
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
                 // collect first spike line
-                .splineToLinearHeading(new Pose2d(-8.5, -24,Math.toRadians(270)),Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(-8.5, -24,Math.toRadians(270)),Math.toRadians(263))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .lineToY(-48)
                 .lineToY(-45)
@@ -89,34 +88,34 @@ public class BigTriBlue9Clear extends LinearOpMode {
                 .stopAndAdd(setCRServoPower(side,0.0))
                 //Clear
                 .strafeToLinearHeading(new Vector2d(2, -40), Math.toRadians(0))
-                .strafeToLinearHeading(new Vector2d(2, -52), Math.toRadians(0))
+                .strafeToLinearHeading(new Vector2d(2, -54), Math.toRadians(0))
                 .waitSeconds(0.15)
-                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(221))
+                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(226))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel, sidePower,
+                        SHOOTER_Vel_2, sidePower,
                         WAIT_TIME,SHOOT_TIME))
                 .stopAndAdd(setMotorPower(intake, 1.0))
                 .stopAndAdd(setCRServoPower(side,1.0))
 
                 // collect second spike line
 
-                .splineToLinearHeading(new Pose2d(16, -24,Math.toRadians(270)),Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(16, -24,Math.toRadians(266)),Math.toRadians(266))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel))
                 .lineToY(-52)
                 .lineToY(-45)
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
 
-                .strafeToLinearHeading(new Vector2d(-29, -11.5), Math.toRadians(233.5))
+                .strafeToLinearHeading(new Vector2d(-29, -11.5), Math.toRadians(235))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,
                         feed, side, distance,
-                        SHOOTER_Vel_2, sidePower,
+                        SHOOTER_Vel, sidePower,
                         WAIT_TIME,SHOOT_TIME))
 
                 .build();
