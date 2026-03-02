@@ -21,6 +21,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.MainCode.config.ShooterConfig;
@@ -133,6 +134,8 @@ public class TeleOpMainBlue extends LinearOpMode {
     private double alignErr_dbg = 0.0;
     private boolean alignActive_dbg = false;
     public static double Velocity_Factor = 0.96;
+
+    private boolean isLoaded;
 
     @Override
     public void runOpMode() {
@@ -420,30 +423,36 @@ public class TeleOpMainBlue extends LinearOpMode {
                 double sideDefault = ShooterConfig.SIDE_DEFAULT;
 
                 if (gamepad2.y) {
-                    if (feedAllowed&&useFeedTable){
-                        feedPower = tableFeedPower;
-                        if (feedPower < - 1.0){
-                            feedPower = -1.0;
+                    if(spunUpOk && isLoaded){
+                        if (feedAllowed&&useFeedTable){
+                            feedPower = tableFeedPower;
+                            if (feedPower < - 1.0){
+                                feedPower = -1.0;
+                            }
+                            if (feedPower > 0.0){
+                                feedPower = 0.0;
+                            }
+
+                            intakePower = 1;
+                            sidePower = tableSidePower;
+                            if (sidePower > 1.0){
+                                sidePower = 1.0;
+                            }
+                            if (sidePower < 0.0){
+                                sidePower = 0.0;
+                            }
                         }
-                        if (feedPower > 0.0){
-                            feedPower = 0.0;
+                        if (feedAllowed&&!useFeedTable) {
+                            feedPower = feedDefault;
+                            intakePower = 1;
+                            sidePower = sideDefault;
                         }
 
-                        intakePower = 1;
-                        sidePower = tableSidePower;
-                        if (sidePower > 1.0){
-                            sidePower = 1.0;
-                        }
-                        if (sidePower < 0.0){
-                            sidePower = 0.0;
-                        }
-                    }
-                    if (feedAllowed&&!useFeedTable) {
-                        feedPower = feedDefault;
-                        intakePower = 1;
-                        sidePower = sideDefault;
                     }
 
+                    if(!spunUpOk && !isLoaded){
+                        feedPower = 0.0;
+                    }
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
@@ -496,6 +505,15 @@ public class TeleOpMainBlue extends LinearOpMode {
                         }
                     }
                 }
+
+
+                if(RangeSensor.getDistance(DistanceUnit.MM) >= 107){
+                    isLoaded = false;
+                } else {
+                    isLoaded = true;
+                }
+
+
                 feedServo.setPower(feedPower);
 
                 // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold
