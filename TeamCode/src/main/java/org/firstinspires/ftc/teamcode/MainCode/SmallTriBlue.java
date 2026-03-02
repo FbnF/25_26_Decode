@@ -42,7 +42,7 @@ public class SmallTriBlue extends LinearOpMode {
     public static double SHOOTER_VEL2 = 1600;
 
 
-    public static double WaitTime = 10.5;
+    public static double WaitTime = 10;
     public static double StartWaitTime = 2;
     public static double SIDE_POWER = -0.155;
     public static double HEADING_1 = 205.7;
@@ -115,7 +115,7 @@ public class SmallTriBlue extends LinearOpMode {
 
                 //.turn(Math.toRadians(ANGLE_OF_TURN))
                 .setTangent(Math.toRadians(HEADING_2))
-                .strafeToLinearHeading(new Vector2d(55, -35), Math.toRadians(180))
+                .strafeToLinearHeading(new Vector2d(29.3, -36), Math.toRadians(270))
                 .build();
 
         Actions.runBlocking(all);

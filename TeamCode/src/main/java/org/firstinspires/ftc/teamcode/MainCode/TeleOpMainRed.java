@@ -142,6 +142,7 @@ public class TeleOpMainRed extends LinearOpMode {
     private double txTarget_dbg = 0.0;
     private double alignErr_dbg = 0.0;
     private boolean alignActive_dbg = false;
+    public static double Velocity_Factor = 0.96;
 
     @Override
     public void runOpMode() {
@@ -386,7 +387,7 @@ public class TeleOpMainRed extends LinearOpMode {
                                 launchMotor.setPower(0.0);
 
                         } else {
-                            shooterSetpointTPS = desired;
+                            shooterSetpointTPS = desired * Velocity_Factor;
                             launchMotor.setVelocity(shooterSetpointTPS);
                         }
                         lastTPS = shooterSetpointTPS * FACTOR;
