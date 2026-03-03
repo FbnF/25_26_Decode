@@ -443,7 +443,6 @@ public class TeleOpMainRed extends LinearOpMode {
                 double sideDefault = ShooterConfig.SIDE_DEFAULT;
 
                 if (gamepad2.y) {
-                    if(spunUpOk && isLoaded) {
                         if (feedAllowed && useFeedTable) {
                             feedPower = tableFeedPower;
                             if (feedPower < -1.0) {
@@ -467,9 +466,7 @@ public class TeleOpMainRed extends LinearOpMode {
                             intakePower = 1;
                             sidePower = sideDefault;
                         }
-                    } else if(!spunUpOk && !isLoaded){
-                        feedPower = 0.0;
-                    }
+
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
@@ -530,6 +527,9 @@ public class TeleOpMainRed extends LinearOpMode {
                 }
 
 
+                if(!spunUpOk && !isLoaded){
+                    feedPower = 0.0;
+                }
                 feedServo.setPower(feedPower);
 
                 // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold
