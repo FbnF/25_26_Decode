@@ -477,12 +477,6 @@ public class TeleOpMainRed extends LinearOpMode {
                     intakePower = 1;
                 }
 
-                if(gamepad1.dpad_left){
-                    drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), -0.1));
-                } else if (gamepad1.dpad_right){
-                    drive.setDrivePowers(new PoseVelocity2d(new Vector2d(axial, lateral), 0.1));
-                }
-
                 // ---------------- INTAKE ----------------
                 boolean rbEdge = gamepad2.right_bumper && !prevRB;
                 if (rbEdge) {
@@ -536,9 +530,6 @@ public class TeleOpMainRed extends LinearOpMode {
                 if(!spunUpOk && !isLoaded){
                     feedPower = 0.0;
                 }
-
-
-
                 feedServo.setPower(feedPower);
 
                 // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold
