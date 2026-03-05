@@ -22,7 +22,7 @@ GAMEPAD 1  (DRIVER)
 GAMEPAD 2  (OPERATOR)
 ------------------------------------------------------------
  D-Pad Up                           Switch to AUTO shooter mode
- D-Pad Down                         Switch to MANUAL shooter mode
+ D-Pad Down                         Eject Artifact
  D-Pad Right                        Arm/Disarm auto-spin (AUTO mode only)
  D-Pad Left                         Toggle Vision (on/off)
 

@@ -145,6 +145,11 @@ public class TeleOpMainRed extends LinearOpMode {
     public static double Velocity_Factor = 0.96;
     private boolean isLoaded;
 
+    private  boolean isEjecting = false;
+    public static double EjectPower = -0.7;
+    public static double EjectTime = 0.25;
+    private long n0;
+
 
     @Override
     public void runOpMode() {
@@ -443,7 +448,6 @@ public class TeleOpMainRed extends LinearOpMode {
                 double sideDefault = ShooterConfig.SIDE_DEFAULT;
 
                 if (gamepad2.y) {
-                    if(spunUpOk && isLoaded) {
                         if (feedAllowed && useFeedTable) {
                             feedPower = tableFeedPower;
                             if (feedPower < -1.0) {
@@ -467,9 +471,7 @@ public class TeleOpMainRed extends LinearOpMode {
                             intakePower = 1;
                             sidePower = sideDefault;
                         }
-                    } else if(!spunUpOk && !isLoaded){
-                        feedPower = 0.0;
-                    }
+
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
@@ -500,6 +502,22 @@ public class TeleOpMainRed extends LinearOpMode {
                     feedPower = 0;
 
                 }
+
+                if(gamepad2.left_bumper && !isEjecting){
+                    n0 = System.nanoTime();
+                    intakePower = EjectPower;
+                    isEjecting = true;
+                }
+
+                if(isEjecting){
+                    long now = System.nanoTime();
+                    double time = (now - n0) / 1e9;
+                    if(time >= EjectTime){
+                        intakePower = 0;
+                        isEjecting = false;
+                    }
+                }
+
                 intakeMotor.setPower(intakePower);
                 sideServo.setPower(sidePower);
 
@@ -523,13 +541,17 @@ public class TeleOpMainRed extends LinearOpMode {
                     }
                 }
 
-                if(RangeSensor.getDistance(DistanceUnit.MM) >= 107){
+                if(RangeSensor.getDistance(DistanceUnit.MM) >= 170){
                     isLoaded = false;
                 } else {
                     isLoaded = true;
                 }
 
 
+
+                if(!spunUpOk && !isLoaded){
+                    feedPower = 0.0;
+                }
                 feedServo.setPower(feedPower);
 
                 // If Y pressed when not allowed (not at speed OR no-shot zone), flash gold

@@ -123,6 +123,10 @@ public class TeleOpMainBlue extends LinearOpMode {
     // Tunables
     private static final int FLASH_AMOUNT = 10;
     private static final long BLINK_INTERVAL_MS = 200;
+    private  boolean isEjecting = false;
+    public static double EjectPower = -0.7;
+    public static double EjectTime = 0.25;
+    private long n0;
     // ---------------- Auto-align state (added) ----------------
     private double prevAlignErr = 0.0;
     private long prevAlignNs = 0L;
@@ -229,6 +233,8 @@ public class TeleOpMainBlue extends LinearOpMode {
                     Tx = ll.getTx();
                     Ty = ll.getTy();
                 }
+
+
 
                 Double visInches = getVisionDistanceInches(ll);
 
@@ -423,7 +429,6 @@ public class TeleOpMainBlue extends LinearOpMode {
                 double sideDefault = ShooterConfig.SIDE_DEFAULT;
 
                 if (gamepad2.y) {
-                    if(spunUpOk && isLoaded){
                         if (feedAllowed&&useFeedTable){
                             feedPower = tableFeedPower;
                             if (feedPower < - 1.0){
@@ -447,12 +452,6 @@ public class TeleOpMainBlue extends LinearOpMode {
                             intakePower = 1;
                             sidePower = sideDefault;
                         }
-
-                    }
-
-                    if(!spunUpOk && !isLoaded){
-                        feedPower = 0.0;
-                    }
                 } else if (!feedAllowed) {
                     yTooSoonFlashUntilNs = System.nanoTime() + FLASH_YELLOW_NS;
                 }
@@ -461,6 +460,21 @@ public class TeleOpMainBlue extends LinearOpMode {
                     feedPower=0;
                     sidePower = 1.0;
                     intakePower = 1;
+                }
+
+                if(gamepad2.left_bumper && !isEjecting){
+                    n0 = System.nanoTime();
+                    intakePower = EjectPower;
+                    isEjecting = true;
+                }
+
+                if(isEjecting){
+                    long now = System.nanoTime();
+                    double time = (now - n0) / 1e9;
+                    if(time >= EjectTime){
+                        intakePower = 0;
+                        isEjecting = false;
+                    }
                 }
 
                 // ---------------- INTAKE ----------------
@@ -482,6 +496,25 @@ public class TeleOpMainBlue extends LinearOpMode {
                     sidePower = 0;
                     feedPower = 0;
                 }
+
+
+                if(gamepad2.dpad_down && !isEjecting){
+                    n0 = System.nanoTime();
+                    intakePower = EjectPower;
+                    sidePower = EjectPower;
+                    isEjecting = true;
+                }
+
+                if(isEjecting){
+                    long now = System.nanoTime();
+                    double time = (now - n0) / 1e9;
+                    if(time >= EjectTime){
+                        intakePower = 0;
+                        sidePower = 0;
+                        isEjecting = false;
+                    }
+                }
+
                 intakeMotor.setPower(intakePower);
                 sideServo.setPower(sidePower);
 
@@ -507,12 +540,16 @@ public class TeleOpMainBlue extends LinearOpMode {
                 }
 
 
-                if(RangeSensor.getDistance(DistanceUnit.MM) >= 107){
+                if(RangeSensor.getDistance(DistanceUnit.MM) >= 170){
                     isLoaded = false;
                 } else {
                     isLoaded = true;
                 }
 
+
+                if(!spunUpOk && !isLoaded){
+                    feedPower = 0.0;
+                }
 
                 feedServo.setPower(feedPower);
 
