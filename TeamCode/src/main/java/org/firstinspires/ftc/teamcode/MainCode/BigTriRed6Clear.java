@@ -45,7 +45,7 @@ public class BigTriRed6Clear extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(90));//Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
+        Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(0));//Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(90));//Pose2d startPose = new Pose2d(-48, 48, Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
