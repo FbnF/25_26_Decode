@@ -47,7 +47,7 @@ public class BigTriRed9Clear extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Start at origin, heading = 0 rad (east)
-        Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(0));//Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(90)); //-48, 48, Math.toRadians(135));
+        Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(90));//Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(0));//Pose2d startPose = new Pose2d(-57, 36, Math.toRadians(90)); //-48, 48, Math.toRadians(135));
         MecanumDrive drive = new MecanumDrive(hardwareMap, startPose);
 
         DcMotor intake        = hardwareMap.get(DcMotor.class, INTAKE_MOTOR);
@@ -69,7 +69,7 @@ public class BigTriRed9Clear extends LinearOpMode {
                 // First strafe and shoot
                 .setTangent(Math.toRadians(135))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(127))
+                .strafeToLinearHeading(new Vector2d(-22, 20), Math.toRadians(130))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
@@ -110,7 +110,7 @@ public class BigTriRed9Clear extends LinearOpMode {
                 .stopAndAdd(setMotorPower(intake, 0.0))
                 .stopAndAdd(setCRServoPower(side,0.0))
 
-                .strafeToLinearHeading(new Vector2d(-29, 11.5), Math.toRadians(127))
+                .strafeToLinearHeading(new Vector2d(-31, 11.5), Math.toRadians(127))
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
                         shooter, intake,

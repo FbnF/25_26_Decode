@@ -68,7 +68,7 @@ public class BigTriBlue9 extends LinearOpMode {
                 // First strafe and shoot
                 .setTangent(Math.toRadians(225))
                 .stopAndAdd(setMotorVel(shooter, SHOOTER_Vel)) //start up motor
-                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(227))
+                .strafeToLinearHeading(new Vector2d(-20, -20), Math.toRadians(230))
 
                 // Shooter runs
                 .stopAndAdd(new  ShooterAndFeederCombined(
